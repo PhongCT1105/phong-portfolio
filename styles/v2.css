@@ -14,9 +14,22 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .hero2__statement { margin-top: 34px; font-size: clamp(22px, 2.4vw, 34px); letter-spacing: -.02em; font-weight: 500; }
 .hero2__sub { margin-top: 14px; max-width: 620px; color: var(--muted); font-size: clamp(14px, 1.3vw, 17px); line-height: 1.6; }
 .hero2__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
-.affiliation-strip { display: flex; flex-direction: column; gap: 14px; }
-.affiliation-strip__label { font: 9px var(--mono); letter-spacing: .2em; color: var(--muted-2); }
-.affiliation-strip__row { display: flex; flex-wrap: wrap; gap: 12px; }
+.hero2__scramble { color: var(--accent-bright); font-family: var(--mono); font-size: .84em; }
+
+/* ===== animated brand strip: real marks, real colors ===== */
+.brand-strip { overflow: hidden; border-block: 1px solid var(--line); background: rgba(9, 12, 9, .72); backdrop-filter: blur(14px); }
+.brand-strip__track { display: flex; width: max-content; will-change: transform; animation: ticker 46s linear infinite; }
+.brand-strip:hover .brand-strip__track { animation-play-state: paused; }
+.brand-item { display: flex; align-items: center; gap: 14px; min-width: max-content; padding: 17px 30px; border-right: 1px solid var(--line); transition: background .25s; }
+.brand-item:hover { background: rgba(255, 255, 255, .025); }
+.brand-item__logo { width: 30px; height: 28px; flex-shrink: 0; background-color: var(--brand, var(--fg-soft)); -webkit-mask: var(--logo) no-repeat center / contain; mask: var(--logo) no-repeat center / contain; filter: drop-shadow(0 0 10px color-mix(in srgb, var(--brand, #9be15d) 35%, transparent)); }
+.brand-item__logo--wide { width: 74px; }
+.brand-item__text { display: flex; flex-direction: column; gap: 3px; }
+.brand-item__text strong { font: 11px var(--mono); letter-spacing: .08em; color: var(--fg-soft); }
+.brand-item__text span { font: 8.5px var(--mono); letter-spacing: .13em; color: var(--muted-2); }
+@media (prefers-reduced-motion: reduce) {
+  .brand-strip__track { animation: none !important; transform: none !important; flex-wrap: wrap; width: 100%; }
+}
 .brand-chip { display: flex; flex-direction: column; gap: 5px; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 13px 18px; background: var(--panel); transition: border-color .25s, transform .25s var(--ease-out); }
 .brand-chip:hover { transform: translateY(-2px); border-color: var(--chip-color, var(--line-strong)); }
 .brand-chip b { font-weight: 700; font-size: 15px; letter-spacing: -.01em; color: var(--chip-color, var(--fg)); }

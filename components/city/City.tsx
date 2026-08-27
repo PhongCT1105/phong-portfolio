@@ -74,10 +74,13 @@ function TowerBatch({ batch }: { batch: Batch }) {
     const matrix = new THREE.Matrix4();
     const pos = new THREE.Vector3();
     const scale = new THREE.Vector3();
+    const quat = new THREE.Quaternion();
+    const Y = new THREE.Vector3(0, 1, 0);
     batch.towers.forEach((t, i) => {
       pos.set(t.x, t.h / 2, t.z);
       scale.set(t.w, t.h, t.d);
-      matrix.compose(pos, IDENTITY_QUAT, scale);
+      quat.setFromAxisAngle(Y, t.rot);
+      matrix.compose(pos, quat, scale);
       mesh.setMatrixAt(i, matrix);
     });
     mesh.instanceMatrix.needsUpdate = true;
@@ -89,6 +92,71 @@ function TowerBatch({ batch }: { batch: Batch }) {
   });
 
   return <instancedMesh ref={ref} args={[BOX, materials, batch.towers.length]} frustumCulled={false} />;
+}
+
+/** wider low bases under ~25% of buildings — podium + tower massing */
+function Podiums({ towers }: { towers: Tower[] }) {
+  const podiums = useMemo(() => towers.filter((t) => t.podium), [towers]);
+  const ref = useRef<THREE.InstancedMesh>(null);
+  useLayoutEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    const matrix = new THREE.Matrix4();
+    const pos = new THREE.Vector3();
+    const scale = new THREE.Vector3();
+    podiums.forEach((t, i) => {
+      const p = t.podium!;
+      pos.set(t.x, p.h / 2, t.z);
+      scale.set(p.w, p.h, p.d);
+      matrix.compose(pos, IDENTITY_QUAT, scale);
+      mesh.setMatrixAt(i, matrix);
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+  }, [podiums]);
+  return (
+    <instancedMesh ref={ref} args={[undefined, undefined, podiums.length]} frustumCulled={false}>
+      <boxGeometry />
+      <meshStandardMaterial color="#0c110c" roughness={0.7} metalness={0.3} emissive="#ffe9c4" emissiveIntensity={0.06} />
+    </instancedMesh>
+  );
+}
+
+/** lit vertical corner edges on the tallest downtown towers — skyscraper accents */
+function EdgeLights({ towers }: { towers: Tower[] }) {
+  const strips = useMemo(() => {
+    const talls = towers
+      .filter((t) => t.tier === 0 && t.h > 13)
+      .sort((a, b) => b.h - a.h)
+      .slice(0, 8);
+    const out: { x: number; y: number; z: number; h: number }[] = [];
+    for (const t of talls) {
+      // two corners facing the hero camera (+z side)
+      out.push({ x: t.x - t.w / 2, y: t.h / 2, z: t.z + t.d / 2, h: t.h });
+      out.push({ x: t.x + t.w / 2, y: t.h / 2, z: t.z + t.d / 2, h: t.h });
+    }
+    return out;
+  }, [towers]);
+  const ref = useRef<THREE.InstancedMesh>(null);
+  useLayoutEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    const matrix = new THREE.Matrix4();
+    const pos = new THREE.Vector3();
+    const scale = new THREE.Vector3();
+    strips.forEach((s, i) => {
+      pos.set(s.x, s.y, s.z);
+      scale.set(0.14, s.h, 0.14);
+      matrix.compose(pos, IDENTITY_QUAT, scale);
+      mesh.setMatrixAt(i, matrix);
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+  }, [strips]);
+  return (
+    <instancedMesh ref={ref} args={[undefined, undefined, strips.length]} frustumCulled={false}>
+      <boxGeometry />
+      <meshStandardMaterial color="#0a0f0a" emissive="#9effc0" emissiveIntensity={0.55} />
+    </instancedMesh>
+  );
 }
 
 function Crowns({ towers }: { towers: Tower[] }) {
@@ -341,6 +409,8 @@ export default function City({ density = 1 }: { density?: number }) {
       <Crowns towers={towers} />
       <CrownsAndBeacons towers={towers} />
       <Greebles towers={towers} />
+      <Podiums towers={towers} />
+      <EdgeLights towers={towers} />
       <Vaults />
       <Fab />
       <Gates />

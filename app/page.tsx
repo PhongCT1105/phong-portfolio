@@ -4,6 +4,7 @@ import SmoothScroll from '@/components/SmoothScroll';
 import CursorOrbit from '@/components/CursorOrbit';
 import SiteNav from '@/components/SiteNav';
 import Hero from '@/components/Hero';
+import BrandStrip from '@/components/BrandStrip';
 import Receipts from '@/components/Receipts';
 import WorkShelf from '@/components/WorkShelf';
 import Road from '@/components/Road';
@@ -27,6 +28,7 @@ export default function Home() {
 
       <main id="main">
         <Hero />
+        <BrandStrip />
         <Receipts />
         <WorkShelf />
         <Road />

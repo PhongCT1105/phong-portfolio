@@ -10,7 +10,11 @@ export interface Tower {
   tier: 0 | 1 | 2;
   /** which window-texture variant */
   variant: number;
+  /** y-rotation (0 or 90°) — varies facade orientation so blocks don't repeat */
+  rot: number;
   crown?: { w: number; h: number; d: number };
+  /** wider low base under the tower — podium + tower composition */
+  podium?: { w: number; h: number; d: number };
 }
 
 export const WORLD_W = 560;
@@ -45,9 +49,9 @@ function mulberry(seed: number) {
 }
 
 const HERO_TOWERS: Tower[] = [
-  { x: 38, z: 8, w: 9, h: 22, d: 9, tier: 0, variant: 0, crown: { w: 5.5, h: 3.5, d: 5.5 } },
-  { x: 52, z: 22, w: 8, h: 19, d: 8, tier: 0, variant: 1 },
-  { x: 24, z: 26, w: 7, h: 18, d: 7, tier: 0, variant: 2, crown: { w: 4, h: 2.5, d: 4 } }
+  { x: 38, z: 8, w: 9, h: 22, d: 9, tier: 0, variant: 0, rot: 0, crown: { w: 5.5, h: 3.5, d: 5.5 }, podium: { w: 14, h: 2.6, d: 14 } },
+  { x: 52, z: 22, w: 8, h: 19, d: 8, tier: 0, variant: 1, rot: 0, podium: { w: 12.5, h: 2.2, d: 12.5 } },
+  { x: 24, z: 26, w: 7, h: 18, d: 7, tier: 0, variant: 2, rot: 0, crown: { w: 4, h: 2.5, d: 4 } }
 ];
 
 function nearAvenue(x: number, z: number, margin: number): boolean {
@@ -101,8 +105,21 @@ export function generateTowers(density = 1): Tower[] {
       const x = cx + (rand() - 0.5) * (CELL - w - 3);
       const z = cz + (rand() - 0.5) * (CELL - d - 3);
       const tier: 0 | 1 | 2 = downtown ? 0 : dDown < 150 ? 1 : 2;
-      const tower: Tower = { x, z, w, h, d, tier, variant: Math.floor(rand() * 5) };
+      const tower: Tower = {
+        x,
+        z,
+        w,
+        h,
+        d,
+        tier,
+        variant: Math.floor(rand() * 5),
+        rot: rand() > 0.5 ? Math.PI / 2 : 0
+      };
       if (h > 11 && rand() > 0.72) tower.crown = { w: w * 0.55, h: 1.5 + rand() * 2, d: d * 0.55 };
+      // ~1 in 4 mid/tall buildings get a wider podium base — real-city massing
+      if (h > 7 && rand() > 0.74) {
+        tower.podium = { w: w * 1.55, h: 1.6 + rand() * 1.4, d: d * 1.55 };
+      }
       towers.push(tower);
     }
   }

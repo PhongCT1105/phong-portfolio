@@ -2,6 +2,10 @@ export interface Affiliation {
   name: string;
   role: string;
   color: string;
+  /** single-color SVG mark, recolored to the brand color via CSS mask */
+  asset: string;
+  /** wider aspect for wordmark-style assets */
+  wide?: boolean;
 }
 
 export interface Receipt {
@@ -73,13 +77,15 @@ export const SITE_CONTENT = {
     email: 'mailto:phongct1105@gmail.com'
   },
   affiliations: [
-    { name: 'NVIDIA', role: 'INCOMING SWE', color: '#76b900' },
-    { name: 'Adobe', role: 'AMBASSADOR', color: '#fa0f00' },
-    { name: 'Runpod', role: 'GRAND PRIZE', color: '#a78bfa' },
-    { name: 'NSF', role: 'REU RESEARCH', color: '#4a90d9' },
-    { name: 'IEEE', role: 'PRESENTED @ MIT URTC', color: '#00a0dc' },
-    { name: 'WPI', role: "BS + MS '27", color: '#e04050' },
-    { name: 'NASA', role: "PEOPLE'S CHOICE", color: '#4d7bf3' }
+    { name: 'NVIDIA', role: 'INCOMING SWE', color: '#76b900', asset: '/assets/logos/nvidia.svg', wide: true },
+    { name: 'Adobe', role: 'AMBASSADOR', color: '#fa0f00', asset: '/assets/logos/adobe.svg', wide: true },
+    { name: 'Runpod', role: 'GRAND PRIZE', color: '#a78bfa', asset: '/assets/logos/runpod-mark.svg' },
+    { name: 'NSF', role: 'REU RESEARCH', color: '#4a90d9', asset: '/assets/logos/nsf-mark.svg' },
+    { name: 'IEEE', role: 'PRESENTED @ MIT URTC', color: '#00a0dc', asset: '/assets/logos/ieee-mark.svg' },
+    { name: 'WPI', role: "BS + MS '27", color: '#e04050', asset: '/assets/logos/wpi-mark.svg' },
+    { name: 'NASA', role: "PEOPLE'S CHOICE", color: '#4d7bf3', asset: '/assets/logos/nasa-space-apps-mark.svg' },
+    { name: 'FPT', role: 'APPLIED AI · $30K', color: '#f26f21', asset: '/assets/logos/fpt-software-mark.svg' },
+    { name: 'Zolli Labs', role: 'FOUNDER', color: '#9be15d', asset: '/assets/icons/founder.svg' }
   ] as Affiliation[],
   receipts: [
     {

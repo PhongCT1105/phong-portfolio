@@ -25,7 +25,10 @@ Progress log (append per iteration): docs/BUILD_LOG.md
 - [x] M4 — Memory vaults + receipts sync (revised: one-number design — vaults open onto org-color light; DOM owns the numbers)
 - [x] M5 — The Fab: chip pedestals + chip-book case studies
 - [x] M6 — The Avenue: 5 gates + road sync (also fixed the global rail: per-segment mapping + per-station holds)
-- [ ] M7 — Scheduler hall + 47% counter
+- [x] M7 — Scheduler hall + 47% counter — PARTIAL: core verified (hall framed in DOM gap,
+      continuous phase-spread streams, 47% counter, NVIDIA horizon, death cycle seen in r2);
+      residuals for M10: right/slow bay traffic rarely visible, death state capture flaky in
+      short windows, center stream partially clipped by card edges at some scrolls
 - [ ] M8 — Lift-off reveal + contact orbit
 - [ ] M9 — Mobile-lite + fallback polish
 - [ ] M10 — Full-journey QA + log complete

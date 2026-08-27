@@ -115,14 +115,15 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 
 /* ===== now / scheduler ===== */
 .now { display: flex; gap: clamp(36px, 5vw, 70px); align-items: center; }
-.now__copy { flex: 1 1 380px; display: flex; flex-direction: column; gap: 22px; max-width: 560px; }
+.now__copy { flex: 1 1 340px; display: flex; flex-direction: column; gap: 22px; max-width: 440px; }
 .now__copy h2 { margin: 0; font-size: clamp(38px, 4.6vw, 56px); line-height: 1; letter-spacing: -.04em; font-weight: 650; }
 .now__body { font-size: 15px; line-height: 1.7; color: var(--muted); margin: 0; }
 .now__tags { display: flex; flex-wrap: wrap; gap: 8px; }
 .now__tags span { border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; font: 9px var(--mono); letter-spacing: .1em; color: var(--muted); }
 .now__next { border-left: 2px solid #76b900; padding: 4px 0 4px 16px; font-size: 14px; color: var(--fg-soft); margin: 0; }
 .now__next b { color: #76b900; font-weight: 650; }
-.scheduler { flex: 1 1 480px; max-width: 640px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: rgba(8,11,8,.6); padding: clamp(22px, 3vw, 36px); display: flex; flex-direction: column; gap: 24px; }
+.scheduler { flex: 1 1 420px; max-width: 500px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: rgba(8,11,8,.6); padding: clamp(20px, 2.4vw, 30px); display: flex; flex-direction: column; gap: 20px; }
+.now { justify-content: space-between; }
 .scheduler__head { display: flex; justify-content: space-between; gap: 14px; font: 9px var(--mono); letter-spacing: .15em; color: var(--muted-2); }
 .scheduler__head span:last-child { color: var(--accent); }
 .scheduler__queue { align-self: center; border: 1.5px solid rgba(155,225,93,.6); border-radius: 12px; padding: 14px 34px; font: 12px var(--mono); letter-spacing: .1em; background: rgba(155,225,93,.06); }

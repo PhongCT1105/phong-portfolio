@@ -1,7 +1,37 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
 import { SITE_CONTENT } from '@/lib/content';
+import { useJourney } from '@/lib/journey';
+import { prefersReducedMotion } from '@/lib/session';
 
 export default function NowSection() {
   const { now } = SITE_CONTENT;
+  const statRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = statRef.current;
+    if (!el || prefersReducedMotion()) return;
+    let fired = false;
+    el.textContent = '0% faster';
+    const check = () => {
+      const { station, localT } = useJourney.getState();
+      if (fired || !(station > 4 || (station === 4 && localT > 0.02))) return;
+      fired = true;
+      unsubscribe();
+      const start = performance.now();
+      const tick = (nowT: number) => {
+        const t = Math.min(1, Math.max(0, (nowT - start) / 1100));
+        const eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = `${Math.round(47 * eased)}% faster`;
+        if (t < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    };
+    const unsubscribe = useJourney.subscribe(check);
+    check();
+    return () => unsubscribe();
+  }, []);
   return (
     <section className="section-shell section-pad" id="now" aria-labelledby="now-title">
       <div className="now">
@@ -55,7 +85,7 @@ export default function NowSection() {
           </div>
           <div className="scheduler__foot">
             <small>BATCH COMPLETION VS STATIC SCHEDULING</small>
-            <b>47% faster</b>
+            <b ref={statRef}>47% faster</b>
           </div>
         </div>
       </div>

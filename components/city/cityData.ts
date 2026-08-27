@@ -73,13 +73,17 @@ export function generateTowers(density = 1): Tower[] {
       const roll = rand();
       const cx = gx * CELL;
       const cz = gz * CELL;
-      if (roll > 0.5 * density) continue;
+      // mid-field low-rise fill near the rail (M7 guidance): denser, capped low
+      const nearRailMid = cx > -130 && cx < 50 && cz > -150 && cz < -30;
+      if (roll > (nearRailMid ? 0.68 : 0.5) * density) continue;
       if (nearAvenue(cx, cz, 7)) continue;
       // memory-quarter plaza + approach corridor — keep clear for the M4 vaults
       if (cx > 80 && cx < 174 && cz > -70 && cz < 36) continue;
       // fab hall plaza + sightline corridor from the work camera — M5 assembly hall
       if (cx > 136 && cx < 206 && cz > -84 && cz < -18) continue;
       if (cx > 160 && cx < 232 && cz > -164 && cz < -92) continue;
+      // scheduler hall plaza + sightline from the now-station camera
+      if (cx > -168 && cx < -102 && cz > -30 && cz < 40) continue;
       const dDown = Math.hypot(cx - DOWNTOWN.x, cz - DOWNTOWN.z);
       const downtown = dDown < DOWNTOWN.r;
       if (downtown && Math.hypot(cx - 38, cz - 8) < 14) continue; // hero tower plaza
@@ -90,6 +94,7 @@ export function generateTowers(density = 1): Tower[] {
       else if (r < 0.93) h = 5 + rand() * 4;
       else h = 10 + rand() * 6;
       if (downtown) h *= 1.35 + rand() * 0.4;
+      if (nearRailMid) h = Math.min(h, 5.5); // low-rise tier only near the rail
 
       const w = 4 + rand() * 6;
       const d = 4 + rand() * 6;

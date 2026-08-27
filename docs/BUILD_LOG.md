@@ -108,3 +108,20 @@ Format per entry: milestone · rounds · validator verdict · critic verdict · 
   3 (straight avenue drive). Honors strip verified. Console clean throughout.
 - Screenshots: scratchpad shots-m6r1..r5/.
 
+## M7 — Scheduler hall (3 rounds; closed PARTIAL at round budget)
+- Built: depot tower + 3 bays + 36 instanced crates arcing depot→bays at the real 3.7× speed
+  spread; ~14s bay-death loop (bay dims salmon, crates arc back and reroute); NVIDIA-green
+  horizon rises at station end; DOM 47% counter fires on station entry (clamped, no negative
+  frame); mid-field low-rise fill near the rail; breathing beacons (300ms rise/600ms decay)
+  with 2 extra phase-offset masts on the tallest west/south towers; station-4 camera hold.
+- r1: hall hidden behind the DOM stat panel + crates lockstep-clumped (parking erased phase
+  spread). Fixed: continuous flow, 1.15u crates, lit structure + plaza point light, DOM cards
+  narrowed to open a center gap, camera panned, counter threshold lowered.
+- r2: mostly passing (7 distinct crates, death seen 3/7 shots, counter verified) except the
+  fast bay sat behind the copy card. Fixed: fast bay moved to CENTER, slow/dying right;
+  crate rate raised so slow crates traverse inside the death cycle.
+- r3 micro-check FAIL on: right-bay traffic not seen in 4 shots, death state missed (4.9s
+  window / 4 samples — probabilistic miss), stream partially clipped at edges. ROUND BUDGET
+  REACHED → closed PARTIAL; residuals queued for M10 polish + Phong's morning review.
+- Screenshots: scratchpad shots-m7r1..r3/.
+

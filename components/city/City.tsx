@@ -16,6 +16,7 @@ import { makeGroundTexture, makeSignTexture, makeWindowTexture } from '@/compone
 import Vaults from '@/components/city/Vaults';
 import Fab from '@/components/city/Fab';
 import Gates from '@/components/city/Gates';
+import Scheduler from '@/components/city/Scheduler';
 
 /** emissive brightness tiers — downtown 2× districts 2× outskirts (G2) */
 const TIER_EMISSIVE = [1.7, 0.85, 0.4];
@@ -113,22 +114,33 @@ function Crowns({ towers }: { towers: Tower[] }) {
   );
 }
 
-/** M3 — stepped crowns + antenna masts with 2s blinking beacons on the tallest towers */
-function CrownsAndBeacons() {
+/** M3/M7 — stepped crowns + antenna masts with BREATHING beacons (300ms rise, slow decay) */
+function CrownsAndBeacons({ towers }: { towers: Tower[] }) {
   const beaconRefs = useRef<(THREE.MeshStandardMaterial | null)[]>([]);
+
+  const masts = useMemo(() => {
+    const base: { x: number; z: number; base: number; h: number; phase: number }[] = [
+      { x: 38, z: 8, base: 25.5, h: 5, phase: 0 },
+      { x: 24, z: 26, base: 20.5, h: 4, phase: 0.9 }
+    ];
+    // two more on the tallest west / south towers, phase-offset (M7 guidance)
+    const west = towers.filter((t) => t.x < -40).sort((a, b) => b.h - a.h)[0];
+    const south = towers.filter((t) => t.z > 60).sort((a, b) => b.h - a.h)[0];
+    if (west) base.push({ x: west.x, z: west.z, base: west.h + (west.crown?.h ?? 0), h: 4, phase: 0.45 });
+    if (south) base.push({ x: south.x, z: south.z, base: south.h + (south.crown?.h ?? 0), h: 4, phase: 1.4 });
+    return base;
+  }, [towers]);
 
   useFrame((state) => {
     const boot = useJourney.getState().boot;
-    const on = boot >= 0.9 && state.clock.elapsedTime % 2 < 0.18;
-    beaconRefs.current.forEach((material) => {
-      if (material) material.emissiveIntensity = on ? 2.2 : 0.1;
+    beaconRefs.current.forEach((material, i) => {
+      if (!material) return;
+      const phase = (state.clock.elapsedTime + (masts[i]?.phase ?? 0) * 2) % 2;
+      // breathing: ~300ms rise, ~600ms exponential decay
+      const envelope = phase < 0.3 ? phase / 0.3 : Math.exp(-(phase - 0.3) * 2.4);
+      material.emissiveIntensity = boot >= 0.9 ? 0.12 + 2.0 * envelope : 0.05;
     });
   });
-
-  const masts: { x: number; z: number; base: number; h: number }[] = [
-    { x: 38, z: 8, base: 25.5, h: 5 },
-    { x: 24, z: 26, base: 20.5, h: 4 }
-  ];
 
   return (
     <group>
@@ -324,10 +336,11 @@ export default function City({ density = 1 }: { density?: number }) {
         <TowerBatch key={batch.key} batch={batch} />
       ))}
       <Crowns towers={towers} />
-      <CrownsAndBeacons />
+      <CrownsAndBeacons towers={towers} />
       <Vaults />
       <Fab />
       <Gates />
+      <Scheduler />
       <HeroBanners />
       <CraneSilhouettes />
       <Signage />

@@ -28,7 +28,7 @@ const LOOK_TARGETS: [number, number, number][] = [
   [120, 4, -20],
   [180, 6, -90],
   [-70, 6, -95], // held down the avenue while the gates pass
-  [-135, 6, 5],
+  [-140, 6, -2], // panned so the hall sits in the DOM center gap
   [0, 0, 0]
 ];
 
@@ -54,8 +54,8 @@ function CameraRig() {
     let l = localT;
     if (station === 1) {
       l = l < 0.3 ? l * 2 : l < 0.85 ? 0.6 : 0.6 + ((l - 0.85) / 0.15) * 0.4;
-    } else if (station === 2) {
-      // hold AT the work keyframe (the tuned fab-hall view), exit late
+    } else if (station === 2 || station === 4) {
+      // hold AT the keyframe (fab view / scheduler view), exit late
       l = l < 0.8 ? 0 : ((l - 0.8) / 0.2) * 0.9;
     }
     if (station === 3) {
@@ -70,7 +70,7 @@ function CameraRig() {
     const nextStation = Math.min(station + 1, LOOK_TARGETS.length - 1);
     // holds freeze the look-at too; the avenue holds its vanishing point until exit
     const lookLerp =
-      station === 1 || station === 2 || station === 3
+      station >= 1 && station <= 4
         ? localT < 0.85
           ? 0
           : ((localT - 0.85) / 0.15) * 0.5

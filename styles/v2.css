@@ -9,7 +9,8 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 /* ===== v2 flow: hero ===== */
 .hero2 { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; gap: clamp(28px, 4vh, 46px); padding-top: 110px; padding-bottom: 48px; position: relative; }
 .hero2__name { margin: 14px 0 0; font-size: clamp(72px, 11.5vw, 168px); line-height: .82; letter-spacing: -.06em; font-weight: 700; }
-.hero2__name span { color: transparent; -webkit-text-stroke: 1.5px rgba(241,243,236,.55); }
+.hero2__outline { color: transparent; -webkit-text-stroke: 1.5px rgba(241,243,236,.55); }
+.hero2__sheen { background: linear-gradient(180deg, #ffffff 0%, #eef2ea 55%, #b9c2b3 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .hero2__statement { margin-top: 34px; font-size: clamp(22px, 2.4vw, 34px); letter-spacing: -.02em; font-weight: 500; }
 .hero2__sub { margin-top: 14px; max-width: 620px; color: var(--muted); font-size: clamp(14px, 1.3vw, 17px); line-height: 1.6; }
 .hero2__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
@@ -25,7 +26,8 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .receipts__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
 .receipt-card { border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--panel); padding: 30px 26px; display: flex; flex-direction: column; gap: 16px; min-height: 300px; position: relative; overflow: hidden; }
 .receipt-card::before { content: ""; position: absolute; top: 0; left: 18%; right: 18%; height: 2px; background: var(--dot-color, var(--accent)); opacity: .18; box-shadow: 0 0 18px var(--dot-color, var(--accent)); transition: opacity .6s var(--ease-out), left .6s var(--ease-out), right .6s var(--ease-out); }
-.receipt-card.is-lit::before { opacity: .95; left: 6%; right: 6%; }
+.receipt-card.is-lit::before { opacity: .95; left: 16px; right: 16px; border-radius: 2px; }
+.receipt-card:not(.is-lit) .receipt-card__value { opacity: .35; transition: opacity .4s; }
 .receipt-card--featured { border-color: rgba(155,225,93,.3); background: var(--panel-strong); }
 .receipt-card__value { font-size: clamp(40px, 4vw, 58px); font-weight: 700; letter-spacing: -.04em; line-height: 1; }
 .receipt-card--featured .receipt-card__value { color: var(--accent-bright); }
@@ -171,6 +173,156 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 
 /* contact fills the viewport at page bottom so the orbit reveal owns the frame */
 .contact { min-height: 96svh; display: flex; flex-direction: column; justify-content: center; }
+
+/* =====================================================================
+   COMPONENT CRAFT — surfaces that read as objects, not outlined boxes.
+   Recipe: corner-light gradient + glass blur + specular top edge +
+   layered ambient shadow + accent under-glow + cursor-tracked sheen.
+   ===================================================================== */
+
+.receipt-card,
+.shelf-card,
+.road-stop.text-scrim,
+.scheduler,
+.brand-chip,
+.telemetry-card {
+  background:
+    radial-gradient(120% 90% at 18% 0%, rgba(255, 255, 255, 0.055), transparent 46%),
+    linear-gradient(165deg, rgba(27, 34, 27, 0.92), rgba(9, 12, 9, 0.78));
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  border: 1px solid rgba(226, 232, 221, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.085),
+    inset 0 -18px 32px -24px color-mix(in srgb, var(--dot-color, var(--card-accent, #9be15d)) 30%, transparent),
+    0 18px 44px -16px rgba(0, 0, 0, 0.55);
+}
+.receipt-card, .road-stop.text-scrim { position: relative; }
+.scheduler { position: relative; overflow: hidden; }
+
+/* hover: lift + accent edge + deeper key shadow */
+.receipt-card, .road-stop.text-scrim, .brand-chip { transition: transform .35s var(--ease-out), border-color .35s, box-shadow .35s; }
+.receipt-card:hover, .road-stop.text-scrim:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--dot-color, var(--stop-color, #9be15d)) 40%, rgba(226,232,221,.14));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -18px 32px -22px color-mix(in srgb, var(--dot-color, var(--stop-color, #9be15d)) 40%, transparent),
+    0 26px 54px -18px rgba(0, 0, 0, 0.65),
+    0 0 34px -6px color-mix(in srgb, var(--dot-color, var(--stop-color, #9be15d)) 22%, transparent);
+}
+
+/* cursor-tracked sheen (vars set by Effects.tsx) */
+.receipt-card::after,
+.shelf-card::after,
+.road-stop.text-scrim::after,
+.scheduler::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgba(184, 255, 114, 0.085), transparent 62%);
+  opacity: 0;
+  transition: opacity .35s var(--ease-out);
+}
+.receipt-card:hover::after,
+.shelf-card:hover::after,
+.road-stop.text-scrim:hover::after,
+.scheduler:hover::after { opacity: 1; }
+
+/* big numerals: machined-metal gradient, tabular figures */
+.receipt-card__value,
+.casebook__metric b,
+.scheduler__foot b {
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, #ffffff 0%, #dfe5da 52%, #9aa694 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.receipt-card--featured .receipt-card__value,
+.casebook__metric b,
+.scheduler__foot b {
+  background: linear-gradient(180deg, #eaffd2 0%, #b8ff72 55%, #74a944 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* shelf cards read as physical objects: specular top line + seated shadow */
+.shelf-card {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+    0 22px 34px -18px rgba(0, 0, 0, 0.7);
+}
+.shelf-card.is-focused {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 34px 70px rgba(0, 0, 0, 0.6),
+    0 0 50px color-mix(in srgb, var(--card-accent, #9be15d) 18%, transparent),
+    0 2px 0 -1px color-mix(in srgb, var(--card-accent, #9be15d) 55%, transparent);
+}
+.shelf-card__img { box-shadow: inset 0 1px 0 rgba(255,255,255,.1), inset 0 -14px 24px -12px rgba(0,0,0,.65); }
+.shelf-card__img img { mix-blend-mode: luminosity; opacity: .92; }
+.shelf-card.is-focused .shelf-card__img img { mix-blend-mode: normal; opacity: 1; }
+
+/* modal: deep glass with a lit rim */
+.casebook__panel {
+  background:
+    radial-gradient(90% 70% at 12% 0%, rgba(255, 255, 255, 0.05), transparent 50%),
+    linear-gradient(160deg, rgba(16, 21, 16, 0.97), rgba(7, 9, 7, 0.94));
+  backdrop-filter: blur(26px) saturate(140%);
+  -webkit-backdrop-filter: blur(26px) saturate(140%);
+  border: 1px solid color-mix(in srgb, var(--card-accent, #9be15d) 24%, rgba(226, 232, 221, 0.16));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 60px 130px rgba(0, 0, 0, 0.75),
+    0 0 80px -20px color-mix(in srgb, var(--card-accent, #9be15d) 25%, transparent);
+}
+
+/* controls: pressed metal, not flat pills */
+.shelf__open {
+  background: linear-gradient(180deg, #d6ffa4, #b8ff72 55%, #93d95a);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), inset 0 -2px 0 rgba(0, 0, 0, 0.18), 0 8px 22px -8px rgba(155, 225, 93, 0.55);
+}
+.shelf__open:hover { transform: translateY(-2px); box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -2px 0 rgba(0,0,0,.18), 0 12px 28px -8px rgba(155,225,93,.7); }
+.shelf__open:active { transform: translateY(0); box-shadow: inset 0 2px 4px rgba(0,0,0,.25); }
+.shelf__arrow, .casebook__close {
+  background: linear-gradient(165deg, rgba(30, 38, 30, 0.9), rgba(12, 16, 12, 0.85));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 6px 16px -6px rgba(0, 0, 0, 0.5);
+}
+.icon-link {
+  background: linear-gradient(165deg, rgba(26, 33, 26, 0.85), rgba(10, 13, 10, 0.7));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 8px 20px -10px rgba(0, 0, 0, 0.5);
+}
+
+/* chips: engraved, not outlined */
+.receipt-card__secondary span,
+.now__tags span,
+.honors span:not(.honors__label),
+.casebook__stack span,
+.identity-chip {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012));
+  border-color: rgba(226, 232, 221, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 6px -2px rgba(0, 0, 0, 0.4);
+}
+.road-stop__metric { background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.014)); box-shadow: inset 0 1px 0 rgba(255,255,255,.07); }
+
+/* section headlines: subtle metal sheen on display type
+   (the hero name gets it via .hero2__sheen only — background-clip on the h1
+   would clip descendant glyphs and destroy the CAO outline) */
+.section-head h2, .now__copy h2 {
+  background: linear-gradient(180deg, #ffffff 0%, #eef2ea 55%, #b9c2b3 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .receipt-card:hover, .road-stop.text-scrim:hover { transform: none; }
+}
 
 /* ===== responsive: v2 ===== */
 @media (max-width: 1050px) {

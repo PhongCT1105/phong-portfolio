@@ -70,6 +70,24 @@ function initMagnetic(): (() => void) | undefined {
   return () => cleanups.forEach((fn) => fn());
 }
 
+/** cursor-tracked sheen: writes --mx/--my for the surface highlight gradient */
+function initSheen(): (() => void) | undefined {
+  if (window.matchMedia('(pointer: coarse)').matches) return;
+  const cleanups: (() => void)[] = [];
+  document
+    .querySelectorAll<HTMLElement>('.receipt-card, .shelf-card, .road-stop, .scheduler')
+    .forEach((el) => {
+      const onMove = (event: PointerEvent) => {
+        const rect = el.getBoundingClientRect();
+        el.style.setProperty('--mx', `${event.clientX - rect.left}px`);
+        el.style.setProperty('--my', `${event.clientY - rect.top}px`);
+      };
+      el.addEventListener('pointermove', onMove, { passive: true });
+      cleanups.push(() => el.removeEventListener('pointermove', onMove));
+    });
+  return () => cleanups.forEach((fn) => fn());
+}
+
 export default function Effects() {
   useEffect(() => {
     let cleanups: (undefined | (() => void))[] = [];
@@ -78,7 +96,7 @@ export default function Effects() {
     const start = () => {
       if (booted) return;
       booted = true;
-      cleanups = [initReveals(), initTilt(), initMagnetic()];
+      cleanups = [initReveals(), initTilt(), initMagnetic(), initSheen()];
     };
 
     // Wait for the boot overlay so reveal animations don't play behind it.

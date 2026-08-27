@@ -16,7 +16,10 @@ export default function Road() {
     const update = () => {
       const { station, localT } = useJourney.getState();
       stops.forEach((stop, i) => {
-        const active = station > 3 || (station === 3 && localT >= 0.08 + i * 0.18);
+        // last stop activates earlier so its lit state is witnessable before
+        // the card row scrolls out (gate 5's 3D ignition stays at 0.80)
+        const threshold = i === 4 ? 0.62 : 0.08 + i * 0.18;
+        const active = station > 3 || (station === 3 && localT >= threshold);
         stop.classList.toggle('is-active', active);
       });
     };

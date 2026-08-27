@@ -127,16 +127,8 @@ export default function Receipts() {
     const reduced = prefersReducedMotion();
     const fired = cards.map(() => false);
 
-    // hold values at zero until each vault door opens (non-reduced motion only)
-    if (!reduced) {
-      cards.forEach((card) => {
-        const el = card.querySelector<HTMLElement>('.receipt-card__value');
-        const target = el?.dataset.value ?? '';
-        const match = target.match(/^([^0-9−-]*)(−|-)?(\d+)(.*)$/);
-        if (el && match) el.textContent = `${match[1]}${match[2] ?? ''}0${match[4]}`;
-      });
-    }
-
+    // unlit cards show their FINAL value dimmed (never a broken-looking "$0K");
+    // the count-up runs 0→final at the moment the vault opens
     // count-up fires in lockstep with the 3D vault doors (same staggered thresholds)
     const check = () => {
       const { station, localT } = useJourney.getState();

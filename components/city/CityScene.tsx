@@ -1,8 +1,12 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
+import { Suspense, useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
+import { Environment } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
+import { suspend } from 'suspend-react';
+// CC0 night HDRI bundled locally (no CDN) — real reflections on every surface
+const nightHdri = import('@pmndrs/assets/hdri/night.exr').then((m) => m.default);
 import * as THREE from 'three';
 import { easing } from 'maath';
 import { useJourney } from '@/lib/journey';
@@ -31,6 +35,12 @@ const LOOK_TARGETS: [number, number, number][] = [
   [-140, 6, -2], // panned so the hall sits in the DOM center gap
   [0, 0, 0]
 ];
+
+/** image-based lighting: bundled CC0 night HDRI gives metals/glass real reflections */
+function EnvironmentLight() {
+  const file = suspend(nightHdri, ['city-night-hdri']) as string;
+  return <Environment files={file} environmentIntensity={0.35} />;
+}
 
 /** fog thins as the camera climbs so the whole die stays visible from orbit */
 function FogRig() {
@@ -121,6 +131,9 @@ export default function CityScene({ tier }: { tier: QualityTier }) {
       {/* night lighting: near-black ambient, light is implied by emissives (critic F3) */}
       <ambientLight intensity={0.035} />
       <directionalLight position={[-120, 180, 80]} intensity={0.06} color="#cfd8ce" />
+      <Suspense fallback={null}>
+        <EnvironmentLight />
+      </Suspense>
       <City density={tier === 'lite' ? 0.6 : 1} />
       <CameraRig />
       <FogRig />

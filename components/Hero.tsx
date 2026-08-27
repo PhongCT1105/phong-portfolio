@@ -7,9 +7,9 @@ export default function Hero() {
       <div className="reveal">
         <p className="eyebrow">{SITE_CONTENT.hero.eyebrow}</p>
         <h1 className="hero2__name" id="hero-name">
-          PHONG
+          <span className="hero2__sheen">PHONG</span>
           <br />
-          <span>CAO</span>
+          <span className="hero2__outline">CAO</span>
         </h1>
         <p className="hero2__statement">{SITE_CONTENT.hero.statement}</p>
         <p className="hero2__sub text-scrim">{SITE_CONTENT.hero.sub}</p>

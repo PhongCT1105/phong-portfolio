@@ -14,14 +14,20 @@ interface JourneyState {
   ranges: number[];
   /** 0..1 — city power-on driven by the boot sequence (1 = fully lit) */
   boot: number;
-  /** which project the DOM work-shelf has focused (0..3) */
+  /** which project the work shelf has focused (0..3) — single source of truth */
   workFocus: number;
-  /** slug of the opened case study, or null — drives the 3D chip-book flourish */
+  /** slug of the opened case study, or null */
   workOpen: string | null;
+  /** rendering tier chosen by CityLayer ('off' = 2D fallback page) */
+  tier: 'full' | 'lite' | 'off';
+  /** receipt card index hovered in the DOM, or null — flares its vault */
+  receiptHover: number | null;
   setProgress: (progress: number) => void;
   setRanges: (ranges: number[]) => void;
   setBoot: (boot: number) => void;
   setWork: (focus: number, open: string | null) => void;
+  setTier: (tier: 'full' | 'lite' | 'off') => void;
+  setReceiptHover: (index: number | null) => void;
 }
 
 const DEFAULT_RANGES = [0, 1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6, 1];
@@ -34,8 +40,12 @@ export const useJourney = create<JourneyState>((set, get) => ({
   boot: 0,
   workFocus: 0,
   workOpen: null,
+  tier: 'off',
+  receiptHover: null,
   setBoot: (boot) => set({ boot: Math.max(0, Math.min(1, boot)) }),
   setWork: (workFocus, workOpen) => set({ workFocus, workOpen }),
+  setTier: (tier) => set({ tier }),
+  setReceiptHover: (receiptHover) => set({ receiptHover }),
   setProgress: (progress) => {
     const p = Math.max(0, Math.min(1, progress));
     const { ranges } = get();

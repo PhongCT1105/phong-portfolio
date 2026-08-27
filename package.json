@@ -27,6 +27,7 @@
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
     "@types/three": "^0.185.4",
+    "shadcn": "^4.19.0",
     "typescript": "^5.8.3"
   }
 }

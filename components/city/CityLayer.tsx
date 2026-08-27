@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import NetworkCanvas from '@/components/NetworkCanvas';
+import { useJourney } from '@/lib/journey';
 
 const CityScene = dynamic(() => import('@/components/city/CityScene'), { ssr: false });
 
@@ -26,7 +27,9 @@ export default function CityLayer() {
   const [tier, setTier] = useState<QualityTier | null>(null);
 
   useEffect(() => {
-    setTier(detectTier());
+    const detected = detectTier();
+    setTier(detected);
+    useJourney.getState().setTier(detected);
   }, []);
 
   if (tier === null) return null;

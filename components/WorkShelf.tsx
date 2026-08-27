@@ -226,21 +226,21 @@ function CaseBook({ project, onClose }: { project: Project | null; onClose: () =
 
 export default function WorkShelf() {
   const projects = SITE_CONTENT.projects;
-  const [focus, setFocus] = useState(0);
-  const [openSlug, setOpenSlug] = useState<string | null>(null);
+  // the journey store is the single source of truth — the 3D chips write to it too
+  const focus = useJourney((s) => s.workFocus);
+  const openSlug = useJourney((s) => s.workOpen);
+  const tier = useJourney((s) => s.tier);
 
-  // mirror focus/open into the journey store so the 3D fab chips sync (state only)
-  useEffect(() => {
-    useJourney.getState().setWork(focus, openSlug);
-  }, [focus, openSlug]);
-
-  const openProject = useCallback((slug: string) => {
-    setOpenSlug(slug);
-    window.history.replaceState(null, '', `#work/${slug}`);
-  }, []);
+  const openProject = useCallback(
+    (slug: string) => {
+      useJourney.getState().setWork(focus, slug);
+      window.history.replaceState(null, '', `#work/${slug}`);
+    },
+    [focus]
+  );
 
   const closeProject = useCallback(() => {
-    setOpenSlug(null);
+    useJourney.getState().setWork(useJourney.getState().workFocus, null);
     window.history.replaceState(null, '', '#work');
   }, []);
 
@@ -250,8 +250,10 @@ export default function WorkShelf() {
       if (match) {
         const index = projects.findIndex((p) => p.slug === match[1]);
         if (index >= 0) {
-          setFocus(index);
-          setOpenSlug(match[1]);
+          useJourney.getState().setWork(index, match[1]);
+          // land the visitor at the work chapter so closing the modal
+          // leaves them beside their chip, not stranded in chapter 1
+          document.getElementById('work')?.scrollIntoView();
         }
       }
     };
@@ -260,9 +262,25 @@ export default function WorkShelf() {
     return () => window.removeEventListener('hashchange', applyHash);
   }, [projects]);
 
-  const step = (delta: number) => {
-    setFocus((prev) => (prev + delta + projects.length) % projects.length);
-  };
+  const step = useCallback(
+    (delta: number) => {
+      const state = useJourney.getState();
+      state.setWork((state.workFocus + delta + projects.length) % projects.length, state.workOpen);
+    },
+    [projects.length]
+  );
+
+  // arrow keys browse the 3D shelf while the work chapter is on screen
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      const { station, workOpen } = useJourney.getState();
+      if (station !== 2 || workOpen) return;
+      if (event.key === 'ArrowLeft') step(-1);
+      else if (event.key === 'ArrowRight') step(1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [step]);
 
   const focused = projects[focus];
   const openProjectData = openSlug ? projects.find((p) => p.slug === openSlug) ?? null : null;
@@ -284,6 +302,7 @@ export default function WorkShelf() {
       </div>
 
       <div className="shelf reveal">
+        {tier === 'off' ? (
         <div className="shelf__stage" role="listbox" aria-label="Projects" aria-activedescendant={`shelf-${focused.slug}`}>
           {projects.map((project, index) => {
             const tones = CARD_TONES[project.slug] ?? CARD_TONES.flashml;
@@ -302,12 +321,16 @@ export default function WorkShelf() {
                     '--card-lo': tones.lo
                   } as React.CSSProperties
                 }
-                onClick={() => (index === focus ? openProject(project.slug) : setFocus(index))}
+                onClick={() =>
+                  index === focus
+                    ? openProject(project.slug)
+                    : useJourney.getState().setWork(index, null)
+                }
                 onKeyDown={(event) => {
                   if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
                     if (index === focus) openProject(project.slug);
-                    else setFocus(index);
+                    else useJourney.getState().setWork(index, null);
                   }
                 }}
               >
@@ -335,6 +358,11 @@ export default function WorkShelf() {
             );
           })}
         </div>
+        ) : (
+          <div className="shelf__window" aria-hidden="true">
+            <span className="shelf__window-hint">CLICK A CHIP · ← → TO BROWSE</span>
+          </div>
+        )}
 
         <div className="shelf__caption">
           <span className="shelf__caption-index">

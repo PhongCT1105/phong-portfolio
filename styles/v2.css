@@ -78,6 +78,9 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .shelf__dashes span { width: 22px; height: 3px; background: rgba(226,232,221,.2); border-radius: 2px; transition: background .3s; }
 .shelf__dashes span.is-on { background: var(--accent); }
 .shelf__hint { font: 8px var(--mono); letter-spacing: .16em; color: var(--muted-2); }
+/* 3D tiers: the chips ARE the shelf — this transparent window gives the scene room */
+.shelf__window { min-height: 46vh; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 14px; border-bottom: 2px solid rgba(226,232,221,.22); background: linear-gradient(to bottom, transparent 60%, rgba(155,225,93,.03)); }
+.shelf__window-hint { font: 9px var(--mono); letter-spacing: .18em; color: var(--muted-2); }
 
 /* ===== case study modal ===== */
 .casebook { position: fixed; inset: 0; z-index: 900; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(4,5,4,.9); backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transition: opacity .35s var(--ease-out); }

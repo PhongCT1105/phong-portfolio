@@ -1,51 +1,54 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useRef } from 'react';
+import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useJourney } from '@/lib/journey';
-import { makeChipTexture } from '@/components/city/textures';
+import ChipModel from '@/components/city/ChipModel';
 
-/** order matches SITE_CONTENT.projects: flashml, captain-ddoski, on-device-qa, hospital-nav */
+/** order matches SITE_CONTENT.projects */
 const CHIPS = [
-  { slug: 'flashml', color: '#9be15d' },
-  { slug: 'captain-ddoski', color: '#7ba7ff' },
-  { slug: 'on-device-qa', color: '#ffb45a' },
-  { slug: 'hospital-nav', color: '#e04050' }
+  { slug: 'flashml', label: 'FlashML', sub: 'A-FLASHML-47 · ZOLLI', color: '#9be15d' },
+  { slug: 'captain-ddoski', label: 'Ddoski', sub: 'A-DDOSKI-02 · BERKELEY', color: '#7ba7ff' },
+  { slug: 'on-device-qa', label: 'OnDevice', sub: 'A-ONNX-163MS · ARM64', color: '#ffb45a' },
+  { slug: 'hospital-nav', label: 'HospNav', sub: 'A-ASTAR-147 · WPI', color: '#e04050' }
 ] as const;
 
-/** ~110u from the held work camera (150,16,-30) → hall spans ~30% of frame */
+/** interactive display row ~38u ahead of the held work camera (150,16,-30) */
+const ROW = { x: 167, z: -64 };
+const ROW_ROT = Math.atan2(150 - ROW.x, -30 - ROW.z);
+/** backdrop hall deep in the fab district */
 const HALL = { x: 196, z: -128 };
 const HALL_ROT = Math.atan2(150 - HALL.x, -30 - HALL.z);
-const LAYER_COUNT = 5;
 const RIB_XS = [-26, -13, 0, 13, 26];
 
-function Chip({ index, slug, color }: { index: number; slug: string; color: string }) {
-  const riseRef = useRef<THREE.Group>(null);
-  const layerRefs = useRef<(THREE.Group | null)[]>([]);
-  const layerMats = useRef<(THREE.MeshStandardMaterial | null)[]>([]);
+/** ignore raycast clicks that actually landed on interactive DOM */
+function domGuard(event: ThreeEvent<MouseEvent>): boolean {
+  const target = event.nativeEvent.target as HTMLElement | null;
+  return !!target?.closest('button, a, input, .casebook, .shelf__caption, .site-nav');
+}
+
+function InteractiveChip({
+  index,
+  slug,
+  label,
+  sub,
+  color
+}: {
+  index: number;
+  slug: string;
+  label: string;
+  sub: string;
+  color: string;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const spinRef = useRef<THREE.Group>(null);
   const lightRef = useRef<THREE.PointLight>(null);
   const rise = useRef(0);
-  const fan = useRef(0);
   const glow = useRef(0);
-  const topMat = useRef<THREE.MeshStandardMaterial>(null);
+  const hover = useRef(false);
 
-  const materials = useMemo(() => {
-    const texture = makeChipTexture(color);
-    const side = new THREE.MeshStandardMaterial({ color: '#0a0f0a', roughness: 0.45, metalness: 0.6 });
-    const top = new THREE.MeshStandardMaterial({
-      color: '#060a06',
-      roughness: 0.35,
-      metalness: 0.55,
-      emissive: '#ffffff',
-      emissiveMap: texture,
-      emissiveIntensity: 0.2
-    });
-    topMat.current = top;
-    return [side, side, top, side, side, side];
-  }, [color]);
-
-  useFrame((_, dt) => {
+  useFrame((state, dt) => {
     const { station, workFocus, workOpen, boot } = useJourney.getState();
     const delta = Math.min(dt, 0.05);
     const speed = 1 - Math.exp(-delta * 5);
@@ -55,74 +58,77 @@ function Chip({ index, slug, color }: { index: number; slug: string; color: stri
     const atStation = station === 2;
     const bootRamp = Math.max(0, Math.min(1, (boot - 0.4) / 0.2));
 
-    const glowTarget = bootRamp * (opened ? 1 : focused && atStation ? 0.82 : 0.07);
+    const glowTarget =
+      bootRamp * (opened ? 1 : focused && atStation ? 0.8 : hover.current ? 0.45 : 0.08);
     glow.current += (glowTarget - glow.current) * speed;
-    rise.current += ((opened ? 1 : 0) - rise.current) * speed;
-    fan.current += ((opened ? 1 : 0) - fan.current) * speed * 0.8;
+    rise.current += ((opened ? 1.6 : focused && atStation ? 0.5 : 0) - rise.current) * speed;
 
-    if (riseRef.current) riseRef.current.position.y = rise.current * 4.6;
-    if (topMat.current) topMat.current.emissiveIntensity = 0.15 + glow.current * 2.6;
-    // the focused chip is the district's one light source — visible from any angle
-    if (lightRef.current) lightRef.current.intensity = glow.current * 55;
-    layerRefs.current.forEach((layer, li) => {
-      // pages lie flat on the chip (−90°) and fan upward like a book opening
-      if (layer) layer.rotation.x = -Math.PI / 2 + fan.current * (0.62 + li * 0.12);
-    });
-    layerMats.current.forEach((m, li) => {
-      if (m) m.emissiveIntensity = 0.06 + glow.current * (0.85 - li * 0.09);
-    });
+    if (groupRef.current) groupRef.current.position.y = 3.4 + rise.current;
+    if (lightRef.current) lightRef.current.intensity = glow.current * 60;
+    if (spinRef.current) {
+      // focused chip turntables slowly, like a museum piece
+      const spinSpeed = opened ? 0.5 : focused && atStation ? 0.22 : 0;
+      spinRef.current.rotation.y += spinSpeed * delta;
+      if (!focused && !opened) {
+        // ease back to the resting pose
+        spinRef.current.rotation.y +=
+          (Math.round(spinRef.current.rotation.y / (Math.PI * 2)) * Math.PI * 2 -
+            spinRef.current.rotation.y) *
+          speed;
+      }
+    }
+    document.body.style.cursor = hover.current ? 'pointer' : '';
   });
 
-  const lx = (index - (CHIPS.length - 1) / 2) * 9.5;
+  const onClick = (event: ThreeEvent<MouseEvent>) => {
+    if (domGuard(event)) return;
+    event.stopPropagation();
+    const state = useJourney.getState();
+    if (state.workFocus === index) {
+      state.setWork(index, slug);
+      window.history.replaceState(null, '', `#work/${slug}`);
+    } else {
+      state.setWork(index, null);
+    }
+  };
+
+  const lx = (index - (CHIPS.length - 1) / 2) * 9.6;
 
   return (
-    <group position={[lx, 2.2, 2]}>
-      <mesh position={[0, 1.4, 0]}>
-        <boxGeometry args={[2.2, 2.8, 2.2]} />
-        <meshStandardMaterial color="#0a100a" roughness={0.6} metalness={0.4} />
+    <group position={[lx, 0, 0]}>
+      {/* pedestal */}
+      <mesh position={[0, 1.5, 0]}>
+        <boxGeometry args={[3, 3, 3]} />
+        <meshStandardMaterial color="#0c120c" roughness={0.55} metalness={0.45} />
       </mesh>
-      <group ref={riseRef}>
-        <pointLight ref={lightRef} position={[0, 5.4, 1]} color={color} intensity={0} distance={22} decay={2} />
-        <mesh position={[0, 3.1, 0]} material={materials}>
-          <boxGeometry args={[4.6, 0.5, 4.6]} />
-        </mesh>
-        {Array.from({ length: LAYER_COUNT }, (_, li) => (
+      <pointLight ref={lightRef} position={[0, 7.5, 1.5]} color={color} intensity={0} distance={20} decay={2} />
+      {/* resting pose shows the etched label; the focused chip turntables,
+          revealing the gold pin field + die lid as it spins */}
+      <group ref={groupRef} position={[0, 3.4, 0]}>
+        <group ref={spinRef}>
           <group
-            key={li}
-            ref={(g) => {
-              layerRefs.current[li] = g;
+            rotation={[-1.05, 0, 0]}
+            onClick={onClick}
+            onPointerOver={(event) => {
+              if (domGuard(event as unknown as ThreeEvent<MouseEvent>)) return;
+              event.stopPropagation();
+              hover.current = true;
             }}
-            position={[0, 3.42 + li * 0.03, -2.3]}
-            rotation={[-Math.PI / 2, 0, 0]}
+            onPointerOut={() => {
+              hover.current = false;
+            }}
           >
-            {/* page extends from the hinge; bottom edge AT the hinge, no piercing */}
-            <mesh position={[0, 2.15, 0]}>
-              <planeGeometry args={[4.2, 4.3]} />
-              <meshStandardMaterial
-                ref={(m) => {
-                  layerMats.current[li] = m;
-                }}
-                color="#081008"
-                roughness={0.5}
-                metalness={0.5}
-                emissive={color}
-                emissiveIntensity={0.06}
-                transparent
-                opacity={0.94}
-                side={THREE.DoubleSide}
-              />
-            </mesh>
+            <ChipModel label={label} sub={sub} accent={color} />
           </group>
-        ))}
+        </group>
       </group>
     </group>
   );
 }
 
-/** The Fab: a real glass assembly hall — portal ribs, ridge, glass volume, 4 pedestals. */
-export default function Fab() {
+/** backdrop glass hall (non-interactive scenery) */
+function HallBackdrop() {
   const ribRefs = useRef<(THREE.MeshStandardMaterial | null)[]>([]);
-
   useFrame(() => {
     const { boot, station } = useJourney.getState();
     const ramp = Math.max(0, Math.min(1, (boot - 0.35) / 0.25));
@@ -131,18 +137,13 @@ export default function Fab() {
       if (m) m.emissiveIntensity = 0.9 * ramp * near;
     });
   });
-
   let ribIdx = 0;
-
   return (
     <group position={[HALL.x, 0, HALL.z]} rotation={[0, HALL_ROT, 0]}>
-      {/* platform */}
       <mesh position={[0, 1, 0]}>
         <boxGeometry args={[60, 2, 20]} />
         <meshStandardMaterial color="#0a100a" roughness={0.7} metalness={0.35} />
       </mesh>
-
-      {/* portal ribs: two columns + crossbeam each, warm-lit */}
       {RIB_XS.map((rx) => (
         <group key={rx} position={[rx, 0, 0]}>
           {(
@@ -166,7 +167,6 @@ export default function Fab() {
           ))}
         </group>
       ))}
-      {/* continuous ridge beam */}
       <mesh position={[0, 19.15, 0]}>
         <boxGeometry args={[52.6, 0.5, 0.5]} />
         <meshStandardMaterial
@@ -178,18 +178,16 @@ export default function Fab() {
           emissiveIntensity={0}
         />
       </mesh>
-
-      {/* glass volume — visible panes, bloom-kissed edges */}
       {(
         [
-          { p: [0, 10, -9.6] as [number, number, number], r: [0, 0, 0] as [number, number, number], w: 52, h: 17.6 },
-          { p: [0, 10, 9.6] as [number, number, number], r: [0, 0, 0] as [number, number, number], w: 52, h: 17.6 },
-          { p: [-26.2, 10, 0] as [number, number, number], r: [0, Math.PI / 2, 0] as [number, number, number], w: 19.2, h: 17.6 },
-          { p: [26.2, 10, 0] as [number, number, number], r: [0, Math.PI / 2, 0] as [number, number, number], w: 19.2, h: 17.6 }
+          { p: [0, 10, -9.6] as [number, number, number], r: 0, w: 52 },
+          { p: [0, 10, 9.6] as [number, number, number], r: 0, w: 52 },
+          { p: [-26.2, 10, 0] as [number, number, number], r: Math.PI / 2, w: 19.2 },
+          { p: [26.2, 10, 0] as [number, number, number], r: Math.PI / 2, w: 19.2 }
         ]
       ).map((pane, i) => (
-        <mesh key={i} position={pane.p} rotation={pane.r}>
-          <planeGeometry args={[pane.w, pane.h]} />
+        <mesh key={i} position={pane.p} rotation={[0, pane.r, 0]}>
+          <planeGeometry args={[pane.w, 17.6]} />
           <meshStandardMaterial
             color="#12241a"
             transparent
@@ -206,10 +204,25 @@ export default function Fab() {
         <planeGeometry args={[52, 19]} />
         <meshStandardMaterial color="#12241a" transparent opacity={0.1} roughness={0.12} side={THREE.DoubleSide} />
       </mesh>
+    </group>
+  );
+}
 
-      {CHIPS.map((chip, i) => (
-        <Chip key={chip.slug} index={i} slug={chip.slug} color={chip.color} />
-      ))}
+/** The Fab: interactive PGA-chip shelf in the foreground, glass hall behind. */
+export default function Fab() {
+  return (
+    <group>
+      <group position={[ROW.x, 0, ROW.z]} rotation={[0, ROW_ROT, 0]}>
+        {/* display plinth strip */}
+        <mesh position={[0, 0.35, 0]}>
+          <boxGeometry args={[42, 0.7, 6]} />
+          <meshStandardMaterial color="#0d130d" roughness={0.6} metalness={0.4} />
+        </mesh>
+        {CHIPS.map((chip, i) => (
+          <InteractiveChip key={chip.slug} index={i} slug={chip.slug} label={chip.label} sub={chip.sub} color={chip.color} />
+        ))}
+      </group>
+      <HallBackdrop />
     </group>
   );
 }

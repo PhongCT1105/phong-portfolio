@@ -167,6 +167,8 @@ export default function Receipts() {
             key={receipt.title}
             className={`receipt-card reveal${receipt.featured ? ' receipt-card--featured' : ''}`}
             style={{ '--dot-color': receipt.color } as React.CSSProperties}
+            onPointerEnter={() => useJourney.getState().setReceiptHover(SITE_CONTENT.receipts.indexOf(receipt))}
+            onPointerLeave={() => useJourney.getState().setReceiptHover(null)}
           >
             <div className="receipt-card__value" data-value={receipt.value}>
               {receipt.value}

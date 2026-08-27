@@ -44,7 +44,7 @@ function Vault({
   const rotY = Math.atan2(110 - x, 25 - z);
 
   useFrame((_, dt) => {
-    const { station, localT, boot } = useJourney.getState();
+    const { station, localT, boot, receiptHover } = useJourney.getState();
     const target = vaultOpenTarget(station, localT, index);
     const speed = 1 - Math.exp(-Math.min(dt, 0.05) * 5);
     open.current += (target - open.current) * speed;
@@ -58,7 +58,9 @@ function Vault({
       exitFade = 1 - t * t * (3 - 2 * t);
     }
     const bootRamp = Math.max(0, Math.min(1, (boot - 0.3) / 0.25));
-    const light = open.current * exitFade * bootRamp;
+    // hovering this vault's DOM card flares it — one linked system, not two
+    const hovered = receiptHover === index;
+    const light = Math.max(open.current, hovered ? 0.6 : 0) * exitFade * bootRamp;
 
     if (doorRef.current) doorRef.current.position.x = -open.current * 7.0;
     // one-number discipline: the vault reveals LIGHT in its org color; the DOM
@@ -66,7 +68,9 @@ function Vault({
     if (plaqueRef.current) plaqueRef.current.emissiveIntensity = 0.04 * exitFade + light * 1.5;
     if (padRef.current) padRef.current.emissiveIntensity = 0.05 * exitFade + light * 0.22;
     edgeRefs.current.forEach((m) => {
-      if (m) m.emissiveIntensity = (0.16 + open.current * 0.85) * exitFade * bootRamp;
+      if (m)
+        m.emissiveIntensity =
+          (0.16 + open.current * 0.85 + (hovered ? 0.7 : 0)) * exitFade * bootRamp;
     });
   });
 

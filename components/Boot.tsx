@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { BOOT_KEY, getOrCreateSessionId, prefersReducedMotion } from '@/lib/session';
+import { useJourney } from '@/lib/journey';
 
 type LogLine = { text: string; cls: string; dots?: boolean };
 
@@ -22,8 +23,10 @@ export default function Boot() {
     const run = async () => {
       const sessionId = getOrCreateSessionId();
       const already = window.sessionStorage.getItem(BOOT_KEY) === '1';
+      const { setBoot } = useJourney.getState();
 
       if (prefersReducedMotion()) {
+        setBoot(1);
         setDone(true);
         window.dispatchEvent(new Event('phong:booted'));
         return;
@@ -32,31 +35,40 @@ export default function Boot() {
       document.body.classList.add('is-booting');
 
       if (already) {
-        setLines([{ text: `SESSION ${sessionId} · CONNECTED`, cls: 'ok' }]);
+        setLines([{ text: `SESSION ${sessionId} · CONNECTED`, cls: 'ok boot-line--big' }]);
         setMeter(100);
-        await sleep(260);
+        setBoot(0.7);
+        await sleep(220);
       } else {
         const script: LogLine[] = [
           { text: 'ESTABLISHING CONNECTION', cls: '', dots: true },
           { text: `SESSION ${sessionId}`, cls: 'ok' },
           { text: 'AI INFRASTRUCTURE', cls: '' },
           { text: 'DISTRIBUTED SYSTEMS', cls: '' },
-          { text: '10× BUILDER', cls: '' },
-          { text: 'CONNECTED', cls: 'ok' }
+          { text: '10× BUILDER', cls: '' }
         ];
+        // each log line lands a VISIBLE district delta behind the overlay
         for (let i = 0; i < script.length; i += 1) {
           if (cancelled) return;
           setLines(script.slice(0, i + 1));
-          setMeter(Math.round(((i + 1) / script.length) * 100));
-          await sleep(i === 0 ? 360 : 235);
+          setMeter(Math.round(((i + 1) / 6) * 100));
+          setBoot(0.16 * (i + 1));
+          await sleep(i === 0 ? 240 : 200);
         }
-        await sleep(250);
+        if (cancelled) return;
+        // CONNECTED is the beat: hold, land it big, then fade + sign flicker
+        await sleep(200);
+        setLines((prev) => [...prev, { text: 'CONNECTED', cls: 'ok boot-line--big' }]);
+        setMeter(100);
+        setBoot(0.9);
+        await sleep(300);
       }
 
       if (cancelled) return;
       window.sessionStorage.setItem(BOOT_KEY, '1');
-      setDone(true);
+      setDone(true); // overlay fade begins…
       document.body.classList.remove('is-booting');
+      window.setTimeout(() => setBoot(1), 250); // …sign flickers on 250ms into the fade
       window.dispatchEvent(new Event('phong:booted'));
     };
 

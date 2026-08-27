@@ -12,8 +12,11 @@ interface JourneyState {
   localT: number;
   /** station start offsets in page-progress space; length = stations + 1, last = 1 */
   ranges: number[];
+  /** 0..1 — city power-on driven by the boot sequence (1 = fully lit) */
+  boot: number;
   setProgress: (progress: number) => void;
   setRanges: (ranges: number[]) => void;
+  setBoot: (boot: number) => void;
 }
 
 const DEFAULT_RANGES = [0, 1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6, 1];
@@ -23,6 +26,8 @@ export const useJourney = create<JourneyState>((set, get) => ({
   station: 0,
   localT: 0,
   ranges: DEFAULT_RANGES,
+  boot: 0,
+  setBoot: (boot) => set({ boot: Math.max(0, Math.min(1, boot)) }),
   setProgress: (progress) => {
     const p = Math.max(0, Math.min(1, progress));
     const { ranges } = get();

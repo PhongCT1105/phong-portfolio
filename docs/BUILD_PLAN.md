@@ -21,7 +21,7 @@ Progress log (append per iteration): docs/BUILD_LOG.md
 - [x] M0 — 2D flow tier (done: commit 7c9bc23)
 - [x] M1 — Foundation: r3f canvas + quality tiers + Lenis/zustand journey store + camera rail + post baseline
 - [x] M2 — City ground: traces, instanced window-lit towers, downtown + PHONG CAO signage
-- [ ] M3 — Boot power-on + hero DOM over the city (network-canvas retired)
+- [x] M3 — Boot power-on + hero DOM over the city (network-canvas retired)
 - [ ] M4 — Memory vaults + receipts sync
 - [ ] M5 — The Fab: chip pedestals + chip-book case studies
 - [ ] M6 — The Avenue: 5 gates + road sync
@@ -59,6 +59,15 @@ Progress log (append per iteration): docs/BUILD_LOG.md
   work station so skyline (not a black mass) backs "Four real projects."
 - (M5+) Brand banner tints: 4–6 towers per district in district-appropriate accents, max 2 accent
   hues per frame.
+
+## Later guidance from the M3 critic
+- (M7 window, with mid-field density) Beacons: 3–4px emissive core + bloom halo, ~300ms rise /
+  600ms decay breathing (not binary blip); add 2 more masts at differing phases far-left/right.
+- (M7 window) Hero mid-ground: dim mid-rise tier (30–40% window density) in the left void
+  (x 0–450 screen) so fog separates three depth planes.
+- (M9 polish) Tagline seating: nudge "I build systems…" up ~24px or dim windows behind its
+  bounding box ~30% at the hero station (text-priority lighting).
+- (M10) Silence THREE.Clock deprecation warnings if a clean fix exists.
 
 ## Tech pins
 - three, @react-three/fiber, @react-three/drei, @react-three/postprocessing, lenis, zustand, maath

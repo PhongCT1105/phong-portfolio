@@ -32,8 +32,15 @@ interface Batch {
   seed: number;
 }
 
+/** smooth power ramp: each batch ignites once boot passes its threshold */
+function powerRamp(boot: number, threshold: number): number {
+  const t = Math.max(0, Math.min(1, (boot - threshold) / 0.2));
+  return t * t * (3 - 2 * t);
+}
+
 function TowerBatch({ batch }: { batch: Batch }) {
   const ref = useRef<THREE.InstancedMesh>(null);
+  const threshold = useMemo(() => ((batch.seed * 37) % 100) / 100 * 0.5, [batch.seed]);
 
   const materials = useMemo(() => {
     const medW = median(batch.towers.map((t) => t.w));
@@ -69,6 +76,11 @@ function TowerBatch({ batch }: { batch: Batch }) {
     mesh.instanceMatrix.needsUpdate = true;
   }, [batch]);
 
+  useFrame(() => {
+    const side = materials[0] as THREE.MeshStandardMaterial;
+    side.emissiveIntensity = batch.emissive * powerRamp(useJourney.getState().boot, threshold);
+  });
+
   return <instancedMesh ref={ref} args={[BOX, materials, batch.towers.length]} frustumCulled={false} />;
 }
 
@@ -95,6 +107,53 @@ function Crowns({ towers }: { towers: Tower[] }) {
       <boxGeometry />
       <meshStandardMaterial color="#060906" roughness={0.85} metalness={0.15} emissive="#9effc0" emissiveIntensity={0.05} />
     </instancedMesh>
+  );
+}
+
+/** M3 — stepped crowns + antenna masts with 2s blinking beacons on the tallest towers */
+function CrownsAndBeacons() {
+  const beaconRefs = useRef<(THREE.MeshStandardMaterial | null)[]>([]);
+
+  useFrame((state) => {
+    const boot = useJourney.getState().boot;
+    const on = boot >= 0.9 && state.clock.elapsedTime % 2 < 0.18;
+    beaconRefs.current.forEach((material) => {
+      if (material) material.emissiveIntensity = on ? 2.2 : 0.1;
+    });
+  });
+
+  const masts: { x: number; z: number; base: number; h: number }[] = [
+    { x: 38, z: 8, base: 25.5, h: 5 },
+    { x: 24, z: 26, base: 20.5, h: 4 }
+  ];
+
+  return (
+    <group>
+      {/* second setback step on the main hero tower */}
+      <mesh position={[38, 26.1, 8]}>
+        <boxGeometry args={[3.2, 1.2, 3.2]} />
+        <meshStandardMaterial color="#060906" roughness={0.85} />
+      </mesh>
+      {masts.map((m, i) => (
+        <group key={i} position={[m.x, 0, m.z]}>
+          <mesh position={[0, m.base + m.h / 2, 0]}>
+            <boxGeometry args={[0.2, m.h, 0.2]} />
+            <meshStandardMaterial color="#0a0f0a" roughness={0.9} />
+          </mesh>
+          <mesh position={[0, m.base + m.h + 0.2, 0]}>
+            <boxGeometry args={[0.38, 0.38, 0.38]} />
+            <meshStandardMaterial
+              ref={(mat) => {
+                beaconRefs.current[i] = mat;
+              }}
+              color="#0a0f0a"
+              emissive="#ffe9c4"
+              emissiveIntensity={0.1}
+            />
+          </mesh>
+        </group>
+      ))}
+    </group>
   );
 }
 
@@ -163,13 +222,27 @@ function Signage() {
   // hero tower at (38, 8), h=22 + crown; hero camera ≈ (-10, 14, 118)
   const rotY = Math.atan2(-10 - 38, 118 - 8);
 
-  useFrame(() => {
+  const flickerStart = useRef<number | null>(null);
+
+  useFrame((state) => {
     const material = materialRef.current;
     if (!material) return;
-    const { progress } = useJourney.getState();
+    const { progress, boot } = useJourney.getState();
+    // sign waits for CONNECTED, then flickers on like a neon tube (M3)
+    let ignite = 0;
+    if (boot >= 0.99) {
+      if (flickerStart.current === null) flickerStart.current = state.clock.elapsedTime;
+      const since = state.clock.elapsedTime - flickerStart.current;
+      if (since < 1.2) {
+        const buzz = Math.sin(since * 47) * Math.sin(since * 13.7);
+        ignite = since / 1.2 > Math.abs(buzz) ? 1 : 0.15;
+      } else {
+        ignite = 1;
+      }
+    }
     // full at hero/receipts, gone by 40% scroll
     const t = Math.max(0, Math.min(1, (progress - 0.25) / 0.15));
-    const fade = 1 - t * t * (3 - 2 * t);
+    const fade = (1 - t * t * (3 - 2 * t)) * ignite;
     material.opacity = fade;
     material.emissiveIntensity = 2.5 * fade;
     material.visible = fade > 0.01;
@@ -190,6 +263,29 @@ function Signage() {
         />
       </mesh>
     </group>
+  );
+}
+
+function GroundPlane({ texture }: { texture: THREE.CanvasTexture }) {
+  const materialRef = useRef<THREE.MeshStandardMaterial>(null);
+  useFrame(() => {
+    if (materialRef.current) {
+      materialRef.current.emissiveIntensity = 0.32 * powerRamp(useJourney.getState().boot, 0.05);
+    }
+  });
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
+      <planeGeometry args={[WORLD_W, WORLD_D]} />
+      <meshStandardMaterial
+        ref={materialRef}
+        map={texture}
+        roughness={0.92}
+        metalness={0.15}
+        emissive="#ffffff"
+        emissiveMap={texture}
+        emissiveIntensity={0}
+      />
+    </mesh>
   );
 }
 
@@ -220,21 +316,12 @@ export default function City({ density = 1 }: { density?: number }) {
 
   return (
     <group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-        <planeGeometry args={[WORLD_W, WORLD_D]} />
-        <meshStandardMaterial
-          map={groundTexture}
-          roughness={0.92}
-          metalness={0.15}
-          emissive="#ffffff"
-          emissiveMap={groundTexture}
-          emissiveIntensity={0.32}
-        />
-      </mesh>
+      <GroundPlane texture={groundTexture} />
       {batches.map((batch) => (
         <TowerBatch key={batch.key} batch={batch} />
       ))}
       <Crowns towers={towers} />
+      <CrownsAndBeacons />
       <HeroBanners />
       <CraneSilhouettes />
       <Signage />

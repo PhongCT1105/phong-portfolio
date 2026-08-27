@@ -7,10 +7,11 @@
 @keyframes packetDrift { 0%{transform:translate3d(0,0,0);opacity:0} 15%{opacity:1} 75%{opacity:1} 100%{transform:translate3d(310px,80px,0);opacity:0} }
 .reveal { opacity:0; transform:translateY(24px); transition:opacity .85s var(--ease-out), transform .85s var(--ease-out); }
 .reveal.in-view { opacity:1; transform:none; }
-.boot { position:fixed; inset:0; z-index:5000; display:grid; place-items:center; background:var(--bg); transition:opacity .6s var(--ease-out), transform .8s var(--ease-out), visibility .6s; }
+.boot { position:fixed; inset:0; z-index:5000; background:radial-gradient(ellipse at 62% 34%, rgba(5,8,5,.16), rgba(5,8,5,.58)); transition:opacity .6s var(--ease-out), transform .8s var(--ease-out), visibility .6s; }
 .boot.is-done { opacity:0; transform:scale(1.025); visibility:hidden; pointer-events:none; }
 .boot__grid { position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px); background-size:42px 42px; mask-image:radial-gradient(circle,#000,transparent 70%); }
-.boot__panel { width:min(560px,calc(100% - 42px)); position:relative; z-index:2; }
+.boot__panel { width:min(520px,calc(100% - 42px)); position:absolute; z-index:2; left:clamp(24px, 6vw, 90px); top:54%; background:rgba(5,8,5,.66); backdrop-filter:blur(10px); border-radius:16px; padding:26px 28px; }
+.boot__log .boot-line--big { font-size:16px; font-weight:700; letter-spacing:.22em; margin-top:6px; }
 .boot__brand { margin:0 0 34px; color:var(--accent); font:12px var(--mono); letter-spacing:.16em; }
 .boot__log { min-height:145px; color:var(--muted); font:11px/1.9 var(--mono); letter-spacing:.06em; }
 .boot__log b { color:var(--fg-soft); font-weight:400; }.boot__log .ok { color:var(--accent); }

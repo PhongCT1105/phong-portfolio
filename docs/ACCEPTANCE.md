@@ -27,6 +27,10 @@ https://claude.ai/code/artifact/1822c13b-f203-44e9-aa0e-899f4173798f (pages "Sil
 - Browser: if the claude-in-chrome extension has no responsive local browser, use local headless
   Chrome driven over CDP (SwiftShader WebGL works) at 1440x900; save screenshots under the
   session scratchpad. This path is proven — see M1 round 1.
+- NEVER `taskkill /IM chrome.exe` or otherwise kill Chrome processes you did not launch — that
+  closes the user's own browser. Launch headless Chrome with a dedicated
+  `--user-data-dir=<scratchpad temp dir>` for a fresh session/profile, and terminate ONLY the
+  process id you started.
 - Desktop pass at default window; capture screenshots at these scroll depths:
   top (hero), ~15% (receipts), ~35% (work), ~55% (road), ~75% (now), bottom (contact).
 - IMPORTANT: wait ≥3s after each scroll before shooting — the camera is damped and needs

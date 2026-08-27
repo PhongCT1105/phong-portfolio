@@ -34,3 +34,21 @@ Format per entry: milestone · rounds · validator verdict · critic verdict · 
   + beacons, 35% composition, brand banner tints) recorded in BUILD_PLAN.md.
 - Screenshots: scratchpad shots-m2r1/, shots-m2r2/, shots-m2r3/.
 
+## M3 — Boot power-on + hero integration
+- 2 rounds. Round 1 validator PASS on mechanics (translucent overlay, monotonic power-on,
+  sign flicker, 2s beacons, fast-boot path). Critic: FIX FIRST — power-on read as a delayed
+  fade-in, not a moment: dead air, imperceptible per-line deltas, stacked payoffs, panel
+  covering downtown.
+- Fixes: lighter scrim (.58 edge), power thresholds compressed to [0,0.5] with per-line boot
+  steps 0.16..0.8, tighter line pacing (240/200ms), CONNECTED staged as a beat (hold →
+  1.5×-size line → overlay fade → sign flicker 250ms into fade via boot 0.9→1.0 gate at 0.99),
+  boot panel anchored lower-left (x≈86, top 54%).
+- Round 2 validator PASS with frame-level ordering + luma-step measurements confirming every
+  prescribed fix (critic's close condition met). Caveat noted: SwiftShader's ~1.7s first WebGL
+  frame collapses lines 1–4's deltas in headless; real GPUs paint from line 1.
+- Protocol hardened: validators must use a dedicated --user-data-dir and never taskkill
+  chrome.exe by name (round 1 killed the user's own Chrome — logged for the morning summary).
+- Critic's later guidance (beacon breathing + extra masts, hero mid-ground tier, tagline
+  seating, THREE.Clock cleanup) recorded in BUILD_PLAN.md.
+- Screenshots: scratchpad shots-m3r1/, shots-m3r2/.
+

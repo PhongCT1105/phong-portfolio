@@ -16,7 +16,7 @@ import City from '@/components/city/City';
  */
 const RAIL_POINTS: [number, number, number][] = [
   [-10, 14, 118], // 00 hero — eye below the hero-tower roofline, downtown ahead-right
-  [85, 16, 60], // 01 receipts — gliding toward the memory quarter
+  [85, 20, 60], // 01 receipts — raised so vault plaques clear the DOM card bottoms
   [150, 14, -30], // 02 work — the fab, east side
   [55, 8, -95], // 03 road — street level on the avenue
   [-85, 14, -45], // 04 now — scheduler hall
@@ -25,7 +25,7 @@ const RAIL_POINTS: [number, number, number][] = [
 
 const LOOK_TARGETS: [number, number, number][] = [
   [42, 11, 2], // downtown cluster breaks the horizon, right of frame
-  [120, 8, -20],
+  [120, 4, -20],
   [180, 6, -90],
   [-45, 6, -95], // straight down the avenue
   [-135, 6, 5],
@@ -43,16 +43,30 @@ function CameraRig() {
   const scratch2 = useRef(new THREE.Vector3());
 
   useFrame((state, dt) => {
-    const { progress, station, localT } = useJourney.getState();
+    const { progress, station, localT, ranges } = useJourney.getState();
     const delta = Math.min(dt, 0.05);
 
-    curve.getPointAt(Math.max(0, Math.min(1, progress)), scratch.current);
+    // camera HOLD through the vault reveal: reach the receipts pose early,
+    // dwell while the doors open (stable DOM↔world alignment), then exit
+    let effective = progress;
+    if (station === 1) {
+      const start = ranges[1];
+      const span = Math.max(1e-4, ranges[2] - ranges[1]);
+      const l = localT;
+      const f = l < 0.3 ? l * 2 : l < 0.85 ? 0.6 : 0.6 + ((l - 0.85) / 0.15) * 0.4;
+      effective = start + f * span;
+    }
+
+    curve.getPointAt(Math.max(0, Math.min(1, effective)), scratch.current);
     easing.damp3(pos.current, scratch.current, 0.45, delta);
 
     const nextStation = Math.min(station + 1, LOOK_TARGETS.length - 1);
+    // during the receipts hold the look-at must freeze too (the dwell is a real hold)
+    const lookLerp =
+      station === 1 ? (localT < 0.85 ? 0 : ((localT - 0.85) / 0.15) * 0.5) : localT * 0.5;
     scratch.current
       .fromArray(LOOK_TARGETS[station])
-      .lerp(scratch2.current.fromArray(LOOK_TARGETS[nextStation]), localT * 0.5);
+      .lerp(scratch2.current.fromArray(LOOK_TARGETS[nextStation]), lookLerp);
     easing.damp3(look.current, scratch.current, 0.6, delta);
 
     state.camera.position.copy(pos.current);

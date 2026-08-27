@@ -52,3 +52,25 @@ Format per entry: milestone · rounds · validator verdict · critic verdict · 
   seating, THREE.Clock cleanup) recorded in BUILD_PLAN.md.
 - Screenshots: scratchpad shots-m3r1/, shots-m3r2/.
 
+## M4 — Memory vaults + receipts sync + ground v2 (7 rounds — the hard one)
+- r1 FAIL: plaques occluded INSIDE vault bodies, no stagger read, DOM out of sync, ground
+  bundles too faint. r2 PASS mechanics after: plaque moved proud of body face, per-approach
+  edge gating, thresholds lowered, values held at $0K until door-open, corridor cleared,
+  brighter PCB bundles. Critic: FIX — flat saturated pads (carnival), hierarchy inverted,
+  wrong-value-under-card, station exit polluted chapter 02's shot.
+- r3–r6: pads→thin rings, hierarchy plaque>frame>ring, exit strike-the-set (all vault light
+  →0 at localT .82–.98) all landed and stayed green; but per-card ALIGNMENT kept failing —
+  camera trucked through the station (fixed with a camera HOLD: rail + look-at both freeze
+  through localT 0.3–0.85; hold verified byte-identical), yet the world→screen projection of
+  a fixed row can never track a responsive DOM grid (measured pitch 373px vs card 319px, and
+  it varies with viewport). Root cause was the DESIGN, not calibration.
+- r7 PASS with the revised design (the critic's own "one-number discipline"): vaults open
+  onto soft org-color light facing the held camera; the DOM card alone carries the number,
+  counting up in lockstep with its door. Order + choreography are the contract — robust at
+  any viewport. Exit clean, console clean.
+- LESSON (recorded for M5–M8): never pin 3D world objects 1:1 to responsive DOM elements;
+  sync ORDER and TIMING, let one medium own each piece of content.
+- Also: SmoothScroll re-measures station ranges at 2.6s (late layout shift made ranges stale);
+  validator settle rule extended for SwiftShader (poll to byte-identical).
+- Screenshots: scratchpad shots-m4r1..r7/.
+

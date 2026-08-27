@@ -35,6 +35,9 @@ https://claude.ai/code/artifact/1822c13b-f203-44e9-aa0e-899f4173798f (pages "Sil
   top (hero), ~15% (receipts), ~35% (work), ~55% (road), ~75% (now), bottom (contact).
 - IMPORTANT: wait ≥3s after each scroll before shooting — the camera is damped and needs
   ~1.5–2.5s to settle after a large jump; early shots produce phantom framing defects.
+- Under SwiftShader headless the effective settle is MUCH longer (low FPS × Lenis lerp ×
+  camera damping): for alignment-critical shots wait 10–12s, or poll two captures 2s apart
+  until pixel-stable before judging.
 - Mobile pass: resize window to 390px wide, repeat top/middle/bottom.
 - Compare against the milestone checklist below AND the storyboards. Report:
   PASS or FAIL + numbered concrete defects ("towers uniform height = looks extruded-box",

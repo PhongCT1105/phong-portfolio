@@ -13,6 +13,8 @@ export default function SmoothScroll() {
     measure();
     window.addEventListener('resize', measure, { passive: true });
     const settle = window.setTimeout(measure, 600);
+    // fonts/lazy chunks shift layout late — re-measure once more after full settle
+    const settleLate = window.setTimeout(measure, 2600);
 
     const nativeProgress = () => {
       const doc = document.documentElement;
@@ -27,6 +29,7 @@ export default function SmoothScroll() {
         window.removeEventListener('scroll', nativeProgress);
         window.removeEventListener('resize', measure);
         window.clearTimeout(settle);
+        window.clearTimeout(settleLate);
       };
     }
 
@@ -45,6 +48,7 @@ export default function SmoothScroll() {
       lenis.destroy();
       window.removeEventListener('resize', measure);
       window.clearTimeout(settle);
+      window.clearTimeout(settleLate);
     };
   }, []);
 

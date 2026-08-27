@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { SITE_CONTENT } from '@/lib/content';
 import { prefersReducedMotion } from '@/lib/session';
+import { useJourney } from '@/lib/journey';
 
 function animateValue(el: HTMLElement, target: string) {
   const match = target.match(/^([^0-9−-]*)(−|-)?(\d+)(.*)$/);
@@ -29,23 +30,39 @@ export default function Receipts() {
   useEffect(() => {
     const grid = gridRef.current;
     if (!grid) return;
-    const values = Array.from(grid.querySelectorAll<HTMLElement>('.receipt-card__value'));
-    if (prefersReducedMotion()) return;
+    const cards = Array.from(grid.querySelectorAll<HTMLElement>('.receipt-card'));
+    const reduced = prefersReducedMotion();
+    const fired = cards.map(() => false);
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const el = entry.target as HTMLElement;
-            animateValue(el, el.dataset.value ?? el.textContent ?? '');
-            observer.unobserve(el);
-          }
+    // hold values at zero until each vault door opens (non-reduced motion only)
+    if (!reduced) {
+      cards.forEach((card) => {
+        const el = card.querySelector<HTMLElement>('.receipt-card__value');
+        const target = el?.dataset.value ?? '';
+        const match = target.match(/^([^0-9−-]*)(−|-)?(\d+)(.*)$/);
+        if (el && match) el.textContent = `${match[1]}${match[2] ?? ''}0${match[4]}`;
+      });
+    }
+
+    // count-up fires in lockstep with the 3D vault doors (same staggered thresholds)
+    const check = () => {
+      const { station, localT } = useJourney.getState();
+      cards.forEach((card, i) => {
+        if (fired[i]) return;
+        const openT =
+          station > 1 ? 1 : station < 1 ? 0 : Math.max(0, (localT - (0.32 + i * 0.12)) / 0.09);
+        if (openT > 0.01) {
+          fired[i] = true;
+          card.classList.add('is-lit');
+          const el = card.querySelector<HTMLElement>('.receipt-card__value');
+          if (el && !reduced) animateValue(el, el.dataset.value ?? el.textContent ?? '');
         }
-      },
-      { threshold: 0.6 }
-    );
-    values.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+      });
+      if (fired.every(Boolean)) unsubscribe();
+    };
+    const unsubscribe = useJourney.subscribe(check);
+    check();
+    return () => unsubscribe();
   }, []);
 
   return (

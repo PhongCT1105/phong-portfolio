@@ -60,6 +60,29 @@ export function makeSignTexture(): THREE.CanvasTexture {
   return texture;
 }
 
+/** M4: glowing value plaque inside a vault (e.g. "$30K"), tinted per org. */
+export function makeValueTexture(value: string, color: string): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = '#020402';
+  ctx.fillRect(0, 0, 256, 256);
+  const glow = ctx.createRadialGradient(128, 128, 20, 128, 128, 128);
+  glow.addColorStop(0, `${color}55`);
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, 256, 256);
+  ctx.font = '700 64px "JetBrains Mono", Consolas, monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#f4fff0';
+  ctx.fillText(value, 128, 128);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
 /**
  * G3: circuit-trace ground — avenues linking districts, thin infill traces,
  * via dots at junctions, and dark contact gradients under every tower.
@@ -78,32 +101,61 @@ export function makeGroundTexture(towers: Tower[]): THREE.CanvasTexture {
   ctx.fillStyle = '#030503';
   ctx.fillRect(0, 0, size, size);
 
-  // thin infill traces — a manhattan grid at ~30% of avenue brightness
-  ctx.strokeStyle = 'rgba(26, 66, 46, 0.75)';
-  ctx.lineWidth = 1.5;
-  const step = 16 * sx;
-  for (let u = 0; u < size; u += step) {
-    ctx.beginPath();
-    ctx.moveTo(u, 0);
-    ctx.lineTo(u, size);
-    ctx.stroke();
-  }
-  for (let v = 0; v < size; v += 16 * sz) {
-    ctx.beginPath();
-    ctx.moveTo(0, v);
-    ctx.lineTo(size, v);
-    ctx.stroke();
+  // PCB-style routing: a bundle of parallel traces with a 45° dogleg bend
+  const drawBundle = (
+    ax: number,
+    az: number,
+    bx: number,
+    bz: number,
+    count: number,
+    color: string,
+    width: number,
+    gap: number
+  ) => {
+    const dx = bx - ax;
+    const dz = bz - az;
+    const len = Math.hypot(dx, dz) || 1;
+    const nx = -dz / len;
+    const nz = dx / len;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for (let i = 0; i < count; i += 1) {
+      const off = (i - (count - 1) / 2) * gap;
+      const ox = nx * off;
+      const oz = nz * off;
+      // dogleg: dominant axis first, then 45°, then finish
+      const midX = ax + dx * 0.55 + ox;
+      const midZ = az + dz * 0.35 + oz;
+      ctx.beginPath();
+      ctx.moveTo(toU(ax + ox), toV(az + oz));
+      ctx.lineTo(toU(midX), toV(midZ));
+      ctx.lineTo(toU(bx + ox), toV(bz + oz));
+      ctx.stroke();
+      // via dots at the bend
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(toU(midX), toV(midZ), width * 0.7, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  };
+
+  // infill: scattered short trace bundles at ~30% of avenue brightness
+  const rand = mulberry(4242);
+  for (let i = 0; i < 62; i += 1) {
+    const ax = (rand() - 0.5) * WORLD_W * 0.94;
+    const az = (rand() - 0.5) * WORLD_D * 0.94;
+    const angle = [0, Math.PI / 4, Math.PI / 2, -Math.PI / 4][Math.floor(rand() * 4)];
+    const len = 30 + rand() * 70;
+    const bx = ax + Math.cos(angle) * len;
+    const bz = az + Math.sin(angle) * len;
+    drawBundle(ax, az, bx, bz, 2 + Math.floor(rand() * 3), 'rgba(30, 74, 54, 0.8)', 2, 4 * sx);
   }
 
-  // avenues — the data-bus roads
-  ctx.strokeStyle = '#1a4a3a';
-  ctx.lineWidth = 5 * sx;
-  ctx.lineCap = 'round';
+  // avenues — the data-bus roads, 3-trace bundles, 2-3x infill brightness
   for (const [ax, az, bx, bz] of AVENUES) {
-    ctx.beginPath();
-    ctx.moveTo(toU(ax), toV(az));
-    ctx.lineTo(toU(bx), toV(bz));
-    ctx.stroke();
+    drawBundle(ax, az, bx, bz, 3, '#2a6a4e', 4, 8 * sx);
   }
   // via dots at junctions (both endpoints of every avenue)
   ctx.fillStyle = '#2f7a5c';

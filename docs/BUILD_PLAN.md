@@ -22,7 +22,7 @@ Progress log (append per iteration): docs/BUILD_LOG.md
 - [x] M1 — Foundation: r3f canvas + quality tiers + Lenis/zustand journey store + camera rail + post baseline
 - [x] M2 — City ground: traces, instanced window-lit towers, downtown + PHONG CAO signage
 - [x] M3 — Boot power-on + hero DOM over the city (network-canvas retired)
-- [ ] M4 — Memory vaults + receipts sync
+- [x] M4 — Memory vaults + receipts sync (revised: one-number design — vaults open onto org-color light; DOM owns the numbers)
 - [ ] M5 — The Fab: chip pedestals + chip-book case studies
 - [ ] M6 — The Avenue: 5 gates + road sync
 - [ ] M7 — Scheduler hall + 47% counter
@@ -68,6 +68,15 @@ Progress log (append per iteration): docs/BUILD_LOG.md
 - (M9 polish) Tagline seating: nudge "I build systems…" up ~24px or dim windows behind its
   bounding box ~30% at the hero station (text-priority lighting).
 - (M10) Silence THREE.Clock deprecation warnings if a clean fix exists.
+
+## Later guidance from the M4 critic
+- (M8) Orbit ground legibility: roofs just above void (~#0a120c) and LOD-swap window texture
+  past ~150u to a coarser map (4× larger cells, 1/4 windows) — buildings currently break the
+  orbit illusion as speckled crumbs.
+- (M9 polish) Door-open as the Kage moment: solid door panel whose interior face is emissive,
+  spilling a soft org-color pool (~2u radius, ~0.3 intensity) when open; stagger opens ~150ms.
+- (M9 polish) One-number discipline: plaque inside the vault, visible only through the open
+  doorway, so each value exists once until the door hands it to the world.
 
 ## Tech pins
 - three, @react-three/fiber, @react-three/drei, @react-three/postprocessing, lenis, zustand, maath

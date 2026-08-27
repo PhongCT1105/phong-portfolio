@@ -23,8 +23,10 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 
 /* ===== receipts ===== */
 .receipts__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
-.receipt-card { border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--panel); padding: 30px 26px; display: flex; flex-direction: column; gap: 16px; min-height: 300px; }
-.receipt-card--featured { border-color: rgba(155,225,93,.35); background: var(--panel-strong); box-shadow: 0 0 44px rgba(155,225,93,.08); }
+.receipt-card { border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--panel); padding: 30px 26px; display: flex; flex-direction: column; gap: 16px; min-height: 300px; position: relative; overflow: hidden; }
+.receipt-card::before { content: ""; position: absolute; top: 0; left: 18%; right: 18%; height: 2px; background: var(--dot-color, var(--accent)); opacity: .18; box-shadow: 0 0 18px var(--dot-color, var(--accent)); transition: opacity .6s var(--ease-out), left .6s var(--ease-out), right .6s var(--ease-out); }
+.receipt-card.is-lit::before { opacity: .95; left: 6%; right: 6%; }
+.receipt-card--featured { border-color: rgba(155,225,93,.3); background: var(--panel-strong); }
 .receipt-card__value { font-size: clamp(40px, 4vw, 58px); font-weight: 700; letter-spacing: -.04em; line-height: 1; }
 .receipt-card--featured .receipt-card__value { color: var(--accent-bright); }
 .receipt-card__title { font-size: 16px; font-weight: 600; }

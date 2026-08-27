@@ -5,7 +5,7 @@ export default function NowSection() {
   return (
     <section className="section-shell section-pad" id="now" aria-labelledby="now-title">
       <div className="now">
-        <div className="now__copy reveal">
+        <div className="now__copy text-scrim reveal">
           <p className="eyebrow">{now.eyebrow}</p>
           <h2 id="now-title">{now.headline}</h2>
           <p className="now__body">{now.body}</p>

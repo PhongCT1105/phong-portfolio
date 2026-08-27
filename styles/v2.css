@@ -1,3 +1,11 @@
+/* ===== city layer ===== */
+.city-layer { position: fixed; inset: 0; z-index: -4; pointer-events: none; }
+html.lenis, html.lenis body { scroll-behavior: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto; }
+
+/* body-copy blocks get a scrim so text stays ≥4.5:1 over bright city geometry (critic F4) */
+.text-scrim { background: rgba(5, 8, 5, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 14px; padding: 16px 18px; }
+
 /* ===== v2 flow: hero ===== */
 .hero2 { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; gap: clamp(28px, 4vh, 46px); padding-top: 110px; padding-bottom: 48px; position: relative; }
 .hero2__name { margin: 14px 0 0; font-size: clamp(72px, 11.5vw, 168px); line-height: .82; letter-spacing: -.06em; font-weight: 700; }

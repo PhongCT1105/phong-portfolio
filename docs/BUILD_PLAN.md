@@ -19,7 +19,7 @@ Progress log (append per iteration): docs/BUILD_LOG.md
 ## Milestones (criteria live in ACCEPTANCE.md)
 
 - [x] M0 — 2D flow tier (done: commit 7c9bc23)
-- [ ] M1 — Foundation: r3f canvas + quality tiers + Lenis/zustand journey store + camera rail + post baseline
+- [x] M1 — Foundation: r3f canvas + quality tiers + Lenis/zustand journey store + camera rail + post baseline
 - [ ] M2 — City ground: traces, instanced window-lit towers, downtown + PHONG CAO signage
 - [ ] M3 — Boot power-on + hero DOM over the city (network-canvas retired)
 - [ ] M4 — Memory vaults + receipts sync
@@ -29,6 +29,23 @@ Progress log (append per iteration): docs/BUILD_LOG.md
 - [ ] M8 — Lift-off reveal + contact orbit
 - [ ] M9 — Mobile-lite + fallback polish
 - [ ] M10 — Full-journey QA + log complete
+
+## M2 guidance from the M1 critic (implement these; they are the acceptance bar)
+- G1 Skyline: log-normal heights — ~65% of towers 1–3u, 28% 4–8u, 7% 10–16u, plus 2–3 hero towers
+  18–22u in downtown (placed ahead-right of hero camera, right third of frame behind "CAO");
+  footprints 1×1..3×2, 2 crane silhouettes, 1–2 stepped-setback towers; hero shot must show ≥8
+  distinct height steps on the horizon.
+- G2 Light: bodies near-black #080d08; canvas window texture, 15–25% windows lit, 70% warm-white
+  #ffe9c4 / 30% pale green #9effc0, per-instance offset; bloom hits ONLY windows/signage/packet;
+  brightness tiers downtown 2× districts 2× ground traces.
+- G3 Ground: circuit-trace plane — 4–6u avenues (#1a4a3a low emissive) linking districts, 1u infill
+  traces at 30% brightness, via-dots at junctions; dark contact gradient (1.5× footprint, →40%)
+  under every tower so nothing floats.
+- G4 Color discipline: ≤2 accent hues per screenshot; district accents on ≤10% of its lit windows
+  (vault org colors, gate colors, NVIDIA horizon only at their stations).
+- G5 Rooftop PHONG CAO signage on tallest downtown tower facing hero camera; letter height
+  1.2–1.5u (~20–28px in the 1440 hero shot); emissive white ~1.5× window brightness — the single
+  brightest thing in frame; flicker-on hook for M3 boot.
 
 ## Tech pins
 - three, @react-three/fiber, @react-three/drei, @react-three/postprocessing, lenis, zustand, maath

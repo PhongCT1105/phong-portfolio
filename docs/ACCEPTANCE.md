@@ -24,6 +24,9 @@ https://claude.ai/code/artifact/1822c13b-f203-44e9-aa0e-899f4173798f (pages "Sil
 ## Validator protocol
 
 - Start/refresh production server: `npm run build` then `npm start` (kill the old one first).
+- Browser: if the claude-in-chrome extension has no responsive local browser, use local headless
+  Chrome driven over CDP (SwiftShader WebGL works) at 1440x900; save screenshots under the
+  session scratchpad. This path is proven — see M1 round 1.
 - Desktop pass at default window; capture screenshots at these scroll depths:
   top (hero), ~15% (receipts), ~35% (work), ~55% (road), ~75% (now), bottom (contact).
 - Mobile pass: resize window to 390px wide, repeat top/middle/bottom.

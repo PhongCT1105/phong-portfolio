@@ -55,7 +55,7 @@ export default function Receipts() {
           <p className="eyebrow">CHAPTER 01 — RECEIPTS</p>
           <h2 id="receipts-title">Proof, with sources.</h2>
         </div>
-        <p className="receipts__note">
+        <p className="receipts__note text-scrim">
           Every number here traces to a contract, a prize, a release, or a paper — nothing decorative.
         </p>
       </div>

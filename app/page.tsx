@@ -1,5 +1,6 @@
 import Boot from '@/components/Boot';
-import NetworkCanvas from '@/components/NetworkCanvas';
+import CityLayer from '@/components/city/CityLayer';
+import SmoothScroll from '@/components/SmoothScroll';
 import CursorOrbit from '@/components/CursorOrbit';
 import SiteNav from '@/components/SiteNav';
 import Hero from '@/components/Hero';
@@ -18,7 +19,8 @@ export default function Home() {
       </a>
 
       <Boot />
-      <NetworkCanvas />
+      <CityLayer />
+      <SmoothScroll />
       <div className="global-grid" aria-hidden="true" />
       <CursorOrbit />
       <SiteNav />

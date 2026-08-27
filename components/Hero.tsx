@@ -12,7 +12,7 @@ export default function Hero() {
           <span>CAO</span>
         </h1>
         <p className="hero2__statement">{SITE_CONTENT.hero.statement}</p>
-        <p className="hero2__sub">{SITE_CONTENT.hero.sub}</p>
+        <p className="hero2__sub text-scrim">{SITE_CONTENT.hero.sub}</p>
         <div className="hero2__actions">
           <IconLinks />
         </div>

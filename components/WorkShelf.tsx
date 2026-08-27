@@ -183,7 +183,7 @@ export default function WorkShelf() {
             Open one.
           </h2>
         </div>
-        <p className="receipts__note">
+        <p className="receipts__note text-scrim">
           Only shipped, verifiable work makes the shelf. Select a project and OPEN unfolds the full case study.
         </p>
       </div>

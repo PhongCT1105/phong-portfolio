@@ -16,7 +16,7 @@ export default function Road() {
           {SITE_CONTENT.road.map((stop) => (
             <article
               key={stop.org}
-              className={`road-stop${stop.current ? ' road-stop--current' : ''}`}
+              className={`road-stop text-scrim${stop.current ? ' road-stop--current' : ''}`}
               style={{ '--stop-color': stop.color } as React.CSSProperties}
             >
               <span className="road-stop__dot" aria-hidden="true" />

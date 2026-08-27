@@ -22,12 +22,15 @@ interface JourneyState {
   tier: 'full' | 'lite' | 'off';
   /** receipt card index hovered in the DOM, or null — flares its vault */
   receiptHover: number | null;
+  /** which receipt the readout shows — follows vault opens; vault clicks set it */
+  receiptFocus: number;
   setProgress: (progress: number) => void;
   setRanges: (ranges: number[]) => void;
   setBoot: (boot: number) => void;
   setWork: (focus: number, open: string | null) => void;
   setTier: (tier: 'full' | 'lite' | 'off') => void;
   setReceiptHover: (index: number | null) => void;
+  setReceiptFocus: (index: number) => void;
 }
 
 const DEFAULT_RANGES = [0, 1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6, 1];
@@ -46,6 +49,8 @@ export const useJourney = create<JourneyState>((set, get) => ({
   setWork: (workFocus, workOpen) => set({ workFocus, workOpen }),
   setTier: (tier) => set({ tier }),
   setReceiptHover: (receiptHover) => set({ receiptHover }),
+  receiptFocus: 0,
+  setReceiptFocus: (receiptFocus) => set({ receiptFocus }),
   setProgress: (progress) => {
     const p = Math.max(0, Math.min(1, progress));
     const { ranges } = get();

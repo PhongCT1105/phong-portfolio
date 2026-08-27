@@ -16,7 +16,7 @@ function animateValue(el: HTMLElement, target: string) {
   const start = performance.now();
   const duration = 1100;
   const tick = (now: number) => {
-    const t = Math.min(1, (now - start) / duration);
+    const t = Math.min(1, Math.max(0, (now - start) / duration));
     const eased = 1 - Math.pow(1 - t, 3);
     el.textContent = `${prefix}${sign ?? ''}${Math.round(end * eased)}${suffix}`;
     if (t < 1) requestAnimationFrame(tick);
@@ -24,10 +24,9 @@ function animateValue(el: HTMLElement, target: string) {
   requestAnimationFrame(tick);
 }
 
-/** per-receipt micro-visualization — animates when the card's vault opens (.is-lit) */
+/** per-receipt micro-visualization (animates via .is-lit on cards, always-on in the readout) */
 function ReceiptViz({ viz, color }: { viz: string; color: string }) {
   if (viz === 'steps') {
-    // PoC → benchmark → contract
     return (
       <svg className="receipt-viz" viewBox="0 0 300 56" aria-hidden="true">
         <line className="viz-draw" x1="16" y1="20" x2="284" y2="20" stroke={color} strokeWidth="1.6" />
@@ -93,7 +92,6 @@ function ReceiptViz({ viz, color }: { viz: string; color: string }) {
       </svg>
     );
   }
-  // bars: RMSE with vs without RAG
   return (
     <svg className="receipt-viz" viewBox="0 0 300 56" aria-hidden="true">
       <rect className="viz-bar" x="60" y="8" width="60" height="42" rx="2" fill="rgba(226,232,221,.16)" style={{ transformOrigin: '50% 50px' }} />
@@ -117,7 +115,67 @@ function ReceiptViz({ viz, color }: { viz: string; color: string }) {
   );
 }
 
-export default function Receipts() {
+/** 3D tiers: one compact readout follows the opening vaults — the vaults own the frame */
+function ReceiptReadout() {
+  const focusIdx = useJourney((s) => s.receiptFocus);
+  const receipt = SITE_CONTENT.receipts[focusIdx];
+  const valueRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = valueRef.current;
+    if (!el) return;
+    if (prefersReducedMotion()) {
+      el.textContent = receipt.value;
+      return;
+    }
+    animateValue(el, receipt.value);
+  }, [focusIdx, receipt.value]);
+
+  return (
+    <div
+      className="receipt-readout text-scrim"
+      style={{ '--dot-color': receipt.color } as React.CSSProperties}
+      onPointerEnter={() => useJourney.getState().setReceiptHover(focusIdx)}
+      onPointerLeave={() => useJourney.getState().setReceiptHover(null)}
+    >
+      <b className="receipt-readout__value" ref={valueRef}>
+        {receipt.value}
+      </b>
+      <div className="receipt-readout__main">
+        <strong>{receipt.title}</strong>
+        <p>{receipt.body}</p>
+        <div className="receipt-card__secondary">
+          {receipt.secondary.map((chip) => (
+            <span key={chip}>{chip}</span>
+          ))}
+        </div>
+      </div>
+      <div className="receipt-readout__side">
+        <ReceiptViz viz={receipt.viz} color={receipt.color} />
+        <div className="receipt-readout__foot">
+          <span className="receipt-card__source">
+            <i />
+            {receipt.source}
+          </span>
+          <span className="receipt-readout__dots">
+            {SITE_CONTENT.receipts.map((r, i) => (
+              <button
+                key={r.title}
+                className={i === focusIdx ? 'is-on' : ''}
+                style={{ '--dot-color': r.color } as React.CSSProperties}
+                aria-label={`Show ${r.title}`}
+                onClick={() => useJourney.getState().setReceiptFocus(i)}
+              />
+            ))}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** fallback tier: the original four cards with vault-threshold count-ups */
+function ReceiptCards() {
   const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -127,15 +185,12 @@ export default function Receipts() {
     const reduced = prefersReducedMotion();
     const fired = cards.map(() => false);
 
-    // unlit cards show their FINAL value dimmed (never a broken-looking "$0K");
-    // the count-up runs 0→final at the moment the vault opens
-    // count-up fires in lockstep with the 3D vault doors (same staggered thresholds)
     const check = () => {
       const { station, localT } = useJourney.getState();
       cards.forEach((card, i) => {
         if (fired[i]) return;
         const openT =
-          station > 1 ? 1 : station < 1 ? 0 : Math.max(0, (localT - (0.32 + i * 0.12)) / 0.09);
+          station > 1 ? 1 : station < 1 ? 0 : Math.max(0, (localT - (0.3 + i * 0.13)) / 0.1);
         if (openT > 0.01) {
           fired[i] = true;
           card.classList.add('is-lit');
@@ -151,6 +206,40 @@ export default function Receipts() {
   }, []);
 
   return (
+    <div className="receipts__grid" ref={gridRef}>
+      {SITE_CONTENT.receipts.map((receipt, index) => (
+        <article
+          key={receipt.title}
+          className={`receipt-card reveal${receipt.featured ? ' receipt-card--featured' : ''}`}
+          style={{ '--dot-color': receipt.color } as React.CSSProperties}
+          onPointerEnter={() => useJourney.getState().setReceiptHover(index)}
+          onPointerLeave={() => useJourney.getState().setReceiptHover(null)}
+        >
+          <div className="receipt-card__value" data-value={receipt.value}>
+            {receipt.value}
+          </div>
+          <div className="receipt-card__title">{receipt.title}</div>
+          <ReceiptViz viz={receipt.viz} color={receipt.color} />
+          <p className="receipt-card__body">{receipt.body}</p>
+          <div className="receipt-card__secondary">
+            {receipt.secondary.map((chip) => (
+              <span key={chip}>{chip}</span>
+            ))}
+          </div>
+          <div className="receipt-card__source">
+            <i />
+            {receipt.source}
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+export default function Receipts() {
+  const tier = useJourney((s) => s.tier);
+
+  return (
     <section className="receipts section-shell section-pad" id="receipts" aria-labelledby="receipts-title">
       <div className="section-head reveal">
         <div>
@@ -161,33 +250,16 @@ export default function Receipts() {
           Every number here traces to a contract, a prize, a release, or a paper — nothing decorative.
         </p>
       </div>
-      <div className="receipts__grid" ref={gridRef}>
-        {SITE_CONTENT.receipts.map((receipt) => (
-          <article
-            key={receipt.title}
-            className={`receipt-card reveal${receipt.featured ? ' receipt-card--featured' : ''}`}
-            style={{ '--dot-color': receipt.color } as React.CSSProperties}
-            onPointerEnter={() => useJourney.getState().setReceiptHover(SITE_CONTENT.receipts.indexOf(receipt))}
-            onPointerLeave={() => useJourney.getState().setReceiptHover(null)}
-          >
-            <div className="receipt-card__value" data-value={receipt.value}>
-              {receipt.value}
-            </div>
-            <div className="receipt-card__title">{receipt.title}</div>
-            <ReceiptViz viz={receipt.viz} color={receipt.color} />
-            <p className="receipt-card__body">{receipt.body}</p>
-            <div className="receipt-card__secondary">
-              {receipt.secondary.map((chip) => (
-                <span key={chip}>{chip}</span>
-              ))}
-            </div>
-            <div className="receipt-card__source">
-              <i />
-              {receipt.source}
-            </div>
-          </article>
-        ))}
-      </div>
+      {tier === 'off' ? (
+        <ReceiptCards />
+      ) : (
+        <div className="receipts__stage reveal">
+          <div className="receipts__window" aria-hidden="true">
+            <span className="shelf__window-hint">SCROLL — THE VAULTS OPEN · CLICK A VAULT</span>
+          </div>
+          <ReceiptReadout />
+        </div>
+      )}
     </section>
   );
 }

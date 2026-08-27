@@ -7,7 +7,8 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .text-scrim { background: rgba(5, 8, 5, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 14px; padding: 16px 18px; }
 
 /* ===== v2 flow: hero ===== */
-.hero2 { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; gap: clamp(28px, 4vh, 46px); padding-top: 110px; padding-bottom: 48px; position: relative; }
+/* hero + brand strip together fill the first viewport (strip ≈ 64px) */
+.hero2 { min-height: calc(100svh - 65px); display: flex; flex-direction: column; justify-content: center; gap: clamp(28px, 4vh, 46px); padding-top: 100px; padding-bottom: 28px; position: relative; }
 .hero2__name { margin: 14px 0 0; font-size: clamp(72px, 11.5vw, 168px); line-height: .82; letter-spacing: -.06em; font-weight: 700; }
 .hero2__outline { color: transparent; -webkit-text-stroke: 1.5px rgba(241,243,236,.55); }
 .hero2__sheen { background: linear-gradient(180deg, #ffffff 0%, #eef2ea 55%, #b9c2b3 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -62,6 +63,24 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .receipt-card__secondary span { font: 8.5px var(--mono); letter-spacing: .08em; color: var(--fg-soft); border: 1px solid var(--line); border-radius: 999px; padding: 4px 8px; }
 .receipt-card__source i { width: 6px; height: 6px; border-radius: 50%; background: var(--dot-color, var(--accent)); flex-shrink: 0; }
 .receipts__note { max-width: 360px; font-size: 14px; line-height: 1.6; color: var(--muted); padding-bottom: 8px; }
+
+/* 3D tiers: vault stage window + single readout bar */
+.receipts__window { min-height: 42vh; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 12px; }
+.receipt-readout { display: flex; align-items: center; gap: clamp(18px, 2.5vw, 34px); padding: 20px 26px; border-radius: var(--radius-md); }
+.receipt-readout__value { font-size: clamp(44px, 4.6vw, 64px); font-weight: 700; letter-spacing: -.04em; line-height: 1; min-width: 3.4ch; font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; background: linear-gradient(180deg, #ffffff 0%, #dfe5da 52%, #9aa694 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.receipt-readout__main { flex: 1 1 300px; display: flex; flex-direction: column; gap: 8px; }
+.receipt-readout__main strong { font-size: 16px; font-weight: 650; }
+.receipt-readout__main p { margin: 0; font-size: 13px; line-height: 1.55; color: var(--muted); max-width: 520px; }
+.receipt-readout__side { flex: 0 1 320px; display: flex; flex-direction: column; gap: 8px; }
+.receipt-readout__foot { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.receipt-readout__dots { display: flex; gap: 8px; }
+.receipt-readout__dots button { width: 22px; height: 4px; border-radius: 2px; border: 0; background: rgba(226,232,221,.2); cursor: pointer; transition: background .3s, box-shadow .3s; padding: 0; }
+.receipt-readout__dots button.is-on { background: var(--dot-color, var(--accent)); box-shadow: 0 0 12px color-mix(in srgb, var(--dot-color, #9be15d) 60%, transparent); }
+/* readout vizzes render fully drawn (no card .is-lit gate) */
+.receipt-readout .viz-draw { stroke-dashoffset: 0; }
+.receipt-readout .viz-step { opacity: 1; }
+.receipt-readout .viz-bar { transform: scaleY(1); }
+.receipt-readout .receipt-viz { height: 50px; }
 .section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 60px; margin-bottom: clamp(40px, 6vw, 64px); }
 .section-head h2 { margin: 18px 0 0; font-size: clamp(44px, 5.5vw, 72px); line-height: .95; letter-spacing: -.04em; font-weight: 650; }
 

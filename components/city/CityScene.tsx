@@ -75,7 +75,8 @@ function CameraRig() {
     // drive with a ~20u lead ahead of each igniting gate.
     let l = localT;
     if (station === 1) {
-      l = l < 0.3 ? l * 2 : l < 0.85 ? 0.6 : 0.6 + ((l - 0.85) / 0.15) * 0.4;
+      // hold AT the receipts keyframe (85,20,60) — the vault row is staged for it
+      l = l < 0.85 ? 0 : ((l - 0.85) / 0.15) * 0.9;
     } else if (station === 2) {
       // hold AT the keyframe (fab view), exit late
       l = l < 0.8 ? 0 : ((l - 0.8) / 0.2) * 0.9;

@@ -157,14 +157,15 @@ function Billboards({ towers }: { towers: Tower[] }) {
         return p.x > Math.min(left.x, right.x) && p.x < Math.max(left.x, right.x) && p.y < top.y;
       });
       if (!blocked) accepted.push(c);
-      if (accepted.length >= 6) break;
+      if (accepted.length >= 8) break;
     }
     return accepted.map((c, i) => ({
       x: c.px,
       y: c.py,
       z: c.pz,
-      w: Math.max(3, c.t.w * 0.62),
-      h: Math.max(3.2, c.t.h * 0.24),
+      // large enough to register as a slab from ~120u, never a sliver
+      w: Math.max(4.6, c.t.w * 0.7),
+      h: Math.max(4.4, c.t.h * 0.26),
       warm: i % 2 === 0
     }));
   }, [towers]);
@@ -177,7 +178,7 @@ function Billboards({ towers }: { towers: Tower[] }) {
           <meshStandardMaterial
             color="#050805"
             emissive={p.warm ? '#ffe9c4' : '#9effc0'}
-            emissiveIntensity={p.warm ? 1.4 : 1.6}
+            emissiveIntensity={p.warm ? 1.5 : 1.9}
           />
         </mesh>
       ))}

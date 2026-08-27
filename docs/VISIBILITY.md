@@ -58,3 +58,8 @@ For a settled screenshot of each chapter, a fresh-eyes auditor answers:
   camera (edge-on facades rejected at <25°, occlusion via projected tower rects); gate
   emissive dims by nearFade² (bloom core dims perceptually); Zolli/NVIDIA thresholds 0.50/0.60
   so both cards are on screen at their moment; scramble decode shortened to 13 frames.
+  Audit: gates/spotlights/scramble PASS with measurements; billboards still 3/≥5 (the one
+  above-minor item — slabs too small/dim, and the auditor's "four framed panels" right of
+  downtown are actually the VAULT monuments, not billboards); all six chapters pass 2-second.
+- IT5 (from IT4 audit): billboards min 4.6×4.4u, emissive 1.5/1.9, accept cap 8; NOW section
+  top padding raised so its headline clears the nav at settle.

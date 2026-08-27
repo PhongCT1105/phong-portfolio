@@ -244,35 +244,20 @@ function InlineCase({ project, index, total, live }: { project: Project; index: 
     >
       <div className="casebook__meta">
         <span className="casebook__badge">{project.badge}</span>
-        <span className="casebook__period">{project.period}</span>
         <span className="work-case__index">
           {String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
         </span>
       </div>
       <h3>{project.tagline}</h3>
-      <div>
-        <div className="casebook__label">PROBLEM</div>
-        <p className="casebook__text">{project.problem}</p>
-      </div>
-      <div>
-        <div className="casebook__label">BUILT</div>
-        <p className="casebook__text">{project.built}</p>
-      </div>
-      <div>
-        <div className="casebook__label">HOW IT WORKS</div>
-        <div className="casebook__arch">{ARCH_ART[project.slug]?.(project.accent)}</div>
-      </div>
+      {/* one line of WHY — everything else is the diagram and the numbers */}
+      <p className="casebook__text work-case__why">{project.problem}</p>
+      <div className="casebook__arch">{ARCH_ART[project.slug]?.(project.accent)}</div>
       <div className="casebook__metrics">
         {project.measured.map((metric) => (
           <div key={metric.label} className="casebook__metric">
             <b>{metric.value}</b>
             <span>{metric.label}</span>
           </div>
-        ))}
-      </div>
-      <div className="casebook__stack">
-        {project.stack.map((item) => (
-          <span key={item}>{item}</span>
         ))}
       </div>
       {project.links.length ? (

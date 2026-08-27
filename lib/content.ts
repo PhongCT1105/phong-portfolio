@@ -136,8 +136,7 @@ export const SITE_CONTENT = {
       badge: 'GRAND PRIZE · RUNPOD · $8K',
       accent: '#9be15d',
       period: 'ZOLLI LABS · MAY 2026 — PRESENT',
-      problem:
-        'Spare GPUs are everywhere, but they are unequal, unreliable, and unsafe to share. Static schedulers waste the fast machines and lose work when the slow ones die.',
+      problem: 'Spare GPUs are everywhere — unequal, unreliable, unsafe to share. Static schedulers waste them.',
       built:
         'A pull-based distributed scheduler where fast workers claim more jobs, a sandboxed Docker host agent for safe compute sharing, and automatic resume after worker failures. Shipped as PyPI packages with PyTorch, scikit-learn, and Hugging Face adapters.',
       measured: [
@@ -156,8 +155,7 @@ export const SITE_CONTENT = {
       badge: '2ND · UC BERKELEY AI HACKATHON',
       accent: '#7ba7ff',
       period: 'UC BERKELEY · 2026',
-      problem:
-        'Autonomous agents act confidently even when they are wrong. There is no trust layer telling humans when an agent should be believed — or stopped.',
+      problem: 'Agents act confident even when they are wrong — humans need to know when to trust them, or stop them.',
       built:
         'A credibility layer that scores agent actions, routes low-confidence decisions to humans, and keeps an auditable trail of what the agent did and why.',
       measured: [
@@ -175,8 +173,7 @@ export const SITE_CONTENT = {
       badge: 'EDGE AI · 163MS',
       accent: '#ffb45a',
       period: 'INDEPENDENT · MAY 2026',
-      problem:
-        'LLM assistants assume a datacenter. On-device inference means no network, tight memory, and mobile silicon — most models simply do not fit.',
+      problem: 'No datacenter, no network — the model has to fit in your hand and answer instantly.',
       built:
         'Fine-tuned FLAN-T5, exported to ONNX, and built native Android inference with ONNX Runtime and C++ SentencePiece. Benchmarked 14 quantization and pruning variants to pick the deployable one.',
       measured: [
@@ -197,8 +194,7 @@ export const SITE_CONTENT = {
       badge: 'PERN · 147 KIOSKS · LED 11 DEVS',
       accent: '#e04050',
       period: 'WPI × MASS GENERAL BRIGHAM · 2024',
-      problem:
-        'A hospital campus is a maze of buildings, floors, and service points. Patients need turn-by-turn directions from any of 147 kiosks — reliably, with access control.',
+      problem: 'A hospital campus is a maze — 147 kiosks need turn-by-turn directions that just work.',
       built:
         'Led 11 students across 5 Agile sprints: Express/Prisma routing APIs, PostgreSQL on AWS, Auth0/JWT access control, and Dijkstra, A*, BFS, DFS pathfinding over the kiosk graph.',
       measured: [
@@ -260,6 +256,8 @@ export const SITE_CONTENT = {
     eyebrow: 'CHAPTER 04 — NOW',
     headline: 'Making mismatched machines act like one.',
     body: "FlashML's pull-based scheduler lets fast workers claim more jobs instead of assigning work blindly — batches finish 47% sooner across a 3.7× speed range. When a worker dies, its jobs go back to the queue instead of being lost.",
+    bodyShort:
+      'One queue, four mismatched machines. Fast ones pull more, dead ones lose nothing — the batch lands 47% sooner.',
     tags: ['SCHEDULING', 'SANDBOXING', 'FAILURE RECOVERY'],
     next: 'Next chapter: AI-assisted GPU validation at NVIDIA.'
   }

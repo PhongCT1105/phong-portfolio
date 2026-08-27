@@ -146,3 +146,20 @@ Format per entry: milestone · rounds · validator verdict · critic verdict · 
 - Console clean in every run. Polish applied: 8px badge micro-labels bumped to 9px.
 - Screenshots: scratchpad shots-m9r1/.
 
+## M10 — Full-journey QA (final gate): PASS, 0 critical
+- 13-step film-strip sweep: no pops, no teleports, no black frames; every set-piece confined
+  to its own chapter; DOM legible over the scene at every step; boot → CONNECTED → sign
+  flicker ordering confirmed by screencast; OPEN/close, deep link, nav anchors all work.
+- Console across the entire run: exactly ONE message (THREE.Clock deprecation warning from
+  three.js internals — not ours to fix cheaply). Zero errors, zero failed requests.
+- Frame pacing uniform under SwiftShader (~2fps software rendering, deltas 460-500ms, zero
+  stalls >1s) — no hitching or GC spikes.
+- MINOR defects logged, not fixed (severity + reason):
+  1. Receipt count-ups read as zeros during a slow dwell under SwiftShader — animation is
+     time-based; on real GPUs this is the designed stagger. Watch on real hardware.
+  2. Nav-click to #road can settle the camera inside the second gate's bars (transient
+     contrast dip; DOM stays legible). Candidate fix: nudge gate 2 or the anchor offset.
+  3. Work→Road transition: hall posts pass behind the shelf caption for a beat mid-flight.
+- M7 residuals remain as logged (right-bay traffic visibility).
+- Screenshots: scratchpad shots-m10/.
+

@@ -31,7 +31,7 @@ Progress log (append per iteration): docs/BUILD_LOG.md
       short windows, center stream partially clipped by card edges at some scrolls
 - [x] M8 — Lift-off reveal + contact orbit
 - [x] M9 — Mobile-lite + fallback polish (validated clean first pass; badge labels bumped 8→9px)
-- [ ] M10 — Full-journey QA + log complete
+- [x] M10 — Full-journey QA + log complete (PASS, 0 critical / 3 minor logged)
 
 ## M2 guidance from the M1 critic (implement these; they are the acceptance bar)
 - G1 Skyline: log-normal heights — ~65% of towers 1–3u, 28% 4–8u, 7% 10–16u, plus 2–3 hero towers

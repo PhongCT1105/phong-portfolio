@@ -51,3 +51,10 @@ For a settled screenshot of each chapter, a fresh-eyes auditor answers:
 - IT3 (from IT2 audit): billboards occlusion-aware picks at h*0.72 with warm 1.4 (no white
   clipping); ghost year STICKY through the road chapter (top 84px, right) and NVIDIA shows a
   real "2026"; gate fade widened to begin ~32u out (floor ~12u).
+  Audit: all six chapters pass the 2-second test; ONE item above minor remains (billboards
+  3/≥5 — x-column occlusion insufficient), 3 minors (ignite spike near camera, mid-scramble
+  capture, NVIDIA card half above fold at its moment).
+- IT4 (from IT3 audit): billboard picks now use REAL perspective projection from the hero
+  camera (edge-on facades rejected at <25°, occlusion via projected tower rects); gate
+  emissive dims by nearFade² (bloom core dims perceptually); Zolli/NVIDIA thresholds 0.50/0.60
+  so both cards are on screen at their moment; scramble decode shortened to 13 frames.

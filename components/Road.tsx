@@ -18,8 +18,8 @@ export default function Road() {
       const { station, localT } = useJourney.getState();
       let latest = -1;
       stops.forEach((stop, i) => {
-        // distinct thresholds so every stop gets its spotlight moment
-        const threshold = i === 4 ? 0.66 : i === 3 ? 0.56 : 0.08 + i * 0.18;
+        // distinct thresholds, early enough that each card is on screen at its moment
+        const threshold = i === 4 ? 0.6 : i === 3 ? 0.5 : 0.08 + i * 0.18;
         const active = station > 3 || (station === 3 && localT >= threshold);
         stop.classList.toggle('is-active', active);
         if (active) latest = i;

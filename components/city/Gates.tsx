@@ -47,7 +47,9 @@ function Gate({ x, color, index }: { x: number; color: string; index: number }) 
     // fade begins ~32u out, floor by ~12u — frames never cross the DOM at full opacity
     const nearFade = station === 3 ? Math.max(0.1, Math.min(1, (prox - 10) / 22)) : 1;
 
-    const intensity = level.current * bootRamp * nearFade;
+    // emissive dims by nearFade² so a crossing tube dims perceptually (bloom
+    // would otherwise keep a saturated core even at low alpha)
+    const intensity = level.current * bootRamp * nearFade * nearFade;
     matRefs.current.forEach((m) => {
       if (m) {
         m.emissiveIntensity = intensity;

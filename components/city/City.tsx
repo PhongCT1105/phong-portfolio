@@ -125,23 +125,46 @@ function Podiums({ towers }: { towers: Tower[] }) {
     each must read as a distinct 30-60px lit slab from (-10,14,118) */
 function Billboards({ towers }: { towers: Tower[] }) {
   const panels = useMemo(() => {
-    // hero camera sits at z≈118 looking -z: a nearer tower (bigger z) in the same
-    // screen column occludes a farther one — greedily keep only unblocked towers
+    // pick by REAL perspective projection from the hero camera: reject edge-on
+    // facades and panels hidden behind nearer towers' projected screen rects
+    const cam = new THREE.PerspectiveCamera(55, 1440 / 900, 0.5, 900);
+    cam.position.set(-10, 14, 118);
+    cam.lookAt(42, 11, 2);
+    cam.updateMatrixWorld();
+    const ndc = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z).project(cam);
+
     const candidates = towers
       .filter((t) => t.h > 9 && Math.hypot(t.x - 35, t.z - 10) < 62)
-      .sort((a, b) => b.z - a.z); // nearest first
-    const accepted: Tower[] = [];
-    for (const t of candidates) {
-      const blocked = accepted.some((a) => Math.abs(a.x - t.x) < (a.w + t.w) / 2 + 2 && a.h > t.h * 0.7);
-      if (!blocked) accepted.push(t);
+      .map((t) => {
+        const px = t.x;
+        const py = t.h * 0.72;
+        const pz = t.z + t.d / 2 + 0.1;
+        const toCam = new THREE.Vector3(-10 - px, 14 - py, 118 - pz).normalize();
+        return { t, px, py, pz, facing: toCam.z, dist: Math.hypot(-10 - px, 118 - pz) };
+      })
+      // facade normal is +z; require the camera at least ~25° off edge-on
+      .filter((c) => c.facing > 0.42)
+      .sort((a, b) => a.dist - b.dist); // nearest first
+
+    const accepted: typeof candidates = [];
+    for (const c of candidates) {
+      const p = ndc(c.px, c.py, c.pz);
+      if (Math.abs(p.x) > 1 || Math.abs(p.y) > 1) continue; // off-frame
+      const blocked = accepted.some((a) => {
+        const left = ndc(a.t.x - a.t.w / 2, 0, a.t.z + a.t.d / 2);
+        const right = ndc(a.t.x + a.t.w / 2, 0, a.t.z + a.t.d / 2);
+        const top = ndc(a.t.x, a.t.h, a.t.z + a.t.d / 2);
+        return p.x > Math.min(left.x, right.x) && p.x < Math.max(left.x, right.x) && p.y < top.y;
+      });
+      if (!blocked) accepted.push(c);
       if (accepted.length >= 6) break;
     }
-    return accepted.map((t, i) => ({
-      x: t.x,
-      y: t.h * 0.72, // high on the facade, clear of foreground rooflines
-      z: t.z + t.d / 2 + 0.1,
-      w: Math.max(3, t.w * 0.62),
-      h: Math.max(3.2, t.h * 0.24),
+    return accepted.map((c, i) => ({
+      x: c.px,
+      y: c.py,
+      z: c.pz,
+      w: Math.max(3, c.t.w * 0.62),
+      h: Math.max(3.2, c.t.h * 0.24),
       warm: i % 2 === 0
     }));
   }, [towers]);

@@ -22,7 +22,7 @@ export default function Hero() {
       const target = WORDS[wordIndex];
       const length = Math.max(el.textContent?.length ?? 0, target.length);
       let frame = 0;
-      const total = 18;
+      const total = 13; // short decode — the settled word owns most of the cycle
       window.clearInterval(scrambleTimer);
       scrambleTimer = window.setInterval(() => {
         let out = '';

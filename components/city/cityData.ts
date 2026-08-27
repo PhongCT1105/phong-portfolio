@@ -77,6 +77,8 @@ export function generateTowers(density = 1): Tower[] {
       if (nearAvenue(cx, cz, 7)) continue;
       // memory-quarter plaza + approach corridor — keep clear for the M4 vaults
       if (cx > 80 && cx < 174 && cz > -70 && cz < 36) continue;
+      // fab hall plaza — keep clear for the M5 assembly hall
+      if (cx > 136 && cx < 206 && cz > -84 && cz < -18) continue;
       const dDown = Math.hypot(cx - DOWNTOWN.x, cz - DOWNTOWN.z);
       const downtown = dDown < DOWNTOWN.r;
       if (downtown && Math.hypot(cx - 38, cz - 8) < 14) continue; // hero tower plaza

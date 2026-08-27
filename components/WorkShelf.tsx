@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { SITE_CONTENT, type Project } from '@/lib/content';
+import { useJourney } from '@/lib/journey';
 
 const COVER_ART: Record<string, React.ReactNode> = {
   flashml: (
@@ -138,6 +139,11 @@ export default function WorkShelf() {
   const projects = SITE_CONTENT.projects;
   const [focus, setFocus] = useState(0);
   const [openSlug, setOpenSlug] = useState<string | null>(null);
+
+  // mirror focus/open into the journey store so the 3D fab chips sync (state only)
+  useEffect(() => {
+    useJourney.getState().setWork(focus, openSlug);
+  }, [focus, openSlug]);
 
   const openProject = useCallback((slug: string) => {
     setOpenSlug(slug);

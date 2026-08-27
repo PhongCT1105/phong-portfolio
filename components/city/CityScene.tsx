@@ -17,7 +17,7 @@ import City from '@/components/city/City';
 const RAIL_POINTS: [number, number, number][] = [
   [-10, 14, 118], // 00 hero — eye below the hero-tower roofline, downtown ahead-right
   [85, 20, 60], // 01 receipts — raised so vault plaques clear the DOM card bottoms
-  [150, 14, -30], // 02 work — the fab, east side
+  [150, 16, -30], // 02 work — the fab, east side (raised per M5 composition guidance)
   [55, 8, -95], // 03 road — street level on the avenue
   [-85, 14, -45], // 04 now — scheduler hall
   [-30, 230, 130] // 05 contact — lift-off (the one steep shot)

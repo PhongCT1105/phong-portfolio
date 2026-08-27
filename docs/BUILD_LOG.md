@@ -74,3 +74,18 @@ Format per entry: milestone · rounds · validator verdict · critic verdict · 
   validator settle rule extended for SwiftShader (poll to byte-identical).
 - Screenshots: scratchpad shots-m4r1..r7/.
 
+## M5 — The Fab (4 rounds)
+- r1 validator PASS on mechanics (focus sync by order, open/close rise+fan, deep links, modal
+  authoritative). Critic: FIX — hall read as broken sticks at 15% width behind cards, chips
+  matte with invisible focus glow, fan crumpled/self-intersecting and unseen behind the modal.
+- Rebuild: 5 portal ribs + continuous ridge + glass volume, hall enlarged and repositioned
+  into the frame's dead zone; chip trace-inlay tops; per-chip POINT LIGHTS keyed to focus/open
+  (the lighting switch is now measured at ±36/255 with a colored pool on the platform — vs
+  ≤1.5/255 before); fan pages re-hinged to lie flat and open upward like a book (no piercing);
+  the case-study modal waits 600ms so the rise+fan is witnessed (close instant); focused DOM
+  card lift reduced so it never covers the chip row.
+- r3 all-but-one: rib span 24.6% vs ≥28% gate → ribs widened ±26 on a 60u platform.
+- r4 micro-check PASS: span 29.0%, ridge clears the note card, console clean. Critic's three
+  must-lands all landed → closed.
+- Screenshots: scratchpad shots-m5r1..r4/.
+

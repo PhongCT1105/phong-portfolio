@@ -23,7 +23,7 @@ Progress log (append per iteration): docs/BUILD_LOG.md
 - [x] M2 — City ground: traces, instanced window-lit towers, downtown + PHONG CAO signage
 - [x] M3 — Boot power-on + hero DOM over the city (network-canvas retired)
 - [x] M4 — Memory vaults + receipts sync (revised: one-number design — vaults open onto org-color light; DOM owns the numbers)
-- [ ] M5 — The Fab: chip pedestals + chip-book case studies
+- [x] M5 — The Fab: chip pedestals + chip-book case studies
 - [ ] M6 — The Avenue: 5 gates + road sync
 - [ ] M7 — Scheduler hall + 47% counter
 - [ ] M8 — Lift-off reveal + contact orbit

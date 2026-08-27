@@ -14,6 +14,7 @@ import {
 } from '@/components/city/cityData';
 import { makeGroundTexture, makeSignTexture, makeWindowTexture } from '@/components/city/textures';
 import Vaults from '@/components/city/Vaults';
+import Fab from '@/components/city/Fab';
 
 /** emissive brightness tiers — downtown 2× districts 2× outskirts (G2) */
 const TIER_EMISSIVE = [1.7, 0.85, 0.4];
@@ -324,6 +325,7 @@ export default function City({ density = 1 }: { density?: number }) {
       <Crowns towers={towers} />
       <CrownsAndBeacons />
       <Vaults />
+      <Fab />
       <HeroBanners />
       <CraneSilhouettes />
       <Signage />

@@ -60,6 +60,42 @@ export function makeSignTexture(): THREE.CanvasTexture {
   return texture;
 }
 
+/** M5: chip top-face trace inlay — dark substrate with glowing circuit traces. */
+export function makeChipTexture(accent: string): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = '#040604';
+  ctx.fillRect(0, 0, 128, 128);
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  const rand = mulberry(9091);
+  for (let i = 0; i < 9; i += 1) {
+    const y = 14 + i * 12 + rand() * 4;
+    const x1 = 10 + rand() * 24;
+    const bend = 44 + rand() * 40;
+    ctx.beginPath();
+    ctx.moveTo(x1, y);
+    ctx.lineTo(bend, y);
+    ctx.lineTo(bend + 12, y + (rand() > 0.5 ? 8 : -8));
+    ctx.lineTo(118, y + (rand() > 0.5 ? 8 : -8));
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(x1, y, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // central die pad
+  ctx.fillStyle = accent;
+  ctx.globalAlpha = 0.9;
+  ctx.fillRect(52, 52, 24, 24);
+  ctx.globalAlpha = 1;
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
 /** M4: glowing value plaque inside a vault (e.g. "$30K"), tinted per org. */
 export function makeValueTexture(value: string, color: string): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');

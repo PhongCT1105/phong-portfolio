@@ -14,9 +14,14 @@ interface JourneyState {
   ranges: number[];
   /** 0..1 — city power-on driven by the boot sequence (1 = fully lit) */
   boot: number;
+  /** which project the DOM work-shelf has focused (0..3) */
+  workFocus: number;
+  /** slug of the opened case study, or null — drives the 3D chip-book flourish */
+  workOpen: string | null;
   setProgress: (progress: number) => void;
   setRanges: (ranges: number[]) => void;
   setBoot: (boot: number) => void;
+  setWork: (focus: number, open: string | null) => void;
 }
 
 const DEFAULT_RANGES = [0, 1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6, 1];
@@ -27,7 +32,10 @@ export const useJourney = create<JourneyState>((set, get) => ({
   localT: 0,
   ranges: DEFAULT_RANGES,
   boot: 0,
+  workFocus: 0,
+  workOpen: null,
   setBoot: (boot) => set({ boot: Math.max(0, Math.min(1, boot)) }),
+  setWork: (workFocus, workOpen) => set({ workFocus, workOpen }),
   setProgress: (progress) => {
     const p = Math.max(0, Math.min(1, progress));
     const { ranges } = get();

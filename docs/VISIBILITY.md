@@ -63,3 +63,17 @@ For a settled screenshot of each chapter, a fresh-eyes auditor answers:
   downtown are actually the VAULT monuments, not billboards); all six chapters pass 2-second.
 - IT5 (from IT4 audit): billboards min 4.6×4.4u, emissive 1.5/1.9, accept cap 8; NOW section
   top padding raised so its headline clears the nav at settle.
+  Audit: ALL SIX chapters pass the 2-second test; NOTHING ABOVE MINOR. NOW headline clears
+  the nav (13px at capture, 222px at true settle); console 0 errors; 390px zero overflow.
+  Billboard census stayed 3 (not 5) but downgraded to minor — slabs are now ~2× area at
+  near-max luminance (42-47px cores, lum 238-253), so the "too small/dim" failure is gone;
+  more panels would need placements on the x<600 tower cluster, not more brightness.
+
+## Loop closed (IT5, 2026-08-27)
+
+First fully clean audit with no code changes pending — loop terminated at the iteration cap
+boundary. Residual minors on record: (1) billboard count 3/5 (fix = panels for the left
+tower cluster); (2) NOW headline clears nav by only 13px at the scripted capture position;
+(3) contact GitHub/LinkedIn pills kiss by a few px; (4) nested gate frames at road t≈0.3;
+(5) ghost-year/NVIDIA card visual entanglement; (6) M7 scheduler right-bay traffic;
+(7) THREE.Clock deprecation warning (three.js internals).

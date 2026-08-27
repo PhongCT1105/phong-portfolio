@@ -19,7 +19,7 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .brand-chip { display: flex; flex-direction: column; gap: 5px; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 13px 18px; background: var(--panel); transition: border-color .25s, transform .25s var(--ease-out); }
 .brand-chip:hover { transform: translateY(-2px); border-color: var(--chip-color, var(--line-strong)); }
 .brand-chip b { font-weight: 700; font-size: 15px; letter-spacing: -.01em; color: var(--chip-color, var(--fg)); }
-.brand-chip span { font: 8px var(--mono); letter-spacing: .14em; color: var(--muted); }
+.brand-chip span { font: 9px var(--mono); letter-spacing: .14em; color: var(--muted); }
 
 /* ===== receipts ===== */
 .receipts__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
@@ -43,7 +43,7 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .shelf-card { width: 212px; height: 300px; border-radius: 10px; border: 1px solid rgba(226,232,221,.16); background: linear-gradient(155deg, var(--card-hi, #101710), var(--card-lo, #0a0d0a)); padding: 18px; display: flex; flex-direction: column; cursor: pointer; opacity: .85; transition: all .45s var(--ease-out); position: relative; }
 .shelf-card:hover { opacity: 1; transform: translateY(-8px); }
 .shelf-card.is-focused { width: 258px; height: 348px; opacity: 1; border: 1.5px solid var(--card-accent, var(--accent)); transform: translateY(-10px); box-shadow: 0 34px 70px rgba(0,0,0,.6), 0 0 50px color-mix(in srgb, var(--card-accent, #9be15d) 16%, transparent); }
-.shelf-card__badge { align-self: flex-start; font: 8px var(--mono); letter-spacing: .12em; border: 1px solid color-mix(in srgb, var(--card-accent, #9be15d) 45%, transparent); color: color-mix(in srgb, var(--card-accent, #9be15d) 75%, #fff); border-radius: 999px; padding: 5px 10px; }
+.shelf-card__badge { align-self: flex-start; font: 9px var(--mono); letter-spacing: .12em; border: 1px solid color-mix(in srgb, var(--card-accent, #9be15d) 45%, transparent); color: color-mix(in srgb, var(--card-accent, #9be15d) 75%, #fff); border-radius: 999px; padding: 5px 10px; }
 .shelf-card.is-focused .shelf-card__badge { background: var(--accent-bright); border-color: var(--accent-bright); color: #071004; }
 .shelf-card svg { margin: 22px auto 0; opacity: .95; }
 .shelf-card__meta { margin-top: auto; }

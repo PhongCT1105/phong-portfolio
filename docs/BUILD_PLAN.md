@@ -30,7 +30,7 @@ Progress log (append per iteration): docs/BUILD_LOG.md
       residuals for M10: right/slow bay traffic rarely visible, death state capture flaky in
       short windows, center stream partially clipped by card edges at some scrolls
 - [x] M8 — Lift-off reveal + contact orbit
-- [ ] M9 — Mobile-lite + fallback polish
+- [x] M9 — Mobile-lite + fallback polish (validated clean first pass; badge labels bumped 8→9px)
 - [ ] M10 — Full-journey QA + log complete
 
 ## M2 guidance from the M1 critic (implement these; they are the acceptance bar)

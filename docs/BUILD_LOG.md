@@ -137,3 +137,12 @@ Format per entry: milestone · rounds · validator verdict · critic verdict · 
   edges in, ch-04 provably out of view, climb visible by 93%, terminal legible, console clean.
 - Screenshots: scratchpad shots-m8r1/, shots-m8r2/.
 
+## M9 — Mobile + fallback tiers (1 round, clean PASS)
+- 390×844: no horizontal scroll (scrollWidth 390), 3D tier off with the 2D dot-network behind
+  the DOM, boot completes, sections stack, shelf tap targets 165×240, full-screen scrollable
+  case modal opens/closes, counters fire on scroll-through, no body text under 12px.
+- Reduced-motion 1440: no canvas at all, page fully static and complete, all reveals visible,
+  values render final statically, native scroll intact.
+- Console clean in every run. Polish applied: 8px badge micro-labels bumped to 9px.
+- Screenshots: scratchpad shots-m9r1/.
+

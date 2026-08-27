@@ -27,3 +27,4 @@ preview-*.png
 *.tsbuildinfo
 
 chrome.pid
+chrome-pid.txt

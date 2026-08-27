@@ -1,32 +1,49 @@
 export interface Affiliation {
   name: string;
-  relationship: string;
-  asset?: string;
-  icon?: string;
+  role: string;
+  color: string;
+}
+
+export interface Receipt {
+  value: string;
+  title: string;
+  body: string;
+  source: string;
+  color: string;
+  featured?: boolean;
+}
+
+export interface ProjectMetric {
+  value: string;
+  label: string;
+}
+
+export interface ProjectLink {
+  label: string;
+  url: string;
 }
 
 export interface Project {
-  number: string;
+  slug: string;
   title: string;
-  description: string;
-  recognition: string;
-  marker: string;
-  links: { label: string; url: string }[];
+  tagline: string;
+  badge: string;
+  accent: string;
+  period: string;
+  problem: string;
+  built: string;
+  measured: ProjectMetric[];
+  stack: string[];
+  links: ProjectLink[];
 }
 
-export interface Win {
+export interface RoadStop {
   year: string;
   org: string;
-  placement: string;
-  project: string;
-  marker: string;
-}
-
-export interface ExperienceItem {
-  when: string;
-  org: string;
   role: string;
-  marker: string;
+  metric: string;
+  color: string;
+  current?: boolean;
 }
 
 export const SITE_URL =
@@ -36,22 +53,12 @@ export const SITE_CONTENT = {
   meta: {
     title: 'Phong Cao — AI Infrastructure & Distributed Systems',
     description:
-      'Software engineer building AI infrastructure and distributed systems. Incoming SWE at NVIDIA, Zolli AI founder, 10× hackathon winner, and AI/ML researcher.'
+      'Software engineer building AI infrastructure and distributed systems. Founder of FlashML at Zolli Labs, incoming SWE at NVIDIA, IEEE MIT URTC presenter.'
   },
   hero: {
-    eyebrow: 'SOFTWARE ENGINEER · AI INFRASTRUCTURE',
-    name: 'PHONG CAO',
-    headline: 'I build systems.',
-    scrambleWords: ['systems', 'infra', 'models', 'tools'],
-    subhead: 'Distributed systems, AI infrastructure, and high-bandwidth technical work.',
-    identity: [
-      'Incoming SWE @ NVIDIA',
-      'Founder @ Zolli AI',
-      'AI Infrastructure / Distributed Systems',
-      '10× Hackathon Winner',
-      'Research @ IEEE MIT URTC',
-      'BS + MS @ WPI'
-    ]
+    eyebrow: 'CHAPTER 00 — HELLO',
+    statement: 'I build systems that survive failure.',
+    sub: 'Founder of FlashML at Zolli Labs. Incoming software engineer at NVIDIA. BS Computer Science + MS Artificial Intelligence at WPI, class of 2027.'
   },
   links: {
     github: 'https://github.com/PhongCT1105',
@@ -60,94 +67,176 @@ export const SITE_CONTENT = {
     email: 'mailto:phongct1105@gmail.com'
   },
   affiliations: [
-    { name: 'NVIDIA', relationship: 'Incoming SWE', asset: '/assets/logos/nvidia.svg' },
-    { name: 'Adobe', relationship: 'Campus Ambassador', asset: '/assets/logos/adobe.svg' },
-    { name: 'Runpod', relationship: 'Grand Prize / 1st Place', icon: '/assets/logos/runpod-mark.svg' },
-    { name: 'NSF', relationship: 'REU / Research', icon: '/assets/logos/nsf-mark.svg' },
-    { name: 'UC Berkeley', relationship: 'Hackathon Recognition', icon: '/assets/icons/trophy.svg' },
-    { name: 'Stanford', relationship: 'Hackathon Recognition', icon: '/assets/icons/trophy.svg' },
-    { name: 'IEEE', relationship: 'Research Presentation · MIT URTC', icon: '/assets/logos/ieee-mark.svg' },
-    { name: 'WPI', relationship: 'BS + MS', icon: '/assets/logos/wpi-mark.svg' },
-    { name: 'NASA Space Apps', relationship: "Local People's Choice", icon: '/assets/logos/nasa-space-apps-mark.svg' },
-    { name: 'FPT Software', relationship: 'Applied AI / MLOps', icon: '/assets/logos/fpt-software-mark.svg' },
-    { name: 'Zolli AI', relationship: 'Founder', icon: '/assets/icons/founder.svg' }
+    { name: 'NVIDIA', role: 'INCOMING SWE', color: '#76b900' },
+    { name: 'Adobe', role: 'AMBASSADOR', color: '#fa0f00' },
+    { name: 'Runpod', role: 'GRAND PRIZE', color: '#a78bfa' },
+    { name: 'NSF', role: 'REU RESEARCH', color: '#4a90d9' },
+    { name: 'IEEE', role: 'PRESENTED @ MIT URTC', color: '#00a0dc' },
+    { name: 'WPI', role: "BS + MS '27", color: '#e04050' },
+    { name: 'NASA', role: "PEOPLE'S CHOICE", color: '#4d7bf3' }
   ] as Affiliation[],
-  numbers: [
-    { value: '10×', label: 'HACKATHON WINS' },
-    { value: '400+', label: 'RESEARCH EXPERIMENTS' },
-    { value: '1ST', label: 'RUNPOD' },
-    { value: 'IEEE @ MIT', label: 'RESEARCH PRESENTATION' },
-    { value: 'BS + MS', label: 'WPI' }
-  ],
-  focus: {
-    eyebrow: 'CURRENT OBSESSION',
-    body: 'Exploring the utilization and communication bottlenecks that prevent fragmented GPU capacity from behaving like one useful pool of compute.',
-    end: 'Make more compute useful.',
-    tags: ['UTILIZATION', 'BANDWIDTH', 'PLACEMENT', 'COMMUNICATION', 'RECOVERY']
-  },
+  receipts: [
+    {
+      value: '$30K',
+      title: 'Follow-on contract won',
+      body: 'Turned a proof-of-concept into production web + Android apps — the client signed a $30K extension.',
+      source: 'FPT SOFTWARE · INTERN · 2024',
+      color: '#f26f21'
+    },
+    {
+      value: '$8K',
+      title: 'Runpod Grand Prize',
+      body: "FlashML took the grand prize at Runpod's hackathon — then kept shipping instead of stopping at the demo.",
+      source: 'RUNPOD HACKATHON · 2026',
+      color: '#a78bfa'
+    },
+    {
+      value: '100+',
+      title: 'Pilot users on PyPI',
+      body: 'FlashML ships as installable Python packages, backed by 2,200+ tests and full CI/CD — real users, not a repo trophy.',
+      source: 'ZOLLI LABS · FLASHML · LIVE',
+      color: '#9be15d',
+      featured: true
+    },
+    {
+      value: '−60%',
+      title: 'Forecast error, with RAG',
+      body: 'RAG-grounded LLM feature selection over 157 features cut forecast RMSE by up to 60% — presented at IEEE MIT URTC.',
+      source: 'NSF RESEARCH · IEEE · 2025',
+      color: '#00a0dc'
+    }
+  ] as Receipt[],
   projects: [
     {
-      number: '01',
+      slug: 'flashml',
       title: 'FlashML',
-      description: 'Distributed ML infrastructure exploring fragmented compute.',
-      recognition: '1ST · RUNPOD',
-      marker: '/assets/logos/runpod-mark.svg',
-      links: []
+      tagline: 'Self-hostable distributed ML across heterogeneous compute — 47% faster batches, survives worker failures.',
+      badge: 'GRAND PRIZE · RUNPOD · $8K',
+      accent: '#9be15d',
+      period: 'ZOLLI LABS · MAY 2026 — PRESENT',
+      problem:
+        'Spare GPUs are everywhere, but they are unequal, unreliable, and unsafe to share. Static schedulers waste the fast machines and lose work when the slow ones die.',
+      built:
+        'A pull-based distributed scheduler where fast workers claim more jobs, a sandboxed Docker host agent for safe compute sharing, and automatic resume after worker failures. Shipped as PyPI packages with PyTorch, scikit-learn, and Hugging Face adapters.',
+      measured: [
+        { value: '47%', label: 'FASTER BATCHES VS STATIC, 3.7× SPEED RANGE' },
+        { value: '24', label: 'ADVERSARIAL ATTACKS BLOCKED, <0.25% MEM' },
+        { value: '2,200+', label: 'TESTS · CI/CD · 100+ PILOT USERS' }
+      ],
+      stack: ['PYTHON', 'DOCKER', 'PYTORCH', 'HUGGING FACE', 'GITHUB ACTIONS'],
+      links: [{ label: 'github.com/Zolli-Labs/flashml', url: 'https://github.com/Zolli-Labs/flashml' }]
     },
     {
-      number: '02',
+      slug: 'captain-ddoski',
       title: 'Captain Ddoski',
-      description: 'Human-in-the-loop credibility infrastructure for AI agents.',
-      recognition: 'UC BERKELEY',
-      marker: '/assets/icons/trophy.svg',
-      links: []
+      tagline: 'Human-in-the-loop credibility infrastructure for AI agents.',
+      badge: '2ND · UC BERKELEY AI HACKATHON',
+      accent: '#7ba7ff',
+      period: 'UC BERKELEY · 2026',
+      problem:
+        'Autonomous agents act confidently even when they are wrong. There is no trust layer telling humans when an agent should be believed — or stopped.',
+      built:
+        'A credibility layer that scores agent actions, routes low-confidence decisions to humans, and keeps an auditable trail of what the agent did and why.',
+      measured: [
+        { value: '2ND', label: 'OF THE UC BERKELEY AI HACKATHON FIELD' },
+        { value: 'HITL', label: 'HUMAN-IN-THE-LOOP DECISION ROUTING' }
+      ],
+      stack: ['PYTHON', 'TYPESCRIPT', 'REACT'],
+      links: [{ label: 'github.com/PhongCT1105/AI_Hack_Berkeley', url: 'https://github.com/PhongCT1105/AI_Hack_Berkeley' }]
     },
     {
-      number: '03',
-      title: 'Cortex',
-      description: 'AI learning diagnostics for faster feedback and intervention.',
-      recognition: 'STANFORD',
-      marker: '/assets/icons/trophy.svg',
-      links: []
+      slug: 'on-device-qa',
+      title: 'On-Device Q&A',
+      tagline: 'A real-estate Q&A model running fully offline on Android — 163ms latency on ARM64.',
+      badge: 'EDGE AI · 163MS',
+      accent: '#ffb45a',
+      period: 'INDEPENDENT · MAY 2026',
+      problem:
+        'LLM assistants assume a datacenter. On-device inference means no network, tight memory, and mobile silicon — most models simply do not fit.',
+      built:
+        'Fine-tuned FLAN-T5, exported to ONNX, and built native Android inference with ONNX Runtime and C++ SentencePiece. Benchmarked 14 quantization and pruning variants to pick the deployable one.',
+      measured: [
+        { value: '163ms', label: 'LATENCY, DOWN FROM 5.48S' },
+        { value: '50.5%', label: 'MODEL SIZE CUT (FP16)' },
+        { value: '96.6%', label: 'TOKEN F1 RETAINED' }
+      ],
+      stack: ['ONNX RUNTIME', 'ANDROID ARM64', 'C++', 'HUGGING FACE'],
+      links: [
+        { label: 'github.com/PhongCT1105/On-Device-Real-Estate-Assistant', url: 'https://github.com/PhongCT1105/On-Device-Real-Estate-Assistant' }
+      ]
     },
     {
-      number: '04',
-      title: 'GPU Validation',
-      description: 'AI-assisted test-plan and test-case generation for GPU validation workflows.',
-      recognition: 'NVIDIA',
-      marker: '/assets/logos/nvidia.svg',
+      slug: 'hospital-nav',
+      title: 'Hospital Navigation',
+      tagline: 'Full-stack hospital wayfinding platform over 147 kiosks — built leading a team of 11.',
+      badge: 'PERN · 147 KIOSKS · LED 11 DEVS',
+      accent: '#e04050',
+      period: 'WPI × MASS GENERAL BRIGHAM · 2024',
+      problem:
+        'A hospital campus is a maze of buildings, floors, and service points. Patients need turn-by-turn directions from any of 147 kiosks — reliably, with access control.',
+      built:
+        'Led 11 students across 5 Agile sprints: Express/Prisma routing APIs, PostgreSQL on AWS, Auth0/JWT access control, and Dijkstra, A*, BFS, DFS pathfinding over the kiosk graph.',
+      measured: [
+        { value: '147', label: 'KIOSKS ROUTED' },
+        { value: '11', label: 'DEVELOPERS LED · 5 SPRINTS' }
+      ],
+      stack: ['POSTGRESQL', 'EXPRESS', 'REACT', 'NODE', 'AWS', 'AUTH0'],
       links: []
     }
   ] as Project[],
-  wins: [
-    { year: '2026', org: 'Runpod', placement: 'Grand Prize / 1st Place', project: 'FlashML', marker: '/assets/logos/runpod-mark.svg' },
-    { year: '2026', org: 'UC Berkeley', placement: 'Hackathon Recognition', project: 'Captain Ddoski', marker: '/assets/icons/trophy.svg' },
-    { year: '2026', org: 'Stanford', placement: 'Hackathon Recognition', project: 'Cortex', marker: '/assets/icons/trophy.svg' },
-    { year: '2025', org: 'NASA Space Apps', placement: "Local People's Choice", project: 'NASA Space Apps', marker: '/assets/logos/nasa-space-apps-mark.svg' },
-    { year: '2024–26', org: 'Additional Wins', placement: 'Six more hackathon wins', project: 'WPI + independent builds', marker: '/assets/icons/trophy.svg' }
-  ] as Win[],
-  research: {
-    affiliations: ['NSF REU', 'IEEE MIT URTC'],
-    headline: 'LLMs × Time Series × Retrieval',
-    body: 'LLM-guided feature selection and retrieval-augmented forecasting for data-scarce time-series problems, validated through hundreds of controlled experiments.',
-    metrics: [
-      { value: '157', label: 'FEATURES' },
-      { value: '400+', label: 'EXPERIMENTS' },
-      { value: '−60%', label: 'RMSE VS NO RAG' },
-      { value: 'IEEE @ MIT', label: 'PRESENTED' }
-    ]
-  },
-  experience: [
-    { when: 'NOW', org: 'NVIDIA', role: 'Software Engineering · GPU Validation', marker: '/assets/logos/nvidia.svg' },
-    { when: 'NOW', org: 'Zolli AI', role: 'Founder', marker: '/assets/icons/founder.svg' },
-    { when: 'PROGRAM', org: 'Adobe', role: 'Campus Ambassador', marker: '/assets/logos/adobe.svg' },
-    { when: '2025–26', org: 'NSF REU', role: 'AI/ML Infrastructure Research', marker: '/assets/logos/nsf-mark.svg' },
-    { when: '2024', org: 'FPT Software', role: 'Applied AI / MLOps', marker: '/assets/logos/fpt-software-mark.svg' }
-  ] as ExperienceItem[],
-  education: {
-    institution: 'WORCESTER POLYTECHNIC INSTITUTE',
-    degree: 'BS + MS',
-    marker: '/assets/logos/wpi-mark.svg'
+  road: [
+    {
+      year: '2024',
+      org: 'FPT Software',
+      role: 'Applied AI intern — multimodal image search for 5,000+ photos.',
+      metric: '97% RECALL@5 · $30K CONTRACT',
+      color: '#f26f21'
+    },
+    {
+      year: '2025',
+      org: 'NSF Research',
+      role: 'REU — LLM-guided feature selection for data-scarce forecasting.',
+      metric: 'LLM-TSFS · IEEE MIT URTC',
+      color: '#00a0dc'
+    },
+    {
+      year: '2026',
+      org: 'Adobe',
+      role: 'AI product tester on Acrobat Student Spaces, invited back as ambassador.',
+      metric: 'TESTER → AMBASSADOR',
+      color: '#fa0f00'
+    },
+    {
+      year: '2026 · NOW',
+      org: 'Zolli Labs',
+      role: 'Founder — building FlashML in the open, from prize to product.',
+      metric: 'FLASHML · 100+ USERS',
+      color: '#9be15d',
+      current: true
+    },
+    {
+      year: 'NEXT',
+      org: 'NVIDIA',
+      role: 'Software engineering — AI-assisted GPU validation workflows.',
+      metric: 'INCOMING SWE',
+      color: '#76b900'
+    }
+  ] as RoadStop[],
+  honors: [
+    'RUNPOD GRAND PRIZE',
+    'STANFORD AI HACK — 3RD',
+    'UC BERKELEY AI HACK — 2ND',
+    "NASA SPACE APPS — PEOPLE'S CHOICE",
+    'GOATHACKS ×2',
+    'GPA 3.92 · PRESIDENTIAL SCHOLARSHIP',
+    "WPI BS CS + MS AI · '27"
+  ],
+  now: {
+    eyebrow: 'CHAPTER 04 — NOW',
+    headline: 'Making mismatched machines act like one.',
+    body: "FlashML's pull-based scheduler lets fast workers claim more jobs instead of assigning work blindly — batches finish 47% sooner across a 3.7× speed range. When a worker dies, its jobs go back to the queue instead of being lost.",
+    tags: ['SCHEDULING', 'SANDBOXING', 'FAILURE RECOVERY'],
+    next: 'Next chapter: AI-assisted GPU validation at NVIDIA.'
   }
 };
 

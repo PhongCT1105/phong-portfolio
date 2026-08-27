@@ -8,6 +8,7 @@ import '@/styles/layout.css';
 import '@/styles/components.css';
 import '@/styles/motion.css';
 import '@/styles/responsive.css';
+import '@/styles/v2.css';
 
 const inter = Inter({
   subsets: ['latin'],

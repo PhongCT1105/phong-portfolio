@@ -19,11 +19,10 @@ export default function SiteNav() {
         PHONG.CAO / SYSTEMS
       </a>
       <nav className="site-nav__links" aria-label="Primary navigation">
-        <a href="#phong">Phong</a>
-        <a href="#focus">Focus</a>
-        <a href="#work">Work</a>
-        <a href="#wins">Wins</a>
-        <a href="#research">Research</a>
+        <a href="#receipts">01 Receipts</a>
+        <a href="#work">02 Work</a>
+        <a href="#road">03 Road</a>
+        <a href="#now">04 Now</a>
         <a className="nav-cta magnetic" href="#contact">
           Connect ↗
         </a>

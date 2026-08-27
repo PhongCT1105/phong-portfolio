@@ -3,14 +3,10 @@ import NetworkCanvas from '@/components/NetworkCanvas';
 import CursorOrbit from '@/components/CursorOrbit';
 import SiteNav from '@/components/SiteNav';
 import Hero from '@/components/Hero';
-import AffiliationRail from '@/components/AffiliationRail';
-import NumbersSection from '@/components/NumbersSection';
-import FocusSection from '@/components/FocusSection';
-import WorkSection from '@/components/WorkSection';
-import WinsSection from '@/components/WinsSection';
-import ResearchSection from '@/components/ResearchSection';
-import ExperienceSection from '@/components/ExperienceSection';
-import EducationSection from '@/components/EducationSection';
+import Receipts from '@/components/Receipts';
+import WorkShelf from '@/components/WorkShelf';
+import Road from '@/components/Road';
+import NowSection from '@/components/NowSection';
 import ContactSection from '@/components/ContactSection';
 import Effects from '@/components/Effects';
 
@@ -29,14 +25,10 @@ export default function Home() {
 
       <main id="main">
         <Hero />
-        <AffiliationRail />
-        <NumbersSection />
-        <FocusSection />
-        <WorkSection />
-        <WinsSection />
-        <ResearchSection />
-        <ExperienceSection />
-        <EducationSection />
+        <Receipts />
+        <WorkShelf />
+        <Road />
+        <NowSection />
         <ContactSection />
       </main>
 

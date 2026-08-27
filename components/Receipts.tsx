@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { SITE_CONTENT } from '@/lib/content';
 import { prefersReducedMotion } from '@/lib/session';
 import { useJourney } from '@/lib/journey';
+import { VAULT_THRESHOLDS } from '@/components/city/Vaults';
 
 function animateValue(el: HTMLElement, target: string) {
   const match = target.match(/^([^0-9−-]*)(−|-)?(\d+)(.*)$/);
@@ -144,21 +145,11 @@ function GiantValue() {
   );
 }
 
-/** 3D tiers: one compact readout follows the opening vaults — the vaults own the frame */
+/** 3D tiers: one compact readout follows the opening vaults — the vaults own the frame.
+ *  The GIANT numeral above carries the value; the readout carries only the story. */
 function ReceiptReadout() {
   const focusIdx = useJourney((s) => s.receiptFocus);
   const receipt = SITE_CONTENT.receipts[focusIdx];
-  const valueRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const el = valueRef.current;
-    if (!el) return;
-    if (prefersReducedMotion()) {
-      el.textContent = receipt.value;
-      return;
-    }
-    animateValue(el, receipt.value);
-  }, [focusIdx, receipt.value]);
 
   return (
     <div
@@ -167,9 +158,6 @@ function ReceiptReadout() {
       onPointerEnter={() => useJourney.getState().setReceiptHover(focusIdx)}
       onPointerLeave={() => useJourney.getState().setReceiptHover(null)}
     >
-      <b className="receipt-readout__value" ref={valueRef}>
-        {receipt.value}
-      </b>
       <div className="receipt-readout__main">
         <strong>{receipt.title}</strong>
         <p>{receipt.body}</p>
@@ -268,20 +256,62 @@ function ReceiptCards() {
 export default function Receipts() {
   const tier = useJourney((s) => s.tier);
 
-  return (
-    <section className="receipts section-shell section-pad" id="receipts" aria-labelledby="receipts-title">
-      <div className="section-head reveal">
-        <div>
-          <p className="eyebrow">CHAPTER 01 — RECEIPTS</p>
-          <h2 id="receipts-title">Proof, with sources.</h2>
-        </div>
-        <p className="receipts__note text-scrim">
-          Every number here traces to a contract, a prize, a release, or a paper — nothing decorative.
-        </p>
+  // ORDER FIX: the focused receipt is DERIVED from scroll position — strictly
+  // monotonic with the scrollbar, so it can never strobe back to a stale number
+  // the way per-vault open announcements could. Dot clicks still override until
+  // the next threshold crossing.
+  useEffect(() => {
+    if (tier === 'off') return;
+    let derived = -1;
+    const update = () => {
+      const { station, localT } = useJourney.getState();
+      let idx: number;
+      if (station < 1) idx = 0;
+      else if (station > 1) idx = VAULT_THRESHOLDS.length - 1;
+      else {
+        idx = 0;
+        // a door counts once it is mostly open (threshold + most of the 0.08 swing)
+        VAULT_THRESHOLDS.forEach((t, i) => {
+          if (localT >= t + 0.05) idx = i;
+        });
+      }
+      if (idx !== derived) {
+        derived = idx;
+        useJourney.getState().setReceiptFocus(idx);
+      }
+    };
+    const unsubscribe = useJourney.subscribe(update);
+    update();
+    return () => unsubscribe();
+  }, [tier]);
+
+  const head = (
+    <div className="section-head reveal">
+      <div>
+        <p className="eyebrow">CHAPTER 01 — RECEIPTS</p>
+        <h2 id="receipts-title">Proof, with sources.</h2>
       </div>
-      {tier === 'off' ? (
+      <p className="receipts__note text-scrim">
+        Every number here traces to a contract, a prize, a release, or a paper — nothing decorative.
+      </p>
+    </div>
+  );
+
+  if (tier === 'off') {
+    return (
+      <section className="receipts section-shell section-pad" id="receipts" aria-labelledby="receipts-title">
+        {head}
         <ReceiptCards />
-      ) : (
+      </section>
+    );
+  }
+
+  // tall scroll track + sticky stage: the chapter owns ~3 viewports of scroll so
+  // each vault/number gets real viewing time instead of flashing past
+  return (
+    <section className="receipts section-shell receipts--track" id="receipts" aria-labelledby="receipts-title">
+      <div className="receipts__sticky">
+        {head}
         <div className="receipts__stage reveal">
           <div className="receipts__window">
             <span className="shelf__window-hint">SCROLL — THE VAULTS OPEN · CLICK A VAULT</span>
@@ -291,7 +321,7 @@ export default function Receipts() {
             <ReceiptReadout />
           </div>
         </div>
-      )}
+      </div>
     </section>
   );
 }

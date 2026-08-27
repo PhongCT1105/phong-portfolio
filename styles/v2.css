@@ -64,13 +64,18 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .receipt-card__source i { width: 6px; height: 6px; border-radius: 50%; background: var(--dot-color, var(--accent)); flex-shrink: 0; }
 .receipts__note { max-width: 360px; font-size: 14px; line-height: 1.6; color: var(--muted); padding-bottom: 8px; }
 
-/* 3D tiers: vault stage window + single readout bar */
-.receipts__window { min-height: 42vh; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 12px; }
+/* 3D tiers: vault stage window + single readout bar.
+   Tall scroll tracks: each 3D chapter owns ~3 viewports of scroll with its
+   content pinned, so every number/stop gets real viewing time. */
+.receipts--track { min-height: 300svh; }
+.receipts__sticky,
+.road__sticky { position: sticky; top: 0; min-height: 100svh; display: flex; flex-direction: column; justify-content: center; padding-top: 78px; padding-bottom: 20px; }
+.road--track { min-height: 280svh; }
+.receipts__window { min-height: 40vh; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 12px; }
 .receipt-readout { display: flex; align-items: center; gap: clamp(18px, 2.5vw, 34px); padding: 20px 26px; border-radius: var(--radius-md); }
-.receipt-readout__value { font-size: clamp(44px, 4.6vw, 64px); font-weight: 700; letter-spacing: -.04em; line-height: 1; min-width: 3.4ch; font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; background: linear-gradient(180deg, #ffffff 0%, #dfe5da 52%, #9aa694 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .receipt-readout__main { flex: 1 1 300px; display: flex; flex-direction: column; gap: 8px; }
-.receipt-readout__main strong { font-size: 16px; font-weight: 650; }
-.receipt-readout__main p { margin: 0; font-size: 13px; line-height: 1.55; color: var(--muted); max-width: 520px; }
+.receipt-readout__main strong { font-size: 19px; font-weight: 650; letter-spacing: -.01em; }
+.receipt-readout__main p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--muted); max-width: 560px; }
 .receipt-readout__side { flex: 0 1 320px; display: flex; flex-direction: column; gap: 8px; }
 .receipt-readout__foot { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
 .receipt-readout__dots { display: flex; gap: 8px; }
@@ -89,7 +94,7 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
   position: absolute;
   bottom: calc(100% + 10px);
   left: 20px;
-  font-size: clamp(96px, 12vw, 170px);
+  font-size: clamp(120px, 15vw, 230px);
   font-weight: 700;
   letter-spacing: -0.06em;
   line-height: 1;
@@ -198,6 +203,40 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 @media (prefers-reduced-motion: reduce) { .work-giant { animation: none; } }
 @media (max-width: 800px) { .work-giant { display: none; } }
 .shelf__window-hint { font: 9px var(--mono); letter-spacing: .18em; color: var(--muted-2); }
+
+/* ===== scroll-driven work track: chips auto-advance, case file opens itself ===== */
+.work--track { min-height: 380svh; }
+.work__sticky { position: sticky; top: 0; min-height: 100svh; display: flex; flex-direction: column; justify-content: center; padding-top: 78px; padding-bottom: 24px; }
+.work-stage { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 500px); gap: clamp(20px, 3vw, 46px); align-items: end; }
+.work-stage__window { position: relative; min-height: 44vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end; gap: 16px; padding-bottom: 14px; border-bottom: 2px solid rgba(226,232,221,.22); background: linear-gradient(to bottom, transparent 60%, rgba(155,225,93,.03)); }
+/* the giant shares the stage with the case panel now — keep it inside its column */
+.work-stage .work-giant { font-size: clamp(52px, 6vw, 105px); }
+/* compact chapter head while pinned so the case file gets the vertical room */
+.work--track .section-head { margin-bottom: 28px; }
+.work--track .section-head h2 { font-size: clamp(34px, 3.6vw, 52px); }
+.work-cases { display: contents; }
+.work-case { border: 1px solid rgba(226,232,221,.16); border-left: 2px solid var(--card-accent, var(--accent)); border-radius: var(--radius-lg); background: linear-gradient(160deg, rgba(13,17,13,.94), rgba(8,10,8,.92)); padding: clamp(18px, 2vw, 26px); display: none; flex-direction: column; gap: 13px; max-height: min(calc(100svh - 250px), 640px); overflow-y: auto; }
+.work-case.is-live { display: flex; animation: work-case-in .5s var(--ease-out); }
+.work-case h3 { margin: 0; font-size: clamp(20px, 2vw, 28px); font-weight: 700; letter-spacing: -.03em; line-height: 1.1; }
+.work-case .casebook__metric b { font-size: 21px; }
+.work-case .casebook__arch-svg { max-width: 360px; }
+.work-case .casebook__stack { margin-top: 0; }
+.work-case__index { margin-left: auto; font: 10px var(--mono); letter-spacing: .12em; color: var(--muted-2); }
+.work-case__links { display: flex; gap: 18px; flex-wrap: wrap; font: 11px var(--mono); }
+.work-case__links a { color: var(--accent-bright); text-decoration: none; }
+.work-case__links a:hover { text-decoration: underline; }
+@keyframes work-case-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .work-case.is-live { animation: none; } }
+/* small screens: no pin, no giant — the four case files simply stack open in flow */
+@media (max-width: 1050px) {
+  .work--track { min-height: 0; padding-top: clamp(100px, 12vw, 180px); padding-bottom: clamp(100px, 12vw, 180px); }
+  .work__sticky { position: static; min-height: 0; padding-top: 0; padding-bottom: 0; }
+  .work-stage { grid-template-columns: 1fr; }
+  .work-stage__window { display: none; }
+  .work-cases { display: flex; flex-direction: column; gap: 20px; }
+  .work-case { display: flex; max-height: none; overflow: visible; }
+  .work-case.is-live { animation: none; }
+}
 
 /* ===== case study modal ===== */
 .casebook { position: fixed; inset: 0; z-index: 900; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(4,5,4,.9); backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transition: opacity .35s var(--ease-out); }
@@ -465,4 +504,31 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
   .brand-chip { padding: 10px 13px; }
   .casebook { padding: 10px; }
   .casebook__metrics { grid-template-columns: 1fr; }
+  /* denser affiliation strip on phones */
+  .brand-item { padding: 12px 16px; gap: 10px; }
+  .brand-item__logo { width: 24px; height: 22px; }
+  .brand-item__logo--wide { width: 58px; }
+  .hero2__statement { margin-top: 24px; }
+}
+
+/* ===== large screens: widen the column and let the display type scale up ===== */
+@media (min-width: 1800px) {
+  :root { --max: 1720px; }
+  .hero2__name { font-size: clamp(168px, 9.8vw, 250px); }
+  .hero2__statement { font-size: clamp(34px, 1.9vw, 46px); }
+  .hero2__sub { font-size: 18px; max-width: 720px; }
+  .receipt-giant { font-size: clamp(230px, 11.5vw, 300px); }
+  .road-year-giant { font-size: clamp(150px, 8.5vw, 215px); }
+  .work-giant { font-size: clamp(140px, 8vw, 195px); }
+  .work-stage .work-giant { font-size: clamp(105px, 5.5vw, 145px); }
+  .work-stage { grid-template-columns: minmax(0, 1fr) minmax(360px, 560px); }
+  .receipt-readout__main strong { font-size: 22px; }
+  .receipt-readout__main p { font-size: 16px; max-width: 640px; }
+  .road-stop__org { font-size: 27px; }
+  .road-stop__role { font-size: 15px; }
+  .brand-item { padding: 20px 38px; gap: 16px; }
+  .brand-item__logo { width: 36px; height: 34px; }
+  .brand-item__logo--wide { width: 90px; }
+  .brand-item__text strong { font-size: 12.5px; }
+  .brand-item__text span { font-size: 10px; }
 }

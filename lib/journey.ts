@@ -1,6 +1,14 @@
 import { create } from 'zustand';
 
 export const STATION_IDS = ['phong', 'receipts', 'work', 'road', 'now', 'contact'] as const;
+
+/**
+ * Road-stop ignition thresholds within station 3 — evenly spread across the
+ * (tall) road scroll track so each stop gets viewing time. Shared by the DOM
+ * spotlight (Road.tsx) and the 3D gates (city/Gates.tsx); each gate ignites
+ * ~one gate-length before the camera reaches it (arrival ≈ 0.27 + i·0.16).
+ */
+export const ROAD_THRESHOLDS = [0.1, 0.26, 0.42, 0.56, 0.68] as const;
 export type StationId = (typeof STATION_IDS)[number];
 
 interface JourneyState {

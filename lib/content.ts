@@ -83,7 +83,9 @@ export const SITE_CONTENT = {
     { name: 'NSF', role: 'REU RESEARCH', color: '#4a90d9', asset: '/assets/logos/nsf-mark.svg' },
     { name: 'IEEE', role: 'PRESENTED @ MIT URTC', color: '#00a0dc', asset: '/assets/logos/ieee-mark.svg' },
     { name: 'WPI', role: "BS + MS '27", color: '#e04050', asset: '/assets/logos/wpi-mark.svg' },
-    { name: 'NASA', role: "PEOPLE'S CHOICE", color: '#4d7bf3', asset: '/assets/logos/nasa-space-apps-mark.svg' },
+    { name: 'UC Berkeley', role: '2ND · AI HACKATHON', color: '#fdb515', asset: '/assets/logos/cal-mark.svg' },
+    { name: 'Stanford', role: '3RD · AI HACKATHON', color: '#b1040e', asset: '/assets/logos/stanford-mark.svg' },
+    { name: 'NASA', role: "SPACE APPS · PEOPLE'S CHOICE", color: '#fc3d21', asset: '/assets/logos/nasa-worm.svg', wide: true },
     { name: 'FPT', role: 'APPLIED AI · $30K', color: '#f26f21', asset: '/assets/logos/fpt-software-mark.svg' },
     { name: 'Zolli Labs', role: 'FOUNDER', color: '#9be15d', asset: '/assets/icons/founder.svg' }
   ] as Affiliation[],

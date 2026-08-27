@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { SITE_CONTENT } from '@/lib/content';
-import { useJourney } from '@/lib/journey';
+import { ROAD_THRESHOLDS, useJourney } from '@/lib/journey';
 
 export default function Road() {
   const gridRef = useRef<HTMLDivElement>(null);
   const [current, setCurrent] = useState(-1);
+  const tier = useJourney((s) => s.tier);
 
   useEffect(() => {
     const grid = gridRef.current;
@@ -18,9 +19,7 @@ export default function Road() {
       const { station, localT } = useJourney.getState();
       let latest = -1;
       stops.forEach((stop, i) => {
-        // distinct thresholds, early enough that each card is on screen at its moment
-        const threshold = i === 4 ? 0.6 : i === 3 ? 0.5 : 0.08 + i * 0.18;
-        const active = station > 3 || (station === 3 && localT >= threshold);
+        const active = station > 3 || (station === 3 && localT >= ROAD_THRESHOLDS[i]);
         stop.classList.toggle('is-active', active);
         if (active) latest = i;
       });
@@ -38,7 +37,12 @@ export default function Road() {
     : spotlight.year.replace(' · NOW', '');
 
   return (
-    <section className="road section-shell section-pad" id="road" aria-labelledby="road-title">
+    <section
+      className={`road section-shell${tier === 'off' ? ' section-pad' : ' road--track'}`}
+      id="road"
+      aria-labelledby="road-title"
+    >
+      <div className={tier === 'off' ? undefined : 'road__sticky'}>
       {/* sticky so every ignition's year swap is on screen through the whole chapter */}
       <div className="road-year-wrap" aria-hidden="true">
         <b
@@ -80,6 +84,7 @@ export default function Road() {
         {SITE_CONTENT.honors.map((honor) => (
           <span key={honor}>{honor}</span>
         ))}
+      </div>
       </div>
     </section>
   );

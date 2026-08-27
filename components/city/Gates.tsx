@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useJourney } from '@/lib/journey';
+import { ROAD_THRESHOLDS, useJourney } from '@/lib/journey';
 
 /** gate order matches the road stops: FPT, NSF, Adobe, Zolli, NVIDIA */
 export const GATES = [
@@ -15,9 +15,9 @@ export const GATES = [
 ] as const;
 
 const AVENUE_Z = -95;
-/** ignition threshold for gate i within station 3 (3D timing) */
+/** ignition threshold for gate i within station 3 (3D timing, shared with the DOM road) */
 export function gateThreshold(index: number): number {
-  return 0.08 + index * 0.18;
+  return ROAD_THRESHOLDS[index] ?? 1;
 }
 
 function Gate({ x, color, index }: { x: number; color: string; index: number }) {

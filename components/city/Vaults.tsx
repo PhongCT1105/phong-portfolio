@@ -19,11 +19,18 @@ export const VAULTS = [
   { x: 116, z: 30.5, color: '#00a0dc', org: 'NSF · IEEE' }
 ] as const;
 
+/**
+ * Evenly spread door thresholds across the (now tall) receipts scroll track —
+ * each number owns ~1/6 of the chapter so viewers have time to read it.
+ * Must stay in sync with RECEIPT_THRESHOLDS in components/Receipts.tsx.
+ */
+export const VAULT_THRESHOLDS = [0.14, 0.31, 0.48, 0.65] as const;
+
 /** door-open progress for vault i — inside the camera-hold window */
 export function vaultOpenTarget(station: number, localT: number, index: number): number {
   if (station > 1) return 1;
   if (station < 1) return 0;
-  return Math.max(0, Math.min(1, (localT - (0.3 + index * 0.13)) / 0.1));
+  return Math.max(0, Math.min(1, (localT - VAULT_THRESHOLDS[index]) / 0.08));
 }
 
 function makeOrgTexture(label: string): THREE.CanvasTexture {
@@ -62,7 +69,6 @@ function Vault({
   const lightRef = useRef<THREE.PointLight>(null);
   const edgeRefs = useRef<(THREE.MeshStandardMaterial | null)[]>([]);
   const open = useRef(0);
-  const announced = useRef(false);
   const label = useMemo(() => makeOrgTexture(org), [org]);
   // face the held receipts camera
   const rotY = Math.atan2(85 - x, 60 - z);
@@ -73,13 +79,8 @@ function Vault({
     const speed = 1 - Math.exp(-Math.min(dt, 0.05) * 5);
     open.current += (target - open.current) * speed;
 
-    // the readout follows the newest opened vault
-    if (open.current > 0.5 && !announced.current) {
-      announced.current = true;
-      useJourney.getState().setReceiptFocus(index);
-    } else if (open.current < 0.2 && announced.current) {
-      announced.current = false;
-    }
+    // (the readout's focus is derived deterministically from scroll in
+    // components/Receipts.tsx — vaults only animate; no per-vault announces)
 
     // strike the set on exit
     let exitFade = 1;

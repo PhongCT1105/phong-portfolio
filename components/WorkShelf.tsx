@@ -111,6 +111,13 @@ const ARCH_ART: Record<string, (accent: string) => React.ReactNode> = {
   )
 };
 
+/**
+ * Scroll thresholds within station 2 (the work chapter) at which the shelf
+ * auto-advances to the next chip. The chapter is a tall track, so each
+ * project gets a real stretch of scroll before the next one takes over.
+ */
+const WORK_THRESHOLDS = [0, 0.3, 0.48, 0.66] as const;
+
 const CARD_TONES: Record<string, { hi: string; lo: string }> = {
   flashml: { hi: '#101710', lo: '#0a0d0a' },
   'captain-ddoski': { hi: '#0b1020', lo: '#080a12' },
@@ -224,6 +231,63 @@ function CaseBook({ project, onClose }: { project: Project | null; onClose: () =
   );
 }
 
+/** the auto-opened case file that rides the sticky work stage — no OPEN click.
+ *  All four render; `live` marks the scroll-focused one (desktop shows only it,
+ *  small screens stack them all in normal flow). */
+function InlineCase({ project, index, total, live }: { project: Project; index: number; total: number; live: boolean }) {
+  return (
+    <aside
+      className={`work-case${live ? ' is-live' : ''}`}
+      style={{ '--card-accent': project.accent } as React.CSSProperties}
+      aria-label={`${project.title} case study`}
+      data-lenis-prevent
+    >
+      <div className="casebook__meta">
+        <span className="casebook__badge">{project.badge}</span>
+        <span className="casebook__period">{project.period}</span>
+        <span className="work-case__index">
+          {String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
+        </span>
+      </div>
+      <h3>{project.tagline}</h3>
+      <div>
+        <div className="casebook__label">PROBLEM</div>
+        <p className="casebook__text">{project.problem}</p>
+      </div>
+      <div>
+        <div className="casebook__label">BUILT</div>
+        <p className="casebook__text">{project.built}</p>
+      </div>
+      <div>
+        <div className="casebook__label">HOW IT WORKS</div>
+        <div className="casebook__arch">{ARCH_ART[project.slug]?.(project.accent)}</div>
+      </div>
+      <div className="casebook__metrics">
+        {project.measured.map((metric) => (
+          <div key={metric.label} className="casebook__metric">
+            <b>{metric.value}</b>
+            <span>{metric.label}</span>
+          </div>
+        ))}
+      </div>
+      <div className="casebook__stack">
+        {project.stack.map((item) => (
+          <span key={item}>{item}</span>
+        ))}
+      </div>
+      {project.links.length ? (
+        <div className="work-case__links">
+          {project.links.map((link) => (
+            <a key={link.url} href={link.url} target="_blank" rel="noreferrer">
+              ↗ {link.label}
+            </a>
+          ))}
+        </div>
+      ) : null}
+    </aside>
+  );
+}
+
 export default function WorkShelf() {
   const projects = SITE_CONTENT.projects;
   // the journey store is the single source of truth — the 3D chips write to it too
@@ -251,9 +315,18 @@ export default function WorkShelf() {
         const index = projects.findIndex((p) => p.slug === match[1]);
         if (index >= 0) {
           useJourney.getState().setWork(index, match[1]);
-          // land the visitor at the work chapter so closing the modal
-          // leaves them beside their chip, not stranded in chapter 1
-          document.getElementById('work')?.scrollIntoView();
+          // land the visitor at the scroll depth that DERIVES this project,
+          // otherwise the scroll-driven focus would immediately clobber the
+          // deep link back to the first chip
+          const workEl = document.getElementById('work');
+          const roadEl = document.getElementById('road');
+          if (useJourney.getState().tier !== 'off' && workEl && roadEl) {
+            const start = workEl.offsetTop - window.innerHeight * 0.35;
+            const span = roadEl.offsetTop - workEl.offsetTop;
+            window.scrollTo(0, Math.max(0, start + (WORK_THRESHOLDS[index] + 0.05) * span));
+          } else {
+            workEl?.scrollIntoView();
+          }
         }
       }
     };
@@ -261,6 +334,35 @@ export default function WorkShelf() {
     window.addEventListener('hashchange', applyHash);
     return () => window.removeEventListener('hashchange', applyHash);
   }, [projects]);
+
+  // SCROLL-DRIVEN SHELF: focus is DERIVED from scroll position through the tall
+  // work track (same pattern as the receipts vaults) — scrolling walks the chips
+  // in order and each case file opens itself, no OPEN click required. Chip
+  // clicks / arrow keys still override until the next threshold crossing.
+  useEffect(() => {
+    if (tier === 'off') return;
+    let derived = -1;
+    const update = () => {
+      const state = useJourney.getState();
+      const { station, localT } = state;
+      let idx: number;
+      if (station < 2) idx = 0;
+      else if (station > 2) idx = projects.length - 1;
+      else {
+        idx = 0;
+        WORK_THRESHOLDS.forEach((t, i) => {
+          if (localT >= t && i < projects.length) idx = i;
+        });
+      }
+      if (idx !== derived) {
+        derived = idx;
+        state.setWork(idx, state.workOpen);
+      }
+    };
+    const unsubscribe = useJourney.subscribe(update);
+    update();
+    return () => unsubscribe();
+  }, [tier, projects.length]);
 
   const step = useCallback(
     (delta: number) => {
@@ -286,18 +388,25 @@ export default function WorkShelf() {
   const openProjectData = openSlug ? projects.find((p) => p.slug === openSlug) ?? null : null;
 
   return (
-    <section className="work section-shell section-pad" id="work" aria-labelledby="work-title">
+    <section
+      className={`work section-shell${tier === 'off' ? ' section-pad' : ' work--track'}`}
+      id="work"
+      aria-labelledby="work-title"
+    >
+      <div className={tier === 'off' ? undefined : 'work__sticky'}>
       <div className="section-head reveal">
         <div>
           <p className="eyebrow">CHAPTER 02 — THE WORK</p>
           <h2 id="work-title">
             Four real projects.
             <br />
-            Open one.
+            {tier === 'off' ? 'Open one.' : 'They open themselves.'}
           </h2>
         </div>
         <p className="receipts__note text-scrim">
-          Only shipped, verifiable work makes the shelf. Select a project and OPEN unfolds the full case study.
+          {tier === 'off'
+            ? 'Only shipped, verifiable work makes the shelf. Select a project and OPEN unfolds the full case study.'
+            : 'Only shipped, verifiable work makes the shelf. Keep scrolling — each chip slides into focus and its case file opens on its own.'}
         </p>
       </div>
 
@@ -359,42 +468,63 @@ export default function WorkShelf() {
           })}
         </div>
         ) : (
-          <div className="shelf__window" aria-hidden="true">
-            <b
-              key={focused.slug}
-              className="work-giant"
-              style={{ '--org': focused.accent } as React.CSSProperties}
-            >
-              {focused.title}
-            </b>
-            <span className="shelf__window-hint">CLICK A CHIP · ← → TO BROWSE</span>
+          <div className="work-stage">
+            <div className="work-stage__window" aria-hidden="true">
+              <b
+                key={focused.slug}
+                className="work-giant"
+                style={{ '--org': focused.accent } as React.CSSProperties}
+              >
+                {focused.title}
+              </b>
+              <div className="shelf__dashes">
+                {projects.map((project, index) => (
+                  <span key={project.slug} className={index === focus ? 'is-on' : ''} />
+                ))}
+              </div>
+              <span className="shelf__window-hint">SCROLL — THE SHELF TURNS ITSELF · ← → TO BROWSE</span>
+            </div>
+            <div className="work-cases">
+              {projects.map((project, index) => (
+                <InlineCase
+                  key={project.slug}
+                  project={project}
+                  index={index}
+                  total={projects.length}
+                  live={index === focus}
+                />
+              ))}
+            </div>
           </div>
         )}
 
-        <div className="shelf__caption">
-          <span className="shelf__caption-index">
-            {String(focus + 1).padStart(2, '0')} / {String(projects.length).padStart(2, '0')}
-          </span>
-          <span className="shelf__caption-title">{focused.title}</span>
-          <span className="shelf__caption-desc">{focused.tagline}</span>
-          <div className="shelf__controls">
-            <button className="shelf__arrow" onClick={() => step(-1)} aria-label="Previous project">
-              ‹
-            </button>
-            <button className="shelf__open" onClick={() => openProject(focused.slug)}>
-              OPEN →
-            </button>
-            <button className="shelf__arrow" onClick={() => step(1)} aria-label="Next project">
-              ›
-            </button>
+        {tier === 'off' ? (
+          <div className="shelf__caption">
+            <span className="shelf__caption-index">
+              {String(focus + 1).padStart(2, '0')} / {String(projects.length).padStart(2, '0')}
+            </span>
+            <span className="shelf__caption-title">{focused.title}</span>
+            <span className="shelf__caption-desc">{focused.tagline}</span>
+            <div className="shelf__controls">
+              <button className="shelf__arrow" onClick={() => step(-1)} aria-label="Previous project">
+                ‹
+              </button>
+              <button className="shelf__open" onClick={() => openProject(focused.slug)}>
+                OPEN →
+              </button>
+              <button className="shelf__arrow" onClick={() => step(1)} aria-label="Next project">
+                ›
+              </button>
+            </div>
+            <div className="shelf__dashes" aria-hidden="true">
+              {projects.map((project, index) => (
+                <span key={project.slug} className={index === focus ? 'is-on' : ''} />
+              ))}
+            </div>
+            <span className="shelf__hint">ARROWS · SELECT · OPEN</span>
           </div>
-          <div className="shelf__dashes" aria-hidden="true">
-            {projects.map((project, index) => (
-              <span key={project.slug} className={index === focus ? 'is-on' : ''} />
-            ))}
-          </div>
-          <span className="shelf__hint">ARROWS · SELECT · OPEN</span>
-        </div>
+        ) : null}
+      </div>
       </div>
 
       <CaseBook project={openProjectData} onClose={closeProject} />

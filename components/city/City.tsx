@@ -370,8 +370,9 @@ function CraneSilhouettes() {
 function Signage() {
   const texture = useMemo(() => makeSignTexture(), []);
   const materialRef = useRef<THREE.MeshStandardMaterial>(null);
-  // hero tower at (38, 8), h=22 + crown; hero camera ≈ (-10, 14, 118)
-  const rotY = Math.atan2(-10 - 38, 118 - 8);
+  // mounted above tower (52, 22, h=19) — projects screen-RIGHT of the DOM
+  // "PHONG CAO" headline and above the vault row, so neither blocks it
+  const rotY = Math.atan2(-10 - 54, 118 - 24);
 
   const flickerStart = useRef<number | null>(null);
 
@@ -400,9 +401,9 @@ function Signage() {
   });
 
   return (
-    <group position={[38, 28.2, 8]} rotation={[0, rotY, 0]}>
+    <group position={[54, 27, 24]} rotation={[0, rotY, 0]}>
       <mesh>
-        <planeGeometry args={[34, 5.4]} />
+        <planeGeometry args={[28, 4.4]} />
         <meshStandardMaterial
           ref={materialRef}
           map={texture}
@@ -413,6 +414,13 @@ function Signage() {
           color="#000000"
         />
       </mesh>
+      {/* scaffold posts down to the tower roof so the sign doesn't float */}
+      {[-4, 4].map((dx) => (
+        <mesh key={dx} position={[dx, -4.4, -0.3]}>
+          <boxGeometry args={[0.32, 8.8, 0.32]} />
+          <meshStandardMaterial color="#0b0f0b" roughness={0.9} />
+        </mesh>
+      ))}
     </group>
   );
 }

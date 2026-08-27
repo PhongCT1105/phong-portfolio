@@ -22,19 +22,20 @@ function BrandItem({ item }: { item: Affiliation }) {
   );
 }
 
-/** full-bleed animated affiliation strip — real brand marks in real brand colors */
+/** full-bleed animated affiliation strip — real brand marks in real brand colors.
+ *  Four copies: the ticker translates exactly two copies' width (-50%), so the
+ *  loop is seamless AND the track still covers ultra-wide viewports. */
 export default function BrandStrip() {
   return (
     <section className="brand-strip" aria-label="Affiliations">
       <div className="brand-strip__track">
-        {SITE_CONTENT.affiliations.map((item) => (
-          <BrandItem key={item.name} item={item} />
+        {[0, 1, 2, 3].map((copy) => (
+          <div key={copy} aria-hidden={copy > 0 ? 'true' : undefined} style={{ display: 'contents' }}>
+            {SITE_CONTENT.affiliations.map((item) => (
+              <BrandItem key={`${item.name}-${copy}`} item={item} />
+            ))}
+          </div>
         ))}
-        <div aria-hidden="true" style={{ display: 'contents' }}>
-          {SITE_CONTENT.affiliations.map((item) => (
-            <BrandItem key={`${item.name}-dup`} item={item} />
-          ))}
-        </div>
       </div>
     </section>
   );

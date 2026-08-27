@@ -1,8 +1,22 @@
 {
-  "name": "phong-portfolio-static",
+  "name": "phong-portfolio",
+  "version": "1.0.0",
   "private": true,
-  "type": "module",
   "scripts": {
-    "test": "node --test tests/*.test.mjs"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "^15.4.6",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "@types/react": "^19.1.9",
+    "@types/react-dom": "^19.1.7",
+    "typescript": "^5.8.3"
   }
 }

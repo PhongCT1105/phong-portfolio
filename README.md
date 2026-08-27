@@ -1,102 +1,52 @@
-# Phong Cao — Static Portfolio
+# Phong Cao — Portfolio
 
-A framework-free personal portfolio built with HTML, CSS, vanilla JavaScript, Canvas 2D, and browser-native animation APIs.
+Personal portfolio of **Phong Cao** — software engineer focused on AI infrastructure and distributed systems.
 
-There is no build step and no Base44/Lovable dependency.
+Built with **Next.js (App Router) + TypeScript**, deployed on **Vercel**.
 
-## What is included
+## Highlights
 
-- 1.5–2.5s first-session systems boot animation
-- generated session ID instead of a fake visitor counter
-- Phong-first hero with high-signal identity chips
-- continuously moving affiliation/recognition strip with local icons
-- large-number proof section
-- compact Apple-style sticky distributed-compute/bandwidth scene
-- selected proof-of-work rows (FlashML is intentionally only one row)
-- sticky `10×` hackathon timeline
-- NSF / IEEE MIT URTC research section
-- selected experience and WPI education sections
-- terminal-style contact ending
-- responsive mobile layout
-- reduced-motion mode
-- local static verification + Node tests
-- Vercel configuration and deployment guide
+- Server-rendered content for SEO (Open Graph, JSON-LD person schema, sitemap, robots)
+- Terminal/systems visual identity: boot sequence, live network canvas, session telemetry
+- Scroll-driven "fragmented compute" visualization (GPU nodes, bandwidth meter, stage transitions)
+- Fully responsive, honors `prefers-reduced-motion`, keyboard accessible
 
-## Quick local preview
+## Stack
 
-Because the JavaScript uses ES modules, preview through a tiny local HTTP server rather than double-clicking `index.html`:
+| Layer     | Choice                              |
+| --------- | ----------------------------------- |
+| Framework | Next.js 15 (App Router)             |
+| Language  | TypeScript + React 19               |
+| Styling   | Hand-written CSS (design tokens)    |
+| Fonts     | Inter + JetBrains Mono via next/font |
+| Hosting   | Vercel                              |
+
+## Development
 
 ```bash
-python3 -m http.server 4173
+npm install
+npm run dev      # http://localhost:3000
+npm run build    # production build
 ```
 
-Then open:
+## Structure
 
-```text
-http://localhost:4173
+```
+app/          layout (metadata, fonts), page, robots, sitemap
+components/   one component per section + effects (boot, canvas, cursor, reveals)
+lib/          content data + session/scene logic
+styles/       design tokens, base, layout, components, motion, responsive
+public/       logos, icons, resume PDF
 ```
 
-## Edit your links first
+All site copy lives in `lib/content.ts` — edit that file to update content.
 
-Open `js/content.js` and update:
+## Deploy
 
-```js
-links: {
-  linkedin: 'https://www.linkedin.com/in/phong-cao/',
-  github: '',
-  resume: '',
-  email: ''
-}
-```
+Push to `main` — Vercel auto-deploys. Set `NEXT_PUBLIC_SITE_URL` in Vercel project settings once a custom domain is attached.
 
-Empty links intentionally render as disabled controls rather than fake URLs.
+## Roadmap
 
-For email use:
-
-```js
-email: 'mailto:you@example.com'
-```
-
-## Project links
-
-Each project has a `links` array in `js/content.js`. Example:
-
-```js
-links: [
-  { label: 'GitHub', url: 'https://github.com/...' },
-  { label: 'Demo', url: 'https://...' }
-]
-```
-
-The whole project row becomes clickable using the first configured safe URL.
-
-## Logos and affiliation icons
-
-See `assets/BRAND-SOURCES.md`.
-
-The package deliberately uses text + neutral contextual icons for some institutions where official marks have personal-use restrictions. NVIDIA and Adobe assets are locally included; Adobe should be swapped to a neutral icon if your ambassador agreement does not permit corporate-logo use.
-
-Replace the neutral Zolli AI founder icon with the real Zolli logo when you have it.
-
-## Tests
-
-```bash
-node --test tests/*.test.mjs
-python3 scripts/verify_static.py
-```
-
-## Architecture
-
-- `index.html` — semantic structure
-- `css/` — visual system + responsive motion
-- `js/content.js` — editable portfolio content
-- `js/boot.js` — session boot sequence
-- `js/network.js` — background distributed-node canvas
-- `js/scroll.js` — focus/wins/reveal scroll choreography
-- `js/interactions.js` — cursor, tilt, magnetic links, terminal cycle
-- `assets/` — all local interface icons/marks
-- `vercel.json` — static Vercel settings
-
-## Visitor count
-
-The current release does **not** fake a global visitor number. It displays a real random session identifier stored in `sessionStorage`. If you later want a true global visitor counter, add a small persistent backend such as Vercel KV/Postgres or another counter service.
+- [ ] Three.js hero scene (react-three-fiber) — inspired by [threeui.com](https://threeui.com/browse)
+- [ ] Project detail pages / case studies
+- [ ] OG image generation (`@vercel/og`)

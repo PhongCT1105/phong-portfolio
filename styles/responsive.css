@@ -1,0 +1,53 @@
+﻿@media (max-width: 1050px) {
+  .hero { grid-template-columns:1fr; padding-top:145px; }
+  .hero__telemetry { width:min(650px,100%); padding-bottom:0; grid-template-columns:1.3fr .7fr; align-items:stretch; }
+  .telemetry-grid { grid-template-columns:1fr; }
+  .focus__frame { grid-template-columns:1fr; }
+  .focus-viz { height:520px; }
+  .focus__end { grid-column:1; }
+  .numbers__grid { grid-template-columns:repeat(3,1fr); }
+  .number-card:nth-child(3) { border-right:0; }.number-card:nth-child(n+4) { border-top:1px solid var(--line); }
+  .work-row { grid-template-columns:55px 1fr auto; padding-block:22px; }
+  .work-row__desc { grid-column:2 / -1; }.work-row__recognition { grid-column:2; justify-content:flex-start; }.work-row__link { grid-column:3; grid-row:1; }
+}
+@media (max-width: 800px) {
+  :root { --gutter:22px; }
+  .cursor-orbit { display:none; }
+  .site-nav__links a:not(.nav-cta) { display:none; }
+  .hero { min-height:auto; padding-top:130px; padding-bottom:120px; }
+  .hero__name { font-size:clamp(76px,25vw,150px); }
+  .hero__telemetry { grid-template-columns:1fr; }
+  .telemetry-grid { grid-template-columns:1fr 1fr; }
+  .hero__scroll-cue { display:none; }
+  .section-intro { grid-template-columns:1fr; }
+  .numbers__grid { grid-template-columns:1fr 1fr; }
+  .number-card { min-height:185px; border-top:1px solid var(--line); }.number-card:nth-child(2n) { border-right:0; }.number-card:first-child,.number-card:nth-child(2){border-top:0}.number-card:last-child{grid-column:1/-1}
+  .focus { min-height:190vh; }.focus__sticky { min-height:100svh; padding-block:90px; }.focus-viz { min-height:390px; height:56vh; }
+  .gpu-node { width:84px; height:58px; }.gpu-node--c { left:39%; }.gpu-node--d,.gpu-node--e{right:2%}
+  .wins__layout { grid-template-columns:1fr; }.wins__sticky { position:relative; top:0; }.wins__number { font-size:44vw; }
+  .research-metrics { grid-template-columns:1fr 1fr; }.research-flow { overflow-x:auto; }
+  .experience-row { grid-template-columns:80px 40px 1fr; padding-block:20px; }.experience-row__role { grid-column:3; }
+  .education-card { grid-template-columns:74px 1fr; }.education-card__coords { display:none; }
+}
+@media (max-width: 540px) {
+  .site-nav { height:64px; }.site-nav__brand { font-size:10px; }.nav-cta { padding:8px 10px; }
+  .hero__identity { display:grid; grid-template-columns:1fr; width:100%; }.identity-chip { width:max-content; max-width:100%; }
+  .telemetry-grid { grid-template-columns:1fr; }
+  .affiliation-item { padding:14px 20px; }
+  .numbers__grid { grid-template-columns:1fr; }.number-card,.number-card:nth-child(2n){border-right:0;border-top:1px solid var(--line)}.number-card:first-child{border-top:0}.number-card:last-child{grid-column:auto}
+  .focus-viz { min-height:430px; }.gpu-node--a{left:5%;top:13%}.gpu-node--b{left:5%;bottom:20%}.gpu-node--c{left:38%;top:43%}.gpu-node--d{right:4%;top:20%}.gpu-node--e{right:4%;bottom:15%}
+  .work-row { grid-template-columns:38px 1fr; gap:12px; }.work-row__desc,.work-row__recognition,.work-row__link{grid-column:2}.work-row__link{grid-row:auto}.work-row:hover{padding-left:0}
+  .research-card h2 { margin-top:50px; }.research-metrics { grid-template-columns:1fr; }.research-flow span{white-space:nowrap}
+  .experience-row { grid-template-columns:70px 34px 1fr; gap:12px; }.experience-row__org{font-size:23px}
+  .education-card { grid-template-columns:1fr; }.education-card__mark img{width:72px}
+  .contact__status,.contact__foot { flex-direction:column; }.contact__foot{margin-top:64px}
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior:auto; }
+  *,*::before,*::after { animation-duration:.001ms!important; animation-iteration-count:1!important; transition-duration:.001ms!important; }
+  .network-canvas,.cursor-orbit { display:none!important; }
+  .reveal { opacity:1; transform:none; }
+  .boot { display:none!important; }
+  .affiliation-rail__track { transform:none!important; animation:none!important; flex-wrap:wrap; width:100%; }
+  .focus { min-height:auto; }.focus__sticky { position:relative; min-height:auto; }
+}

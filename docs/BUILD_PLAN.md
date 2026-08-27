@@ -24,7 +24,7 @@ Progress log (append per iteration): docs/BUILD_LOG.md
 - [x] M3 — Boot power-on + hero DOM over the city (network-canvas retired)
 - [x] M4 — Memory vaults + receipts sync (revised: one-number design — vaults open onto org-color light; DOM owns the numbers)
 - [x] M5 — The Fab: chip pedestals + chip-book case studies
-- [ ] M6 — The Avenue: 5 gates + road sync
+- [x] M6 — The Avenue: 5 gates + road sync (also fixed the global rail: per-segment mapping + per-station holds)
 - [ ] M7 — Scheduler hall + 47% counter
 - [ ] M8 — Lift-off reveal + contact orbit
 - [ ] M9 — Mobile-lite + fallback polish

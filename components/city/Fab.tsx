@@ -14,8 +14,8 @@ const CHIPS = [
   { slug: 'hospital-nav', color: '#e04050' }
 ] as const;
 
-/** nearer + larger so the hall fills ≥30% of the work frame */
-const HALL = { x: 170, z: -50 };
+/** ~110u from the held work camera (150,16,-30) → hall spans ~30% of frame */
+const HALL = { x: 196, z: -128 };
 const HALL_ROT = Math.atan2(150 - HALL.x, -30 - HALL.z);
 const LAYER_COUNT = 5;
 const RIB_XS = [-26, -13, 0, 13, 26];

@@ -98,12 +98,17 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .road__grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 20px; }
 .road-stop { display: flex; flex-direction: column; gap: 14px; }
 .road-stop__dot { width: 13px; height: 13px; border-radius: 50%; background: var(--bg); border: 2px solid var(--stop-color, var(--accent)); }
-.road-stop--current .road-stop__dot { background: var(--stop-color); box-shadow: 0 0 16px color-mix(in srgb, var(--stop-color, #9be15d) 80%, transparent); }
+.road-stop--current.is-active .road-stop__dot { background: var(--stop-color); box-shadow: 0 0 16px color-mix(in srgb, var(--stop-color, #9be15d) 80%, transparent); }
 .road-stop__year { font: 10px var(--mono); letter-spacing: .14em; color: var(--stop-color, var(--accent)); }
 .road-stop__org { font-size: clamp(19px, 1.8vw, 24px); font-weight: 650; letter-spacing: -.02em; }
 .road-stop__role { font-size: 13px; line-height: 1.55; color: var(--muted); }
 .road-stop__metric { align-self: flex-start; font: 9px var(--mono); letter-spacing: .1em; color: var(--fg-soft); border: 1px solid var(--line-strong); border-radius: 999px; padding: 6px 11px; }
 .road-stop--current .road-stop__metric { color: #071004; background: var(--accent-bright); border-color: var(--accent-bright); }
+.road-stop { opacity: .55; transition: opacity .5s var(--ease-out); }
+.road-stop.is-active { opacity: 1; }
+.road-stop.is-active .road-stop__dot { background: var(--stop-color); box-shadow: 0 0 16px color-mix(in srgb, var(--stop-color, #9be15d) 80%, transparent); }
+.road-stop.is-active .road-stop__metric { border-color: color-mix(in srgb, var(--stop-color, #9be15d) 70%, transparent); }
+@media (prefers-reduced-motion: reduce) { .road-stop { opacity: 1; } }
 .honors { border-top: 1px solid var(--line); margin-top: clamp(34px, 5vw, 52px); padding-top: 26px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .honors__label { font: 9px var(--mono); letter-spacing: .18em; color: var(--muted-2); }
 .honors span:not(.honors__label) { font: 10px var(--mono); letter-spacing: .08em; color: var(--fg-soft); border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; }

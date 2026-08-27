@@ -89,3 +89,22 @@ Format per entry: milestone · rounds · validator verdict · critic verdict · 
   must-lands all landed → closed.
 - Screenshots: scratchpad shots-m5r1..r4/.
 
+## M6 — The Avenue (5 rounds; found + fixed a foundational rail bug)
+- r1 FAIL exposed the root cause: the rail fed PAGE progress into arc-length getPointAt, so
+  stations never landed on their keyframes — the camera drove the avenue during the work
+  chapter and was airborne during the road chapter. Fixed with per-segment mapping
+  (station+localT)/segments via getPoint.
+- r2: remap correct in principle but two composition breaks — no ignition lead (camera reached
+  each gate exactly at its threshold) and the Catmull segment bowed off the corridor. Fixed:
+  station 3 drives a STRAIGHT z-locked path x 72→−52 (15–25u lead at every ignition) with the
+  look-target held down the avenue; gate standby emissive 0.3.
+- r3: road shots now cinema — validator measured each igniting gate's hue DOMINATING its frame
+  (e.g. 11k hue-0 pixels, meanV .94 for Adobe) with colored pools, DOM cards exact at every
+  threshold, Zolli dot hollow until active. One regression: station-2 hold landed at the
+  reshaped segment's near corner (hall at 90% width close-up).
+- r4/r5: station 2 holds AT its keyframe with frozen look; hall moved to ~110u distance —
+  measured 33% width, coherent ribs+ridge, focus glow switch verified. PASS.
+- Rail architecture now: per-segment mapping + holds at stations 1 (vault reveal), 2 (fab),
+  3 (straight avenue drive). Honors strip verified. Console clean throughout.
+- Screenshots: scratchpad shots-m6r1..r5/.
+

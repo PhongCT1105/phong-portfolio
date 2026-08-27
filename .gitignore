@@ -28,3 +28,4 @@ preview-*.png
 
 chrome.pid
 chrome-pid.txt
+.mcp.json

@@ -5,7 +5,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useJourney } from '@/lib/journey';
 
-/** gate order matches the road stops: FPT → NSF → Adobe → Zolli → NVIDIA */
+/** gate order matches the road stops: FPT, NSF, Adobe, Zolli, NVIDIA */
 export const GATES = [
   { x: 38, color: '#f26f21' },
   { x: 18, color: '#00a0dc' },
@@ -15,7 +15,7 @@ export const GATES = [
 ] as const;
 
 const AVENUE_Z = -95;
-/** ignition threshold for gate i within station 3 — shared with the DOM road stops */
+/** ignition threshold for gate i within station 3 (3D timing) */
 export function gateThreshold(index: number): number {
   return 0.08 + index * 0.18;
 }
@@ -25,14 +25,14 @@ function Gate({ x, color, index }: { x: number; color: string; index: number }) 
   const lightRef = useRef<THREE.PointLight>(null);
   const level = useRef(0.3);
 
-  useFrame((_, dt) => {
+  useFrame((state, dt) => {
     const { station, localT, boot } = useJourney.getState();
     const delta = Math.min(dt, 0.05);
     const speed = 1 - Math.exp(-delta * 4);
     const bootRamp = Math.max(0, Math.min(1, (boot - 0.35) / 0.25));
     const t = gateThreshold(index);
 
-    // standby 0.3 (tubes must read even unlit) → ignite 2.2 → settle at ~25% passed
+    // standby 0.3 (tubes read even unlit) -> ignite 2.2 -> settle ~25% once passed
     let target = 0.3;
     if (station > 3) target = 0.55;
     else if (station === 3) {
@@ -41,18 +41,26 @@ function Gate({ x, color, index }: { x: number; color: string; index: number }) 
     }
     level.current += (target - level.current) * speed;
 
-    const intensity = level.current * bootRamp;
+    // a gate about to swallow the camera would flood the frame and occlude the
+    // DOM year/cards, so it fades out inside ~16u of the camera
+    const prox = Math.abs(state.camera.position.x - x);
+    const nearFade = station === 3 ? Math.max(0.1, Math.min(1, (prox - 7) / 11)) : 1;
+
+    const intensity = level.current * bootRamp * nearFade;
     matRefs.current.forEach((m) => {
-      if (m) m.emissiveIntensity = intensity;
+      if (m) {
+        m.emissiveIntensity = intensity;
+        m.opacity = 0.15 + 0.85 * nearFade;
+      }
     });
-    // igniting gate throws a brief colored pool on the road — the scene tint
+    // igniting gate throws a colored pool on the road
     if (lightRef.current) lightRef.current.intensity = Math.max(0, intensity - 0.6) * 55;
   });
 
   return (
     <group position={[x, 0, AVENUE_Z]}>
       <pointLight ref={lightRef} position={[0, 7, 0]} color={color} intensity={0} distance={30} decay={2} />
-      {/* two columns + crossbar as emissive tubes — they must bloom, not die in fog */}
+      {/* two columns + crossbar as emissive tubes */}
       <mesh position={[0, 6, -7]}>
         <cylinderGeometry args={[0.22, 0.22, 12, 10]} />
         <meshStandardMaterial
@@ -62,6 +70,8 @@ function Gate({ x, color, index }: { x: number; color: string; index: number }) 
           color="#060906"
           emissive={color}
           emissiveIntensity={0.3}
+          transparent
+          opacity={1}
         />
       </mesh>
       <mesh position={[0, 6, 7]}>
@@ -72,7 +82,9 @@ function Gate({ x, color, index }: { x: number; color: string; index: number }) 
           }}
           color="#060906"
           emissive={color}
-          emissiveIntensity={0.12}
+          emissiveIntensity={0.3}
+          transparent
+          opacity={1}
         />
       </mesh>
       <mesh position={[0, 12.1, 0]} rotation={[Math.PI / 2, 0, 0]}>
@@ -83,7 +95,9 @@ function Gate({ x, color, index }: { x: number; color: string; index: number }) 
           }}
           color="#060906"
           emissive={color}
-          emissiveIntensity={0.12}
+          emissiveIntensity={0.3}
+          transparent
+          opacity={1}
         />
       </mesh>
       {/* base pads seat the columns */}

@@ -121,6 +121,41 @@ function Podiums({ towers }: { towers: Tower[] }) {
   );
 }
 
+/** lit billboard panels on the towers the HERO camera actually frames —
+    each must read as a distinct 30-60px lit slab from (-10,14,118) */
+function Billboards({ towers }: { towers: Tower[] }) {
+  const panels = useMemo(() => {
+    // the downtown cluster ahead-right of the hero camera, camera-facing (+z) sides
+    const picks = towers
+      .filter((t) => t.h > 9 && Math.hypot(t.x - 35, t.z - 10) < 62)
+      .sort((a, b) => b.h - a.h)
+      .slice(0, 6);
+    return picks.map((t, i) => ({
+      x: t.x,
+      y: t.h * 0.52,
+      z: t.z + t.d / 2 + 0.1,
+      w: Math.max(3, t.w * 0.62),
+      h: Math.max(3.2, t.h * 0.26),
+      warm: i % 2 === 0
+    }));
+  }, [towers]);
+
+  return (
+    <group>
+      {panels.map((p, i) => (
+        <mesh key={i} position={[p.x, p.y, p.z]}>
+          <planeGeometry args={[p.w, p.h]} />
+          <meshStandardMaterial
+            color="#050805"
+            emissive={p.warm ? '#ffe9c4' : '#9effc0'}
+            emissiveIntensity={p.warm ? 2.0 : 1.7}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 /** lit vertical corner edges on the tallest downtown towers — skyscraper accents */
 function EdgeLights({ towers }: { towers: Tower[] }) {
   const strips = useMemo(() => {
@@ -411,6 +446,7 @@ export default function City({ density = 1 }: { density?: number }) {
       <Greebles towers={towers} />
       <Podiums towers={towers} />
       <EdgeLights towers={towers} />
+      <Billboards towers={towers} />
       <Vaults />
       <Fab />
       <Gates />

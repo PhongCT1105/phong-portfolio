@@ -46,6 +46,7 @@ function InteractiveChip({
   const lightRef = useRef<THREE.PointLight>(null);
   const rise = useRef(0);
   const glow = useRef(0);
+  const scale = useRef(1);
   const hover = useRef(false);
 
   useFrame((state, dt) => {
@@ -59,11 +60,16 @@ function InteractiveChip({
     const bootRamp = Math.max(0, Math.min(1, (boot - 0.4) / 0.2));
 
     const glowTarget =
-      bootRamp * (opened ? 1 : focused && atStation ? 0.8 : hover.current ? 0.45 : 0.08);
+      bootRamp * (opened ? 1 : focused && atStation ? 0.9 : hover.current ? 0.45 : 0.06);
     glow.current += (glowTarget - glow.current) * speed;
     rise.current += ((opened ? 1.6 : focused && atStation ? 0.5 : 0) - rise.current) * speed;
+    // the focused chip DOMINATES: ~1.85x scale vs its dim siblings
+    scale.current += (((focused && atStation) || opened ? 1.85 : 1) - scale.current) * speed;
 
-    if (groupRef.current) groupRef.current.position.y = 3.4 + rise.current;
+    if (groupRef.current) {
+      groupRef.current.position.y = 3.4 + rise.current;
+      groupRef.current.scale.setScalar(scale.current);
+    }
     if (lightRef.current) lightRef.current.intensity = glow.current * 60;
     if (spinRef.current) {
       // focused chip turntables slowly, like a museum piece
@@ -132,7 +138,8 @@ function HallBackdrop() {
   useFrame(() => {
     const { boot, station } = useJourney.getState();
     const ramp = Math.max(0, Math.min(1, (boot - 0.35) / 0.25));
-    const near = station === 2 ? 1 : 0.5;
+    // the hall is scenery — it must not compete with the chips at the work station
+    const near = station === 2 ? 0.22 : 0.5;
     ribRefs.current.forEach((m) => {
       if (m) m.emissiveIntensity = 0.9 * ramp * near;
     });

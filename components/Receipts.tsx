@@ -115,6 +115,35 @@ function ReceiptViz({ viz, color }: { viz: string; color: string }) {
   );
 }
 
+/** the 2-second message: a giant org-tinted numeral lands in the stage as each vault opens */
+function GiantValue() {
+  const focusIdx = useJourney((s) => s.receiptFocus);
+  const receipt = SITE_CONTENT.receipts[focusIdx];
+  const ref = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (prefersReducedMotion()) {
+      el.textContent = receipt.value;
+      return;
+    }
+    animateValue(el, receipt.value);
+  }, [focusIdx, receipt.value]);
+
+  return (
+    <b
+      key={focusIdx}
+      ref={ref}
+      className="receipt-giant"
+      style={{ '--org': receipt.color } as React.CSSProperties}
+      aria-hidden="true"
+    >
+      {receipt.value}
+    </b>
+  );
+}
+
 /** 3D tiers: one compact readout follows the opening vaults — the vaults own the frame */
 function ReceiptReadout() {
   const focusIdx = useJourney((s) => s.receiptFocus);
@@ -254,10 +283,13 @@ export default function Receipts() {
         <ReceiptCards />
       ) : (
         <div className="receipts__stage reveal">
-          <div className="receipts__window" aria-hidden="true">
+          <div className="receipts__window">
             <span className="shelf__window-hint">SCROLL — THE VAULTS OPEN · CLICK A VAULT</span>
           </div>
-          <ReceiptReadout />
+          <div style={{ position: 'relative' }}>
+            <GiantValue />
+            <ReceiptReadout />
+          </div>
         </div>
       )}
     </section>

@@ -1,32 +1,38 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { SITE_CONTENT } from '@/lib/content';
 import { useJourney } from '@/lib/journey';
 
 export default function Road() {
   const gridRef = useRef<HTMLDivElement>(null);
+  const [current, setCurrent] = useState(-1);
 
   useEffect(() => {
     const grid = gridRef.current;
     if (!grid) return;
     const stops = Array.from(grid.querySelectorAll<HTMLElement>('.road-stop'));
 
-    // activation mirrors the 3D gate ignitions: gate i at station-3 localT 0.08 + i*0.18
+    // activation mirrors the 3D gate ignitions; the LATEST stop is the spotlight
     const update = () => {
       const { station, localT } = useJourney.getState();
+      let latest = -1;
       stops.forEach((stop, i) => {
-        // last stop activates earlier so its lit state is witnessable before
-        // the card row scrolls out (gate 5's 3D ignition stays at 0.80)
-        const threshold = i === 4 ? 0.62 : 0.08 + i * 0.18;
+        // distinct thresholds so every stop gets its spotlight moment
+        const threshold = i === 4 ? 0.66 : i === 3 ? 0.56 : 0.08 + i * 0.18;
         const active = station > 3 || (station === 3 && localT >= threshold);
         stop.classList.toggle('is-active', active);
+        if (active) latest = i;
       });
+      stops.forEach((stop, i) => stop.classList.toggle('is-current', i === latest));
+      setCurrent(latest);
     };
     const unsubscribe = useJourney.subscribe(update);
     update();
     return () => unsubscribe();
   }, []);
+
+  const spotlight = current >= 0 ? SITE_CONTENT.road[current] : SITE_CONTENT.road[0];
 
   return (
     <section className="road section-shell section-pad" id="road" aria-labelledby="road-title">
@@ -35,6 +41,15 @@ export default function Road() {
           <p className="eyebrow">CHAPTER 03 — THE ROAD</p>
           <h2 id="road-title">Five stops. One line each.</h2>
         </div>
+        {/* the 2-second message: a huge ghost year that swaps as gates pass */}
+        <b
+          key={current}
+          className={`road-year-giant${current >= 0 ? ' is-live' : ''}`}
+          style={{ '--org': spotlight.color } as React.CSSProperties}
+          aria-hidden="true"
+        >
+          {spotlight.year.replace(' · NOW', '')}
+        </b>
       </div>
 
       <div className="road__track reveal">

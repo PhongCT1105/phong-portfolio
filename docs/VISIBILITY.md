@@ -1,0 +1,48 @@
+# First-Glance Visibility Loop
+
+The audience sees each moment ONCE while scrolling. Every chapter must land its ONE message
+in ~2 seconds of viewing, at a glance, without reading everything. Internal component detail
+that doesn't change the first glance is worthless until the glance works.
+
+## The 2-second test (per chapter view)
+
+For a settled screenshot of each chapter, a fresh-eyes auditor answers:
+1. FOCAL POINT — what does the eye land on first? Is it the chapter's actual message?
+2. THE MESSAGE — can you state what this chapter claims in one sentence WITHOUT reading
+   body copy? (hero: "this is Phong, systems builder"; receipts: "real money/users/results";
+   work: "four real projects, openable"; road: "a career journey through time";
+   now: "a working scheduler, 47% faster"; contact: "it was a chip — reach out")
+3. STANDOUT — is there ONE dominant element (size/contrast/motion) or does everything
+   compete at the same visual volume?
+4. MISSABLE — what important thing would a first-timer scroll past without noticing?
+
+## Known instruments of standout (prefer these over internal detail)
+
+- A GIANT numeral/word carrying the message (receipt giant value, road ghost year)
+- Spotlight hierarchy: current item dominant, siblings visibly receded
+- Motion timed to arrival (things that MOVE when the visitor gets there, not before/after)
+- One bloom-bright element per view; color pops against the dark base
+- Scale contrast in the 3D staging (near+big beats far+detailed)
+
+## Loop protocol (each iteration)
+
+1. AUDIT: spawn a fresh-eyes agent — settled screenshots of ALL chapters (desktop 1440),
+   run the 2-second test on each, rank the TOP 3 visibility failures site-wide with concrete
+   prescriptions (numbers: sizes, positions, timings).
+2. BUILD the #1 item (and #2 if small).
+3. VALIDATE targeted (the standard validator protocol in ACCEPTANCE.md — headless Chrome CDP,
+   dedicated profile, never taskkill by name, byte-identical settle).
+4. Commit + push, append one line to the Iteration log below, schedule the next wakeup.
+5. STOP when an audit returns no failure it ranks above "minor" for two consecutive rounds,
+   or the user redirects.
+
+## Iteration log
+
+- IT1 (seeded by Phong): receipt GIANT value in the vault stage; road spotlight
+  (current stop dominant + ghost year swap); skyline billboards.
+  Audit verdict: receipts giant = "the new best moment on the site"; WORK ranked worst.
+- IT2 (from IT1 audit): WORK giant project title + focused chip 1.85x + hall receded to
+  scenery; gates fade within ~16u of the camera (no more frame-flooding); passed-stop
+  recession override removed + Zolli/NVIDIA thresholds separated (0.56/0.66); billboards
+  moved onto the 6 tallest hero-framed downtown towers at emissive 1.7-2.0; receipt giant
+  re-anchored above the readout so the last receipt's number is seen.

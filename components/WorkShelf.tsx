@@ -360,6 +360,13 @@ export default function WorkShelf() {
         </div>
         ) : (
           <div className="shelf__window" aria-hidden="true">
+            <b
+              key={focused.slug}
+              className="work-giant"
+              style={{ '--org': focused.accent } as React.CSSProperties}
+            >
+              {focused.title}
+            </b>
             <span className="shelf__window-hint">CLICK A CHIP · ← → TO BROWSE</span>
           </div>
         )}

@@ -81,6 +81,68 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .receipt-readout .viz-step { opacity: 1; }
 .receipt-readout .viz-bar { transform: scaleY(1); }
 .receipt-readout .receipt-viz { height: 50px; }
+
+/* the giant stage numeral — the receipt's 2-second message */
+.receipts__window { position: relative; }
+.receipt-readout { position: relative; }
+.receipt-giant {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 20px;
+  font-size: clamp(96px, 12vw, 170px);
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  line-height: 1;
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, #ffffff 0%, color-mix(in srgb, var(--org, #9be15d) 45%, #dfe5da) 55%, color-mix(in srgb, var(--org, #9be15d) 70%, #3a423a) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 34px color-mix(in srgb, var(--org, #9be15d) 40%, transparent));
+  animation: giantIn .7s var(--ease-out);
+  pointer-events: none;
+}
+@keyframes giantIn { from { opacity: 0; transform: scale(.9) translateY(14px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+/* road spotlight: the current stop dominates, the rest recede */
+.road-stop { opacity: .38; transform: scale(.97); transition: opacity .5s var(--ease-out), transform .5s var(--ease-out), border-color .5s, box-shadow .5s; }
+.road-stop.is-active { opacity: .68; transform: scale(.99); }
+.road-stop.is-current {
+  opacity: 1;
+  transform: scale(1.05);
+  border-color: color-mix(in srgb, var(--stop-color, #9be15d) 55%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 18px 44px -14px rgba(0, 0, 0, 0.6),
+    0 0 38px -4px color-mix(in srgb, var(--stop-color, #9be15d) 32%, transparent);
+}
+.road-stop.is-current .road-stop__org { color: #fff; }
+.road-stop.is-current .road-stop__metric { color: #071004; background: var(--stop-color); border-color: var(--stop-color); font-weight: 700; }
+
+/* the giant ghost year — the road's 2-second message */
+.section-head { position: relative; }
+.road-year-giant {
+  font-size: clamp(84px, 9.5vw, 150px);
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  line-height: 1;
+  align-self: flex-end;
+  color: transparent;
+  -webkit-text-stroke: 1.5px color-mix(in srgb, var(--org, #9be15d) 70%, rgba(241, 243, 236, 0.4));
+  opacity: .45;
+  transition: opacity .4s;
+  animation: giantIn2 .55s var(--ease-out);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.road-year-giant.is-live { opacity: .95; text-shadow: 0 0 44px color-mix(in srgb, var(--org, #9be15d) 25%, transparent); }
+@keyframes giantIn2 { from { opacity: 0; transform: translateY(10px); } }
+@media (prefers-reduced-motion: reduce) {
+  .receipt-giant, .road-year-giant { animation: none; }
+  .road-stop, .road-stop.is-active { opacity: 1; transform: none; }
+}
+@media (max-width: 800px) { .receipt-giant { font-size: clamp(72px, 20vw, 120px); } .road-year-giant { display: none; } }
 .section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 60px; margin-bottom: clamp(40px, 6vw, 64px); }
 .section-head h2 { margin: 18px 0 0; font-size: clamp(44px, 5.5vw, 72px); line-height: .95; letter-spacing: -.04em; font-weight: 650; }
 
@@ -111,7 +173,29 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .shelf__dashes span.is-on { background: var(--accent); }
 .shelf__hint { font: 8px var(--mono); letter-spacing: .16em; color: var(--muted-2); }
 /* 3D tiers: the chips ARE the shelf — this transparent window gives the scene room */
-.shelf__window { min-height: 46vh; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 14px; border-bottom: 2px solid rgba(226,232,221,.22); background: linear-gradient(to bottom, transparent 60%, rgba(155,225,93,.03)); }
+.shelf__window { position: relative; min-height: 46vh; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 14px; border-bottom: 2px solid rgba(226,232,221,.22); background: linear-gradient(to bottom, transparent 60%, rgba(155,225,93,.03)); }
+/* the work chapter's 2-second message: the focused project's name, giant */
+.work-giant {
+  position: absolute;
+  top: 2%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: clamp(64px, 8.5vw, 140px);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  white-space: nowrap;
+  background: linear-gradient(180deg, #ffffff 0%, color-mix(in srgb, var(--org, #9be15d) 45%, #dfe5da) 55%, color-mix(in srgb, var(--org, #9be15d) 70%, #3a423a) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 30px color-mix(in srgb, var(--org, #9be15d) 38%, transparent));
+  animation: workGiantIn .6s var(--ease-out);
+  pointer-events: none;
+}
+@keyframes workGiantIn { from { opacity: 0; transform: translateX(-50%) translateY(12px) scale(.94); } }
+@media (prefers-reduced-motion: reduce) { .work-giant { animation: none; } }
+@media (max-width: 800px) { .work-giant { display: none; } }
 .shelf__window-hint { font: 9px var(--mono); letter-spacing: .18em; color: var(--muted-2); }
 
 /* ===== case study modal ===== */
@@ -168,8 +252,7 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .road-stop__role { font-size: 13px; line-height: 1.55; color: var(--muted); }
 .road-stop__metric { align-self: flex-start; font: 9px var(--mono); letter-spacing: .1em; color: var(--fg-soft); border: 1px solid var(--line-strong); border-radius: 999px; padding: 6px 11px; }
 .road-stop--current .road-stop__metric { color: #071004; background: var(--accent-bright); border-color: var(--accent-bright); }
-.road-stop { opacity: .55; transition: opacity .5s var(--ease-out); }
-.road-stop.is-active { opacity: 1; }
+/* (recession levels live in the visibility block below — do not re-declare here) */
 .road-stop.is-active .road-stop__dot { background: var(--stop-color); box-shadow: 0 0 16px color-mix(in srgb, var(--stop-color, #9be15d) 80%, transparent); }
 .road-stop.is-active .road-stop__metric { border-color: color-mix(in srgb, var(--stop-color, #9be15d) 70%, transparent); }
 @media (prefers-reduced-motion: reduce) { .road-stop { opacity: 1; } }

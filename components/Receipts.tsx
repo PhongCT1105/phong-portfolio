@@ -24,6 +24,99 @@ function animateValue(el: HTMLElement, target: string) {
   requestAnimationFrame(tick);
 }
 
+/** per-receipt micro-visualization — animates when the card's vault opens (.is-lit) */
+function ReceiptViz({ viz, color }: { viz: string; color: string }) {
+  if (viz === 'steps') {
+    // PoC → benchmark → contract
+    return (
+      <svg className="receipt-viz" viewBox="0 0 300 56" aria-hidden="true">
+        <line className="viz-draw" x1="16" y1="20" x2="284" y2="20" stroke={color} strokeWidth="1.6" />
+        {[
+          { x: 16, label: 'POC' },
+          { x: 150, label: '97% R@5' },
+          { x: 284, label: '$30K SIGNED' }
+        ].map((step, i) => (
+          <g key={step.label} className="viz-step" style={{ transitionDelay: `${400 + i * 260}ms` }}>
+            <circle cx={step.x} cy="20" r="5" fill="#070907" stroke={color} strokeWidth="2" />
+            <text x={step.x} y="46" textAnchor={i === 0 ? 'start' : i === 2 ? 'end' : 'middle'} className="viz-label">
+              {step.label}
+            </text>
+          </g>
+        ))}
+      </svg>
+    );
+  }
+  if (viz === 'podium') {
+    return (
+      <svg className="receipt-viz" viewBox="0 0 300 56" aria-hidden="true">
+        {[
+          { x: 76, h: 20, place: '2', accent: false },
+          { x: 132, h: 34, place: '1', accent: true },
+          { x: 188, h: 14, place: '3', accent: false }
+        ].map((bar, i) => (
+          <g key={bar.place}>
+            <rect
+              className="viz-bar"
+              x={bar.x}
+              y={50 - bar.h}
+              width="36"
+              height={bar.h}
+              rx="2"
+              fill={bar.accent ? color : 'rgba(226,232,221,.16)'}
+              style={{ transitionDelay: `${350 + i * 140}ms`, transformOrigin: '50% 50px' }}
+            />
+            <text x={bar.x + 18} y={46 - bar.h} textAnchor="middle" className="viz-label" fill={bar.accent ? color : undefined}>
+              {bar.place}
+            </text>
+          </g>
+        ))}
+      </svg>
+    );
+  }
+  if (viz === 'spark') {
+    return (
+      <svg className="receipt-viz" viewBox="0 0 300 56" aria-hidden="true">
+        <path
+          className="viz-draw"
+          d="M14 48 C 70 46, 110 42, 150 34 C 200 24, 244 16, 286 10"
+          fill="none"
+          stroke={color}
+          strokeWidth="2"
+        />
+        <circle className="viz-step" cx="286" cy="10" r="4.5" fill={color} style={{ transitionDelay: '900ms' }} />
+        <text x="14" y="38" className="viz-label">
+          PYPI RELEASE
+        </text>
+        <text x="286" y="30" textAnchor="end" className="viz-label">
+          100+ PILOT USERS
+        </text>
+      </svg>
+    );
+  }
+  // bars: RMSE with vs without RAG
+  return (
+    <svg className="receipt-viz" viewBox="0 0 300 56" aria-hidden="true">
+      <rect className="viz-bar" x="60" y="8" width="60" height="42" rx="2" fill="rgba(226,232,221,.16)" style={{ transformOrigin: '50% 50px' }} />
+      <rect
+        className="viz-bar"
+        x="180"
+        y="33"
+        width="60"
+        height="17"
+        rx="2"
+        fill={color}
+        style={{ transitionDelay: '400ms', transformOrigin: '50% 50px' }}
+      />
+      <text x="90" y="6" textAnchor="middle" className="viz-label">
+        NO RAG
+      </text>
+      <text x="210" y="28" textAnchor="middle" className="viz-label">
+        WITH RAG
+      </text>
+    </svg>
+  );
+}
+
 export default function Receipts() {
   const gridRef = useRef<HTMLDivElement>(null);
 
@@ -87,7 +180,13 @@ export default function Receipts() {
               {receipt.value}
             </div>
             <div className="receipt-card__title">{receipt.title}</div>
+            <ReceiptViz viz={receipt.viz} color={receipt.color} />
             <p className="receipt-card__body">{receipt.body}</p>
+            <div className="receipt-card__secondary">
+              {receipt.secondary.map((chip) => (
+                <span key={chip}>{chip}</span>
+              ))}
+            </div>
             <div className="receipt-card__source">
               <i />
               {receipt.source}

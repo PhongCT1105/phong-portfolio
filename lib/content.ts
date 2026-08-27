@@ -11,6 +11,10 @@ export interface Receipt {
   source: string;
   color: string;
   featured?: boolean;
+  /** which micro-visualization the card renders */
+  viz: 'steps' | 'podium' | 'spark' | 'bars';
+  /** secondary metric chips under the viz */
+  secondary: string[];
 }
 
 export interface ProjectMetric {
@@ -35,6 +39,8 @@ export interface Project {
   measured: ProjectMetric[];
   stack: string[];
   links: ProjectLink[];
+  /** cover image (GitHub OG card as live placeholder until real screenshots land) */
+  image?: string;
 }
 
 export interface RoadStop {
@@ -79,31 +85,39 @@ export const SITE_CONTENT = {
     {
       value: '$30K',
       title: 'Follow-on contract won',
-      body: 'Turned a proof-of-concept into production web + Android apps — the client signed a $30K extension.',
+      body: 'A proof-of-concept became production web + Android apps — and a signed $30K extension.',
       source: 'FPT SOFTWARE · INTERN · 2024',
-      color: '#f26f21'
+      color: '#f26f21',
+      viz: 'steps',
+      secondary: ['97% RECALL@5', '300MS QUERIES', '5,000+ PHOTOS INDEXED']
     },
     {
       value: '$8K',
       title: 'Runpod Grand Prize',
       body: "FlashML took the grand prize at Runpod's hackathon — then kept shipping instead of stopping at the demo.",
       source: 'RUNPOD HACKATHON · 2026',
-      color: '#a78bfa'
+      color: '#a78bfa',
+      viz: 'podium',
+      secondary: ['GRAND PRIZE — TOP OF FIELD', '$8K CASH', 'SHIPPED AFTER THE WIN']
     },
     {
       value: '100+',
       title: 'Pilot users on PyPI',
-      body: 'FlashML ships as installable Python packages, backed by 2,200+ tests and full CI/CD — real users, not a repo trophy.',
+      body: 'FlashML ships as installable Python packages with full CI/CD — real users, not a repo trophy.',
       source: 'ZOLLI LABS · FLASHML · LIVE',
       color: '#9be15d',
-      featured: true
+      featured: true,
+      viz: 'spark',
+      secondary: ['2,200+ TESTS', 'PYTORCH · SKLEARN · HF ADAPTERS', 'GITHUB ACTIONS CI/CD']
     },
     {
       value: '−60%',
       title: 'Forecast error, with RAG',
-      body: 'RAG-grounded LLM feature selection over 157 features cut forecast RMSE by up to 60% — presented at IEEE MIT URTC.',
+      body: 'RAG-grounded LLM feature selection over 157 exogenous features — presented at IEEE MIT URTC.',
       source: 'NSF RESEARCH · IEEE · 2025',
-      color: '#00a0dc'
+      color: '#00a0dc',
+      viz: 'bars',
+      secondary: ['157 FEATURES', '−27% VS XGBOOST BASELINE', '400+ REPRODUCIBLE RUNS']
     }
   ] as Receipt[],
   projects: [
@@ -124,7 +138,8 @@ export const SITE_CONTENT = {
         { value: '2,200+', label: 'TESTS · CI/CD · 100+ PILOT USERS' }
       ],
       stack: ['PYTHON', 'DOCKER', 'PYTORCH', 'HUGGING FACE', 'GITHUB ACTIONS'],
-      links: [{ label: 'github.com/Zolli-Labs/flashml', url: 'https://github.com/Zolli-Labs/flashml' }]
+      links: [{ label: 'github.com/Zolli-Labs/flashml', url: 'https://github.com/Zolli-Labs/flashml' }],
+      image: 'https://opengraph.githubassets.com/1/Zolli-Labs/flashml'
     },
     {
       slug: 'captain-ddoski',
@@ -142,7 +157,8 @@ export const SITE_CONTENT = {
         { value: 'HITL', label: 'HUMAN-IN-THE-LOOP DECISION ROUTING' }
       ],
       stack: ['PYTHON', 'TYPESCRIPT', 'REACT'],
-      links: [{ label: 'github.com/PhongCT1105/AI_Hack_Berkeley', url: 'https://github.com/PhongCT1105/AI_Hack_Berkeley' }]
+      links: [{ label: 'github.com/PhongCT1105/AI_Hack_Berkeley', url: 'https://github.com/PhongCT1105/AI_Hack_Berkeley' }],
+      image: 'https://opengraph.githubassets.com/1/PhongCT1105/AI_Hack_Berkeley'
     },
     {
       slug: 'on-device-qa',
@@ -163,7 +179,8 @@ export const SITE_CONTENT = {
       stack: ['ONNX RUNTIME', 'ANDROID ARM64', 'C++', 'HUGGING FACE'],
       links: [
         { label: 'github.com/PhongCT1105/On-Device-Real-Estate-Assistant', url: 'https://github.com/PhongCT1105/On-Device-Real-Estate-Assistant' }
-      ]
+      ],
+      image: 'https://opengraph.githubassets.com/1/PhongCT1105/On-Device-Real-Estate-Assistant'
     },
     {
       slug: 'hospital-nav',

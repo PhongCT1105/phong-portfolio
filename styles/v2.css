@@ -32,6 +32,19 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .receipt-card__title { font-size: 16px; font-weight: 600; }
 .receipt-card__body { font-size: 13px; line-height: 1.6; color: var(--muted); flex-grow: 1; }
 .receipt-card__source { display: flex; align-items: center; gap: 8px; font: 9px var(--mono); letter-spacing: .12em; color: var(--muted); }
+.receipt-viz { width: 100%; height: 56px; flex-shrink: 0; }
+.viz-label { font: 9.5px var(--mono); letter-spacing: .08em; fill: var(--muted); }
+.viz-draw { stroke-dasharray: 320; stroke-dashoffset: 320; transition: stroke-dashoffset 1.2s var(--ease-out) .3s; }
+.receipt-card.is-lit .viz-draw { stroke-dashoffset: 0; }
+.viz-step { opacity: 0; transition: opacity .4s var(--ease-out); }
+.receipt-card.is-lit .viz-step { opacity: 1; }
+.viz-bar { transform: scaleY(0); transition: transform .7s var(--ease-out); }
+.receipt-card.is-lit .viz-bar { transform: scaleY(1); }
+@media (prefers-reduced-motion: reduce) {
+  .viz-draw { stroke-dashoffset: 0; } .viz-step { opacity: 1; } .viz-bar { transform: none; }
+}
+.receipt-card__secondary { display: flex; flex-wrap: wrap; gap: 6px; }
+.receipt-card__secondary span { font: 8.5px var(--mono); letter-spacing: .08em; color: var(--fg-soft); border: 1px solid var(--line); border-radius: 999px; padding: 4px 8px; }
 .receipt-card__source i { width: 6px; height: 6px; border-radius: 50%; background: var(--dot-color, var(--accent)); flex-shrink: 0; }
 .receipts__note { max-width: 360px; font-size: 14px; line-height: 1.6; color: var(--muted); padding-bottom: 8px; }
 .section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 60px; margin-bottom: clamp(40px, 6vw, 64px); }
@@ -75,6 +88,20 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .casebook__side { border-right: 1px solid rgba(226,232,221,.1); padding: 36px; display: flex; flex-direction: column; gap: 22px; }
 .casebook__cover { min-height: 260px; border-radius: 14px; border: 1.5px solid color-mix(in srgb, var(--card-accent, #9be15d) 50%, transparent); background: linear-gradient(155deg, #101710, #0a0d0a); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; font-size: 30px; font-weight: 700; letter-spacing: -.03em; }
 .casebook__shot { min-height: 110px; border: 1.5px dashed rgba(226,232,221,.25); border-radius: 14px; display: flex; align-items: center; justify-content: center; font: 10px/1.7 var(--mono); letter-spacing: .12em; color: var(--muted-2); text-align: center; padding: 10px; }
+.casebook__img { display: flex; flex-direction: column; gap: 8px; }
+.casebook__img img { width: 100%; border-radius: 14px; border: 1.5px solid color-mix(in srgb, var(--card-accent, #9be15d) 45%, transparent); display: block; }
+.casebook__img span { font: 8.5px var(--mono); letter-spacing: .1em; color: var(--muted-2); }
+.casebook__cover--compact { min-height: 0; flex-direction: row; gap: 14px; padding: 12px 16px; font-size: 20px; }
+.casebook__cover--compact svg { width: 64px; height: 46px; }
+.casebook__arch { border: 1px solid var(--line); border-radius: 12px; background: rgba(8,11,8,.5); padding: 10px 12px; }
+.casebook__arch-svg { width: 100%; max-width: 420px; height: auto; display: block; }
+.arch-label { font: 9px var(--mono); letter-spacing: .06em; fill: var(--fg-soft); }
+.casebook__metric { position: relative; }
+.casebook__metric::before { content: ""; position: absolute; top: -1px; left: 0; height: 1px; width: 0; background: var(--card-accent, var(--accent)); transition: width .8s var(--ease-out) .5s; }
+.casebook.is-open .casebook__metric::before { width: 100%; }
+.shelf-card__img { margin-top: 14px; border-radius: 8px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--card-accent, #9be15d) 30%, transparent); }
+.shelf-card__img img { width: 100%; height: 108px; object-fit: cover; object-position: left top; display: block; filter: saturate(.85) brightness(.9); }
+.shelf-card.is-focused .shelf-card__img img { height: 148px; filter: none; }
 .casebook__links { display: flex; flex-direction: column; gap: 10px; font: 12px var(--mono); }
 .casebook__links a { color: var(--accent-bright); text-decoration: none; }
 .casebook__links a:hover { text-decoration: underline; }

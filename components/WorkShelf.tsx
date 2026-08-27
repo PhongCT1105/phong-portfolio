@@ -40,6 +40,77 @@ const COVER_ART: Record<string, React.ReactNode> = {
   )
 };
 
+/** compact "how it works" architecture diagrams, one per project */
+function ArchBox({ x, y, w, label, accent }: { x: number; y: number; w: number; label: string; accent?: string }) {
+  return (
+    <g>
+      <rect x={x} y={y} width={w} height={22} rx={4} fill="rgba(10,14,10,.9)" stroke={accent ?? 'rgba(226,232,221,.3)'} strokeWidth={accent ? 1.6 : 1} />
+      <text x={x + w / 2} y={y + 14.5} textAnchor="middle" className="arch-label" fill={accent ?? undefined}>
+        {label}
+      </text>
+    </g>
+  );
+}
+
+function Arrow({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y2: number }) {
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+  const size = 5;
+  const tip = (a: number) => `${x2 - size * Math.cos(angle + a)},${y2 - size * Math.sin(angle + a)}`;
+  return (
+    <g>
+      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(155,225,93,.45)" strokeWidth={1.4} />
+      <polygon points={`${x2},${y2} ${tip(0.5)} ${tip(-0.5)}`} fill="rgba(155,225,93,.6)" />
+    </g>
+  );
+}
+
+const ARCH_ART: Record<string, (accent: string) => React.ReactNode> = {
+  flashml: (accent) => (
+    <svg className="casebook__arch-svg" viewBox="0 0 340 96">
+      <ArchBox x={4} y={37} w={58} label="SUBMIT" />
+      <Arrow x1={62} y1={48} x2={86} y2={48} />
+      <ArchBox x={88} y={37} w={62} label="QUEUE" accent={accent} />
+      <Arrow x1={150} y1={44} x2={186} y2={16} />
+      <Arrow x1={150} y1={48} x2={186} y2={48} />
+      <Arrow x1={150} y1={52} x2={186} y2={80} />
+      <ArchBox x={188} y={5} w={94} label="FAST · PULLS 61" accent={accent} />
+      <ArchBox x={188} y={37} w={94} label="MID · PULLS 39" />
+      <ArchBox x={188} y={69} w={94} label="DIES → RETURNS" />
+      <Arrow x1={282} y1={48} x2={302} y2={48} />
+      <ArchBox x={304} y={37} w={34} label="OUT" />
+    </svg>
+  ),
+  'captain-ddoski': (accent) => (
+    <svg className="casebook__arch-svg" viewBox="0 0 340 96">
+      <ArchBox x={4} y={37} w={80} label="AGENT ACTION" />
+      <Arrow x1={84} y1={48} x2={112} y2={48} />
+      <ArchBox x={114} y={37} w={104} label="CREDIBILITY SCORE" accent={accent} />
+      <Arrow x1={218} y1={44} x2={248} y2={20} />
+      <Arrow x1={218} y1={52} x2={248} y2={76} />
+      <ArchBox x={250} y={9} w={86} label="HIGH → AUTO" />
+      <ArchBox x={250} y={65} w={86} label="LOW → HUMAN" accent={accent} />
+    </svg>
+  ),
+  'on-device-qa': (accent) => (
+    <svg className="casebook__arch-svg" viewBox="0 0 340 96">
+      <ArchBox x={4} y={37} w={70} label="FLAN-T5" />
+      <Arrow x1={74} y1={48} x2={102} y2={48} />
+      <ArchBox x={104} y={37} w={98} label="ONNX + 14 VARIANTS" />
+      <Arrow x1={202} y1={48} x2={230} y2={48} />
+      <ArchBox x={232} y={37} w={104} label="ARM64 · 163MS" accent={accent} />
+    </svg>
+  ),
+  'hospital-nav': (accent) => (
+    <svg className="casebook__arch-svg" viewBox="0 0 340 96">
+      <ArchBox x={4} y={37} w={82} label="147 KIOSKS" />
+      <Arrow x1={86} y1={48} x2={114} y2={48} />
+      <ArchBox x={116} y={37} w={110} label="EXPRESS / PRISMA" />
+      <Arrow x1={226} y1={48} x2={254} y2={48} />
+      <ArchBox x={256} y={37} w={80} label="A* ROUTE" accent={accent} />
+    </svg>
+  )
+};
+
 const CARD_TONES: Record<string, { hi: string; lo: string }> = {
   flashml: { hi: '#101710', lo: '#0a0d0a' },
   'captain-ddoski': { hi: '#0b1020', lo: '#080a12' },
@@ -77,14 +148,28 @@ function CaseBook({ project, onClose }: { project: Project | null; onClose: () =
             ×
           </button>
           <div className="casebook__side">
-            <div className="casebook__cover">
+            {project.image ? (
+              <div className="casebook__img">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={project.image}
+                  alt={`${project.title} repository card`}
+                  onError={(event) => {
+                    (event.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+                <span>AUTO IMAGE FROM GITHUB — REAL SCREENSHOTS COMING</span>
+              </div>
+            ) : (
+              <div className="casebook__shot">
+                [ REAL SCREENSHOT / DEMO GIF ]
+                <br />
+                coming from Phong
+              </div>
+            )}
+            <div className="casebook__cover casebook__cover--compact">
               {COVER_ART[project.slug]}
               <span>{project.title}</span>
-            </div>
-            <div className="casebook__shot">
-              [ REAL SCREENSHOT / DEMO GIF ]
-              <br />
-              coming from Phong
             </div>
             <div className="casebook__links">
               {project.links.length ? (
@@ -111,6 +196,10 @@ function CaseBook({ project, onClose }: { project: Project | null; onClose: () =
             <div>
               <div className="casebook__label">BUILT</div>
               <p className="casebook__text">{project.built}</p>
+            </div>
+            <div>
+              <div className="casebook__label">HOW IT WORKS</div>
+              <div className="casebook__arch">{ARCH_ART[project.slug]?.(project.accent)}</div>
             </div>
             <div>
               <div className="casebook__label">MEASURED</div>
@@ -223,7 +312,21 @@ export default function WorkShelf() {
                 }}
               >
                 <span className="shelf-card__badge">{project.badge.split(' · ').slice(0, 2).join(' · ')}</span>
-                {COVER_ART[project.slug]}
+                {project.image ? (
+                  <div className="shelf-card__img">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={project.image}
+                      alt=""
+                      loading="lazy"
+                      onError={(event) => {
+                        (event.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                ) : (
+                  COVER_ART[project.slug]
+                )}
                 <div className="shelf-card__meta">
                   <strong>{project.title}</strong>
                   <span>{project.stack.slice(0, 2).join(' · ')}</span>

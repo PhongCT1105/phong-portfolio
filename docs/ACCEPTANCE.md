@@ -29,6 +29,8 @@ https://claude.ai/code/artifact/1822c13b-f203-44e9-aa0e-899f4173798f (pages "Sil
   session scratchpad. This path is proven — see M1 round 1.
 - Desktop pass at default window; capture screenshots at these scroll depths:
   top (hero), ~15% (receipts), ~35% (work), ~55% (road), ~75% (now), bottom (contact).
+- IMPORTANT: wait ≥3s after each scroll before shooting — the camera is damped and needs
+  ~1.5–2.5s to settle after a large jump; early shots produce phantom framing defects.
 - Mobile pass: resize window to 390px wide, repeat top/middle/bottom.
 - Compare against the milestone checklist below AND the storyboards. Report:
   PASS or FAIL + numbered concrete defects ("towers uniform height = looks extruded-box",

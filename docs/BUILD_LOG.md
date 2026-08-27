@@ -20,3 +20,17 @@ Format per entry: milestone · rounds · validator verdict · critic verdict · 
 - Validator method note: claude-in-chrome had no responsive local browser overnight; validators
   drive local headless Chrome via CDP (SwiftShader). Protocol updated in ACCEPTANCE.md.
 
+## M2 — Instanced city (skyline, windows, trace ground, signage)
+- 3 rounds. Round 1 FAIL (7 defects): windowed roofs + UV stretch, hero camera above roofline,
+  sign undersized, no brightness hierarchy, flat crown slabs, bare-pole cranes, faint ground
+  traces. Fixed via height-bucketed instanced batches with per-batch square-cell UV repeats +
+  per-tier lit densities (0.22/0.11/0.05), multi-material dark roofs, hero rail dropped to
+  y14 below the 22u hero tower, sign doubled, jib+counter-jib cranes, brighter infill + vias.
+- Round 2 validator PASS on all 7. Critic: FIX FIRST — sign glowed over honors text at 75%
+  (now distance-faded to 0 past 40% scroll), single-sided banners (ghost slabs gone).
+- Round 3 targeted validator PASS: hero unchanged, no sign bleed, dark roofs from above,
+  terminal legible. Critic's hero-shot verdict: "would survive on threeui.com".
+- Critic's later-milestone guidance (ground v2 PCB routing, mid-field density, stepped crowns
+  + beacons, 35% composition, brand banner tints) recorded in BUILD_PLAN.md.
+- Screenshots: scratchpad shots-m2r1/, shots-m2r2/, shots-m2r3/.
+

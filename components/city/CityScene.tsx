@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { easing } from 'maath';
 import { useJourney } from '@/lib/journey';
 import type { QualityTier } from '@/components/city/CityLayer';
+import City from '@/components/city/City';
 
 /**
  * Camera rail through the six stations (city on XZ plane, Y up).
@@ -14,7 +15,7 @@ import type { QualityTier } from '@/components/city/CityLayer';
  * every station shows a horizon with the city dissolving into fog.
  */
 const RAIL_POINTS: [number, number, number][] = [
-  [0, 20, 150], // 00 hero — low over the grid, downtown ahead-right
+  [-10, 14, 118], // 00 hero — eye below the hero-tower roofline, downtown ahead-right
   [85, 16, 60], // 01 receipts — gliding toward the memory quarter
   [150, 14, -30], // 02 work — the fab, east side
   [55, 8, -95], // 03 road — street level on the avenue
@@ -23,7 +24,7 @@ const RAIL_POINTS: [number, number, number][] = [
 ];
 
 const LOOK_TARGETS: [number, number, number][] = [
-  [30, 10, 20], // horizon over downtown
+  [42, 11, 2], // downtown cluster breaks the horizon, right of frame
   [120, 8, -20],
   [180, 6, -90],
   [-45, 6, -95], // straight down the avenue
@@ -64,65 +65,6 @@ function CameraRig() {
   return null;
 }
 
-/**
- * M1 placeholder city. Critic fixes applied: grid-snapped footprints (F5, no
- * interpenetration), dark bodies with faint emissive so the night reads (F3),
- * downtown cluster ahead-right of the hero camera so shot 1 has a focal mass.
- * Fully replaced by the real instanced city in M2.
- */
-function PlaceholderCity() {
-  const blocks = useMemo(() => {
-    let seed = 20260827;
-    const rand = () => {
-      seed = (seed * 16807) % 2147483647;
-      return (seed - 1) / 2147483646;
-    };
-    const CELL = 16;
-    const result: { x: number; z: number; h: number; w: number; d: number; glow: number }[] = [];
-    for (let gx = -13; gx <= 13; gx += 1) {
-      for (let gz = -11; gz <= 11; gz += 1) {
-        if (rand() > 0.42) continue;
-        const cx = gx * CELL;
-        const cz = gz * CELL;
-        // downtown: a cluster ahead-right of the hero camera (around x≈35, z≈10)
-        const dDowntown = Math.hypot(cx - 35, cz - 10);
-        const downtown = dDowntown < 55;
-        const tall = downtown && rand() > 0.55;
-        const h = 3 + rand() * (tall ? 26 : downtown ? 12 : 7);
-        const w = 4 + rand() * 6;
-        const d = 4 + rand() * 6;
-        const x = cx + (rand() - 0.5) * (CELL - w - 2);
-        const z = cz + (rand() - 0.5) * (CELL - d - 2);
-        const glow = rand() > 0.6 ? 0.18 + rand() * 0.14 : 0;
-        result.push({ x, z, h, w, d, glow });
-      }
-    }
-    return result;
-  }, []);
-
-  return (
-    <group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
-        <planeGeometry args={[560, 480]} />
-        <meshStandardMaterial color="#050805" roughness={0.9} metalness={0.25} />
-      </mesh>
-      <gridHelper args={[560, 70, '#0e2a14', '#081208']} position={[0, 0.02, 0]} />
-      {blocks.map((b, i) => (
-        <mesh key={i} position={[b.x, b.h / 2, b.z]}>
-          <boxGeometry args={[b.w, b.h, b.d]} />
-          <meshStandardMaterial
-            color="#0a120a"
-            roughness={0.7}
-            metalness={0.3}
-            emissive="#9be15d"
-            emissiveIntensity={b.glow}
-          />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
 export default function CityScene({ tier }: { tier: QualityTier }) {
   return (
     <Canvas
@@ -139,7 +81,7 @@ export default function CityScene({ tier }: { tier: QualityTier }) {
       {/* night lighting: near-black ambient, light is implied by emissives (critic F3) */}
       <ambientLight intensity={0.035} />
       <directionalLight position={[-120, 180, 80]} intensity={0.06} color="#cfd8ce" />
-      <PlaceholderCity />
+      <City density={tier === 'lite' ? 0.6 : 1} />
       <CameraRig />
       {tier === 'full' ? (
         <EffectComposer>

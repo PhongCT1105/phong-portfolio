@@ -20,7 +20,7 @@ Progress log (append per iteration): docs/BUILD_LOG.md
 
 - [x] M0 — 2D flow tier (done: commit 7c9bc23)
 - [x] M1 — Foundation: r3f canvas + quality tiers + Lenis/zustand journey store + camera rail + post baseline
-- [ ] M2 — City ground: traces, instanced window-lit towers, downtown + PHONG CAO signage
+- [x] M2 — City ground: traces, instanced window-lit towers, downtown + PHONG CAO signage
 - [ ] M3 — Boot power-on + hero DOM over the city (network-canvas retired)
 - [ ] M4 — Memory vaults + receipts sync
 - [ ] M5 — The Fab: chip pedestals + chip-book case studies
@@ -46,6 +46,19 @@ Progress log (append per iteration): docs/BUILD_LOG.md
 - G5 Rooftop PHONG CAO signage on tallest downtown tower facing hero camera; letter height
   1.2–1.5u (~20–28px in the 1440 hero shot); emissive white ~1.5× window brightness — the single
   brightest thing in frame; flicker-on hook for M3 boot.
+
+## Later-milestone guidance from the M2 critic (apply at the named milestones)
+- (M4–M6) Ground v2: replace uniform grid with PCB routing — bundles of 3–5 parallel traces with
+  45° bends, via dots, avenue traces 2–3× base brightness into each district. Highest-leverage
+  fix for the 55%→bottom shots.
+- (M7 window) Mid-field density: low-rise fill (0.15–0.3× downtown height, clustered per district)
+  to ~25–35% ground coverage within 2 blocks of the rail — district clustering must read.
+- (M3) Downtown roofline: stepped crowns on the 2–3 tallest (stacked boxes 60%/35% footprint),
+  1–2 antenna masts with 2s blinking beacon; cranes already upgraded.
+- (M5) 35% shot composition: light a crown band on near towers or raise the rail 10–15% at the
+  work station so skyline (not a black mass) backs "Four real projects."
+- (M5+) Brand banner tints: 4–6 towers per district in district-appropriate accents, max 2 accent
+  hues per frame.
 
 ## Tech pins
 - three, @react-three/fiber, @react-three/drei, @react-three/postprocessing, lenis, zustand, maath

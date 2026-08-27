@@ -33,23 +33,27 @@ export default function Road() {
   }, []);
 
   const spotlight = current >= 0 ? SITE_CONTENT.road[current] : SITE_CONTENT.road[0];
+  const yearLabel = spotlight.year.includes('NEXT')
+    ? '2026'
+    : spotlight.year.replace(' · NOW', '');
 
   return (
     <section className="road section-shell section-pad" id="road" aria-labelledby="road-title">
+      {/* sticky so every ignition's year swap is on screen through the whole chapter */}
+      <div className="road-year-wrap" aria-hidden="true">
+        <b
+          key={current}
+          className={`road-year-giant${current >= 0 ? ' is-live' : ''}`}
+          style={{ '--org': spotlight.color } as React.CSSProperties}
+        >
+          {yearLabel}
+        </b>
+      </div>
       <div className="section-head reveal">
         <div>
           <p className="eyebrow">CHAPTER 03 — THE ROAD</p>
           <h2 id="road-title">Five stops. One line each.</h2>
         </div>
-        {/* the 2-second message: a huge ghost year that swaps as gates pass */}
-        <b
-          key={current}
-          className={`road-year-giant${current >= 0 ? ' is-live' : ''}`}
-          style={{ '--org': spotlight.color } as React.CSSProperties}
-          aria-hidden="true"
-        >
-          {spotlight.year.replace(' · NOW', '')}
-        </b>
       </div>
 
       <div className="road__track reveal">

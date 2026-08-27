@@ -120,14 +120,15 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .road-stop.is-current .road-stop__org { color: #fff; }
 .road-stop.is-current .road-stop__metric { color: #071004; background: var(--stop-color); border-color: var(--stop-color); font-weight: 700; }
 
-/* the giant ghost year — the road's 2-second message */
+/* the giant ghost year — the road's 2-second message, sticky through the chapter */
 .section-head { position: relative; }
+.road-year-wrap { position: sticky; top: 84px; height: 0; overflow: visible; z-index: 5; text-align: right; pointer-events: none; }
 .road-year-giant {
+  display: inline-block;
   font-size: clamp(84px, 9.5vw, 150px);
   font-weight: 700;
   letter-spacing: -0.06em;
   line-height: 1;
-  align-self: flex-end;
   color: transparent;
   -webkit-text-stroke: 1.5px color-mix(in srgb, var(--org, #9be15d) 70%, rgba(241, 243, 236, 0.4));
   opacity: .45;
@@ -142,7 +143,7 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
   .receipt-giant, .road-year-giant { animation: none; }
   .road-stop, .road-stop.is-active { opacity: 1; transform: none; }
 }
-@media (max-width: 800px) { .receipt-giant { font-size: clamp(72px, 20vw, 120px); } .road-year-giant { display: none; } }
+@media (max-width: 800px) { .receipt-giant { font-size: clamp(72px, 20vw, 120px); } .road-year-wrap { display: none; } }
 .section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 60px; margin-bottom: clamp(40px, 6vw, 64px); }
 .section-head h2 { margin: 18px 0 0; font-size: clamp(44px, 5.5vw, 72px); line-height: .95; letter-spacing: -.04em; font-weight: 650; }
 

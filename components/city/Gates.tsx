@@ -44,7 +44,8 @@ function Gate({ x, color, index }: { x: number; color: string; index: number }) 
     // a gate about to swallow the camera would flood the frame and occlude the
     // DOM year/cards, so it fades out inside ~16u of the camera
     const prox = Math.abs(state.camera.position.x - x);
-    const nearFade = station === 3 ? Math.max(0.1, Math.min(1, (prox - 7) / 11)) : 1;
+    // fade begins ~32u out, floor by ~12u — frames never cross the DOM at full opacity
+    const nearFade = station === 3 ? Math.max(0.1, Math.min(1, (prox - 10) / 22)) : 1;
 
     const intensity = level.current * bootRamp * nearFade;
     matRefs.current.forEach((m) => {

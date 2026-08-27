@@ -46,3 +46,8 @@ For a settled screenshot of each chapter, a fresh-eyes auditor answers:
   recession override removed + Zolli/NVIDIA thresholds separated (0.56/0.66); billboards
   moved onto the 6 tallest hero-framed downtown towers at emissive 1.7-2.0; receipt giant
   re-anchored above the readout so the last receipt's number is seen.
+  Audit: WORK/RECEIPTS/NOW/CONTACT/HERO pass the 2-second test; billboards 3/6 visible (FAIL),
+  ghost year off-screen for stops 3-5, gates near-opaque at ~20u.
+- IT3 (from IT2 audit): billboards occlusion-aware picks at h*0.72 with warm 1.4 (no white
+  clipping); ghost year STICKY through the road chapter (top 84px, right) and NVIDIA shows a
+  real "2026"; gate fade widened to begin ~32u out (floor ~12u).

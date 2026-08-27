@@ -125,17 +125,23 @@ function Podiums({ towers }: { towers: Tower[] }) {
     each must read as a distinct 30-60px lit slab from (-10,14,118) */
 function Billboards({ towers }: { towers: Tower[] }) {
   const panels = useMemo(() => {
-    // the downtown cluster ahead-right of the hero camera, camera-facing (+z) sides
-    const picks = towers
+    // hero camera sits at z≈118 looking -z: a nearer tower (bigger z) in the same
+    // screen column occludes a farther one — greedily keep only unblocked towers
+    const candidates = towers
       .filter((t) => t.h > 9 && Math.hypot(t.x - 35, t.z - 10) < 62)
-      .sort((a, b) => b.h - a.h)
-      .slice(0, 6);
-    return picks.map((t, i) => ({
+      .sort((a, b) => b.z - a.z); // nearest first
+    const accepted: Tower[] = [];
+    for (const t of candidates) {
+      const blocked = accepted.some((a) => Math.abs(a.x - t.x) < (a.w + t.w) / 2 + 2 && a.h > t.h * 0.7);
+      if (!blocked) accepted.push(t);
+      if (accepted.length >= 6) break;
+    }
+    return accepted.map((t, i) => ({
       x: t.x,
-      y: t.h * 0.52,
+      y: t.h * 0.72, // high on the facade, clear of foreground rooflines
       z: t.z + t.d / 2 + 0.1,
       w: Math.max(3, t.w * 0.62),
-      h: Math.max(3.2, t.h * 0.26),
+      h: Math.max(3.2, t.h * 0.24),
       warm: i % 2 === 0
     }));
   }, [towers]);
@@ -148,7 +154,7 @@ function Billboards({ towers }: { towers: Tower[] }) {
           <meshStandardMaterial
             color="#050805"
             emissive={p.warm ? '#ffe9c4' : '#9effc0'}
-            emissiveIntensity={p.warm ? 2.0 : 1.7}
+            emissiveIntensity={p.warm ? 1.4 : 1.6}
           />
         </mesh>
       ))}

@@ -29,7 +29,7 @@ Progress log (append per iteration): docs/BUILD_LOG.md
       continuous phase-spread streams, 47% counter, NVIDIA horizon, death cycle seen in r2);
       residuals for M10: right/slow bay traffic rarely visible, death state capture flaky in
       short windows, center stream partially clipped by card edges at some scrolls
-- [ ] M8 — Lift-off reveal + contact orbit
+- [x] M8 — Lift-off reveal + contact orbit
 - [ ] M9 — Mobile-lite + fallback polish
 - [ ] M10 — Full-journey QA + log complete
 

@@ -20,7 +20,7 @@ const RAIL_POINTS: [number, number, number][] = [
   [150, 16, -30], // 02 work — the fab, east side (raised per M5 composition guidance)
   [72, 7, -95], // 03 road — avenue entrance (station 3 drives a straight z-locked path)
   [-85, 14, -45], // 04 now — scheduler hall
-  [-30, 230, 130] // 05 contact — lift-off (the one steep shot)
+  [-30, 500, 300] // 05 contact — orbit high enough that all four die edges + pads fit
 ];
 
 const LOOK_TARGETS: [number, number, number][] = [
@@ -31,6 +31,18 @@ const LOOK_TARGETS: [number, number, number][] = [
   [-140, 6, -2], // panned so the hall sits in the DOM center gap
   [0, 0, 0]
 ];
+
+/** fog thins as the camera climbs so the whole die stays visible from orbit */
+function FogRig() {
+  useFrame((state, dt) => {
+    const fog = state.scene.fog as THREE.FogExp2 | null;
+    if (!fog) return;
+    const target = state.camera.position.y > 100 ? 0.0012 : 0.005;
+    const k = 1 - Math.exp(-Math.min(dt, 0.05) * 2.5);
+    fog.density += (target - fog.density) * k;
+  });
+  return null;
+}
 
 function CameraRig() {
   const curve = useMemo(
@@ -54,9 +66,12 @@ function CameraRig() {
     let l = localT;
     if (station === 1) {
       l = l < 0.3 ? l * 2 : l < 0.85 ? 0.6 : 0.6 + ((l - 0.85) / 0.15) * 0.4;
-    } else if (station === 2 || station === 4) {
-      // hold AT the keyframe (fab view / scheduler view), exit late
+    } else if (station === 2) {
+      // hold AT the keyframe (fab view), exit late
       l = l < 0.8 ? 0 : ((l - 0.8) / 0.2) * 0.9;
+    } else if (station === 4) {
+      // scheduler hold; earlier exit gives the lift-off climb more runway
+      l = l < 0.65 ? 0 : ((l - 0.65) / 0.35) * 0.9;
     }
     if (station === 3) {
       scratch.current.set(72 - 124 * localT, 7, -95);
@@ -108,6 +123,7 @@ export default function CityScene({ tier }: { tier: QualityTier }) {
       <directionalLight position={[-120, 180, 80]} intensity={0.06} color="#cfd8ce" />
       <City density={tier === 'lite' ? 0.6 : 1} />
       <CameraRig />
+      <FogRig />
       {tier === 'full' ? (
         <EffectComposer>
           <Bloom mipmapBlur intensity={0.7} luminanceThreshold={0.9} luminanceSmoothing={0.2} />

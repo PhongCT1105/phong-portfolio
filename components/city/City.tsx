@@ -17,6 +17,7 @@ import Vaults from '@/components/city/Vaults';
 import Fab from '@/components/city/Fab';
 import Gates from '@/components/city/Gates';
 import Scheduler from '@/components/city/Scheduler';
+import Board from '@/components/city/Board';
 
 /** emissive brightness tiers — downtown 2× districts 2× outskirts (G2) */
 const TIER_EMISSIVE = [1.7, 0.85, 0.4];
@@ -60,7 +61,8 @@ function TowerBatch({ batch }: { batch: Batch }) {
       emissiveMap: texture,
       emissiveIntensity: batch.emissive
     });
-    const roof = new THREE.MeshStandardMaterial({ color: '#060906', roughness: 0.9, metalness: 0.15 });
+    // just above void so buildings read as masses from orbit (M4 critic, M8)
+    const roof = new THREE.MeshStandardMaterial({ color: '#0a120c', roughness: 0.9, metalness: 0.15 });
     // box material order: +x, -x, +y (roof), -y, +z, -z
     return [side, side, roof, roof, side, side];
   }, [batch]);
@@ -109,7 +111,7 @@ function Crowns({ towers }: { towers: Tower[] }) {
   return (
     <instancedMesh ref={ref} args={[undefined, undefined, crowns.length]} frustumCulled={false}>
       <boxGeometry />
-      <meshStandardMaterial color="#060906" roughness={0.85} metalness={0.15} emissive="#9effc0" emissiveIntensity={0.05} />
+      <meshStandardMaterial color="#0a120c" roughness={0.85} metalness={0.15} emissive="#9effc0" emissiveIntensity={0.05} />
     </instancedMesh>
   );
 }
@@ -341,6 +343,7 @@ export default function City({ density = 1 }: { density?: number }) {
       <Fab />
       <Gates />
       <Scheduler />
+      <Board />
       <HeroBanners />
       <CraneSilhouettes />
       <Signage />

@@ -125,3 +125,15 @@ Format per entry: milestone · rounds · validator verdict · critic verdict · 
   REACHED → closed PARTIAL; residuals queued for M10 polish + Phong's morning review.
 - Screenshots: scratchpad shots-m7r1..r3/.
 
+## M8 — Lift-off / chip-on-board reveal (2 rounds)
+- Built: orbit keyframe raised to (−30,500,300) after numeric FOV check (die + board must
+  fit); fog thins dynamically with camera altitude; PCB reveal fades in at station 5 — board
+  plane, package rim, gold pin-pad rows on all four sides; uplink beam at the I/O corner
+  blinking on the terminal caret's ~0.9s cycle; roofs lifted just above void for the orbit
+  read; contact section now fills the viewport (96svh) so the reveal owns the frame.
+- r1 FAIL: pin-pad instance matrices were set in a microtask before the mesh mounted (never
+  applied) → no pads/rim visible; near die edge cut; climb too late; ch-04 DOM bleed.
+- r2 PASS, no defects: rim + pad rows verified on all four sides, die ~60% of frame with all
+  edges in, ch-04 provably out of view, climb visible by 93%, terminal legible, console clean.
+- Screenshots: scratchpad shots-m8r1/, shots-m8r2/.
+

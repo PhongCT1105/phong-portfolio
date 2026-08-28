@@ -158,3 +158,16 @@ R8 ARRIVAL
   0.05→0.5s) and SNAPS to 100% at the deadline; DRAG TO ORBIT hint bottom-anchored in
   stage air + hides after first drag; cold deep-link casebook opens only after the
   scroll settles (750ms stillness or 5s cap, token-cancelled on newer hash).
+- ROUND-4 AUDIT (IT6+IT7 build): ALL SIX CHAPTERS BUY for the first time. Verified:
+  boot 7.9s at 0.38fps (was 59.6s); gates fully occluded at both holds AND transits
+  (zero posts through card ink); $30K numeral in sky (bbox 237-417 vs vault tops 444)
+  with FPT flare on-stage; OG stats row GONE + duotone; grain σ≈2.1-2.2 display levels;
+  light pools read; drag hint in stage air + one-shot; deep-link opens at settled
+  scroll (2124==2124); rails clean, console zero errors. NOT a clean audit: adaptive
+  quality never engages below 2fps (dt>0.5 sample guard starves the detector) — above
+  minor; warm key under target (R-G 1.2-2.7 vs ≥5); boot lands on the snap deadline;
+  mobile 2D shelf thumbnails raw white.
+- IT8 (orchestrator inline, round-4 findings): adaptive sampler clamps slow frames
+  (min(dt,0.5), discard only >2s) + evaluates from 12 samples so sub-1fps machines
+  trip the degrade in seconds; keys deepened to #ffc484 @ 10/9.5 (split-tone eats pale
+  warmth); mobile shelf thumbnails graded down (brightness .72 duotone family).

@@ -36,8 +36,9 @@ const HALL_ROT = Math.atan2(-85 - HALL.x, -45 - HALL.z);
  * identity is unchanged — it comes from the two accent point lights above and
  * from the machines' own emissives, not from the key.
  */
-const KEY_COLOR = '#ffd9a8';
-const KEY_INTENSITY = 6.4;
+// deeper amber + more energy — see Fab.tsx note (split-tone eats pale warmth)
+const KEY_COLOR = '#ffc484';
+const KEY_INTENSITY = 9.5;
 const FILL_INTENSITY = 1.5;
 const KEY_POS: [number, number, number] = [-17, 20, 30];
 const FILL_POS: [number, number, number] = [31, 13, 28];

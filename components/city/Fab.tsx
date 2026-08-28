@@ -50,8 +50,10 @@ const RIB_XS = [-26, -13, 0, 13, 26];
  * chip face's red-green delta comfortably past the 8-level target while the cool
  * fill on the opposite side keeps the shadow side from following it warm.
  */
-const KEY_COLOR = '#ffd9a8';
-const KEY_INTENSITY = 6.7;
+// deeper amber + more energy: the split-tone's teal shadow push eats pale
+// warmth at plaque luminance, so the key must overshoot to read warm (R-G ≥5)
+const KEY_COLOR = '#ffc484';
+const KEY_INTENSITY = 10;
 const FILL_INTENSITY = 1.5;
 const KEY_POS: [number, number, number] = [-26, 22, 17];
 const FILL_POS: [number, number, number] = [25, 13, 15];

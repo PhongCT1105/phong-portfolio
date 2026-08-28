@@ -239,9 +239,13 @@ function AdaptiveQuality({ onChange }: { onChange: (degraded: boolean) => void }
   const lastToggle = useRef(-FT_COOLDOWN);
 
   useFrame((state, dt) => {
-    // a tab returning from the background reports one enormous dt — not evidence
-    if (dt > 0.5 || dt <= 0) return;
-    const ms = dt * 1000;
+    // a tab returning from the background reports one enormous dt (seconds to
+    // minutes) — not evidence. But a machine genuinely rendering at <2fps IS
+    // evidence, and discarding those frames starved the detector on exactly
+    // the hardware it exists for (round-4 audit). Clamp instead of discard:
+    // a clamped 500ms sample still reads "over 40ms" and trips the degrade.
+    if (dt > 2 || dt <= 0) return;
+    const ms = Math.min(dt, 0.5) * 1000;
     const ring = samples.current;
     if (ring.length < FT_WINDOW) {
       ring.push(ms);
@@ -251,9 +255,11 @@ function AdaptiveQuality({ onChange }: { onChange: (degraded: boolean) => void }
       ring[cursor.current] = ms;
       cursor.current = (cursor.current + 1) % FT_WINDOW;
     }
-    if (ring.length < FT_WINDOW) return;
+    // at sub-1fps a 60-frame ring takes minutes to fill — 12 catastrophic
+    // samples are already conclusive, so evaluate on a partial ring too
+    if (ring.length < 12) return;
 
-    const mean = sum.current / FT_WINDOW;
+    const mean = sum.current / ring.length;
     const now = state.clock.elapsedTime;
     overSince.current = mean > FT_DEGRADE ? (overSince.current < 0 ? now : overSince.current) : -1;
     underSince.current = mean < FT_RESTORE ? (underSince.current < 0 ? now : underSince.current) : -1;

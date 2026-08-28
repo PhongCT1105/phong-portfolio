@@ -412,8 +412,10 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .casebook__metric::before { content: ""; position: absolute; top: -1px; left: 0; height: 1px; width: 0; background: var(--card-accent, var(--accent)); transition: width .8s var(--ease-out) .5s; }
 .casebook.is-open .casebook__metric::before { width: 100%; }
 .shelf-card__img { margin-top: 14px; border-radius: 8px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--card-accent, #9be15d) 30%, transparent); }
-.shelf-card__img img { width: 100%; height: 108px; object-fit: cover; object-position: left top; display: block; filter: saturate(.85) brightness(.9); }
-.shelf-card.is-focused .shelf-card__img img { height: 148px; filter: none; }
+/* the GitHub OG cards are WHITE — grade them down so the 2D shelf stays night
+   (same treatment family as the casebook frame; round-4 audit, minor 4) */
+.shelf-card__img img { width: 100%; height: 108px; object-fit: cover; object-position: left top; display: block; filter: brightness(.72) contrast(1.08) saturate(.7); }
+.shelf-card.is-focused .shelf-card__img img { height: 148px; filter: brightness(.8) contrast(1.06) saturate(.8); }
 .casebook__links { display: flex; flex-direction: column; gap: 10px; font: 12px var(--mono); }
 .casebook__links a { color: var(--accent-bright); text-decoration: none; }
 .casebook__links a:hover { text-decoration: underline; }

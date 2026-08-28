@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { RoundedBox, useCursor } from '@react-three/drei';
 import { useJourney } from '@/lib/journey';
 import { prefersReducedMotion } from '@/lib/session';
+import { NO_RAYCAST, getBlobShadowMaterial } from '@/components/city/textures';
 
 /**
  * Bank-style vault monuments: a circular steel door with radial spokes, rim
@@ -50,7 +51,20 @@ function makeOrgTexture(label: string): THREE.CanvasTexture {
   return texture;
 }
 
-const STEEL = { color: '#9aa598', metalness: 0.92, roughness: 0.32, envMapIntensity: 1.2 };
+/**
+ * R5 material rescue. The audit called these doors "dark-on-dark mud": at
+ * envMapIntensity 1.2 the night HDRI barely reached the steel, and every part
+ * shared one roughness so the whole door returned a single flat value. The env
+ * response is now 1.8 and each part gets its own microsurface — the polished rim
+ * (0.22) catches a hard line, the spokes (0.3) a softer one, and the door face
+ * (0.38) stays matte so the details read against it.
+ */
+const STEEL = { color: '#9aa598', metalness: 0.92, roughness: 0.32, envMapIntensity: 1.8 };
+const FRAME_STRIPS = [
+  { p: [0, 13.15, 0] as [number, number, number], s: [10.3, 0.3, 2.72] as [number, number, number] },
+  { p: [-5.05, 6.5, 0] as [number, number, number], s: [0.3, 13, 2.72] as [number, number, number] },
+  { p: [5.05, 6.5, 0] as [number, number, number], s: [0.3, 13, 2.72] as [number, number, number] }
+] as const;
 
 /** ignore raycast events that actually landed on interactive DOM above the canvas */
 function domGuard(event: ThreeEvent<MouseEvent | PointerEvent>): boolean {
@@ -83,6 +97,7 @@ function Vault({
   useCursor(hovered);
   const reduced = useMemo(() => prefersReducedMotion(), []);
   const label = useMemo(() => makeOrgTexture(org), [org]);
+  const shadowMat = useMemo(() => getBlobShadowMaterial(), []);
   // face the held receipts camera
   const rotY = Math.atan2(85 - x, 60 - z);
 
@@ -159,29 +174,52 @@ function Vault({
       onPointerOver={onPointerOver}
       onPointerOut={onPointerOut}
     >
+      {/* R5 grounding: one soft blob under the slab AND the door swing, so the
+          monument sits on the plaza instead of hovering over the trace ground.
+          y=0.03 keeps it under the seated ring at y=0.06. */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, 0.5]} scale={[11.5, 4.6, 1]} raycast={NO_RAYCAST} renderOrder={-1} material={shadowMat}>
+        <planeGeometry args={[1, 1]} />
+      </mesh>
       {/* monument slab */}
       <RoundedBox args={[10, 13, 2.6]} radius={0.12} smoothness={2} position={[0, 6.5, 0]}>
-        <meshStandardMaterial color="#0d130f" roughness={0.5} metalness={0.55} envMapIntensity={0.8} />
+        <meshStandardMaterial color="#0d130f" roughness={0.42} metalness={0.55} envMapIntensity={1.2} />
       </RoundedBox>
-      {/* org-color edge frame */}
-      {(
-        [
-          { p: [0, 13.15, 0] as [number, number, number], s: [10.2, 0.22, 2.7] as [number, number, number] },
-          { p: [-5.05, 6.5, 0] as [number, number, number], s: [0.22, 13, 2.7] as [number, number, number] },
-          { p: [5.05, 6.5, 0] as [number, number, number], s: [0.22, 13, 2.7] as [number, number, number] }
-        ]
-      ).map((strip, i) => (
-        <mesh key={i} position={strip.p}>
-          <boxGeometry args={strip.s} />
-          <meshStandardMaterial
-            ref={(m) => {
-              edgeRefs.current[i] = m;
-            }}
-            color="#050805"
-            emissive={color}
-            emissiveIntensity={0}
-          />
-        </mesh>
+      {/* R5 rim light: one low warm point per vault, upper-front-left, purely so
+          the door's rim/spokes/bolts pick up a specular edge. Warm white, not a
+          third hue — the org colour stays the only accent on the monument. */}
+      <pointLight position={[-2.6, 9.6, 4.8]} color="#ffe4bd" intensity={6} distance={17} decay={2} />
+      {/* org-color edge frame. R5: the old 0.22u strips aliased into a stair-step
+          at the receipts camera distance. Now 0.3u of solid core plus a 1.03x
+          shell at a quarter opacity — a cheap two-step falloff that reads as a
+          gradient and hides the jaggies without a bloom-budget change. */}
+      {FRAME_STRIPS.map((strip, i) => (
+        <group key={i} position={strip.p}>
+          <mesh>
+            <boxGeometry args={strip.s} />
+            <meshStandardMaterial
+              ref={(m) => {
+                edgeRefs.current[i * 2] = m;
+              }}
+              color="#050805"
+              emissive={color}
+              emissiveIntensity={0}
+            />
+          </mesh>
+          <mesh scale={1.03}>
+            <boxGeometry args={strip.s} />
+            <meshStandardMaterial
+              ref={(m) => {
+                edgeRefs.current[i * 2 + 1] = m;
+              }}
+              color="#050805"
+              emissive={color}
+              emissiveIntensity={0}
+              transparent
+              opacity={0.25}
+              depthWrite={false}
+            />
+          </mesh>
+        </group>
       ))}
       {/* etched org nameplate */}
       <mesh position={[0, 11.6, 1.36]}>
@@ -198,19 +236,21 @@ function Vault({
       <group position={[-3.5, 5.6, 1.45]}>
         <group ref={doorRef}>
           <group position={[3.5, 0, 0]}>
+            {/* door face: the matte member, so the rim + spokes read against it */}
             <mesh rotation={[Math.PI / 2, 0, 0]}>
               <cylinderGeometry args={[3.3, 3.3, 0.5, 32]} />
-              <meshStandardMaterial {...STEEL} />
+              <meshStandardMaterial {...STEEL} roughness={0.38} />
             </mesh>
+            {/* polished rim: the hard specular line around the whole door */}
             <mesh>
               <torusGeometry args={[3.05, 0.16, 10, 40]} />
-              <meshStandardMaterial {...STEEL} roughness={0.25} />
+              <meshStandardMaterial {...STEEL} roughness={0.22} />
             </mesh>
             {/* radial spokes */}
             {[0, Math.PI / 4, Math.PI / 2, (3 * Math.PI) / 4].map((angle) => (
               <mesh key={angle} rotation={[0, 0, angle]} position={[0, 0, 0.28]}>
                 <boxGeometry args={[5.6, 0.26, 0.14]} />
-                <meshStandardMaterial {...STEEL} roughness={0.28} />
+                <meshStandardMaterial {...STEEL} roughness={0.3} />
               </mesh>
             ))}
             {/* hub */}

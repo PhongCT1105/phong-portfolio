@@ -5,6 +5,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useJourney } from '@/lib/journey';
 import { IDENTITY_QUAT, WORLD_D, WORLD_W } from '@/components/city/cityData';
+import { makeSilkscreenTexture } from '@/components/city/textures';
 
 /** the I/O corner — where the uplink leaves the die */
 const UPLINK = { x: 210, z: 170 };
@@ -33,6 +34,7 @@ export default function Board() {
   }, []);
 
   const padRef = useRef<THREE.InstancedMesh>(null);
+  const silkscreen = useMemo(() => makeSilkscreenTexture(), []);
 
   useFrame((state, dt) => {
     const { station, localT, boot } = useJourney.getState();
@@ -96,6 +98,28 @@ export default function Board() {
           opacity={0}
         />
       </mesh>
+      {/* R5 silkscreen: the printed legend layer — part numbers, a rev stamp,
+          routing ticks, dashed courtyards. Off-white ink at 0.22 opacity, so it
+          reads as printing on the substrate and adds no third accent hue. The
+          ink is drawn entirely OUTSIDE the die footprint, and the plane sits 0.3u
+          above the substrate — the orbit camera is ~600u out, where the depth
+          buffer resolves ~0.04u, so a tighter gap would z-fight. */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.3, 0]} renderOrder={1}>
+        <planeGeometry args={[1500, 1300]} />
+        <meshStandardMaterial
+          ref={registerFade(0.22)}
+          depthWrite={false}
+          map={silkscreen}
+          color="#e2e8dc"
+          emissive="#e2e8dc"
+          emissiveMap={silkscreen}
+          emissiveIntensity={0.5}
+          roughness={0.9}
+          metalness={0}
+          transparent
+          opacity={0}
+        />
+      </mesh>
       {/* package rim around the die */}
       {(
         [
@@ -119,15 +143,19 @@ export default function Board() {
           />
         </mesh>
       ))}
-      {/* gold pin pads outside the die */}
+      {/* gold pin pads outside the die. R5: real ENIG gold is a MIRROR — full
+          metalness with a tight roughness and a 1.6 env response lets the night
+          HDRI do the selling, so the emissive can drop from 0.65 to 0.3 and stop
+          reading as four glowing bars. */}
       <instancedMesh ref={padRef} args={[undefined, undefined, pads.length]} frustumCulled={false}>
         <boxGeometry />
         <meshStandardMaterial
-          color="#6b5416"
+          color="#d8b45a"
           emissive="#c9a227"
-          emissiveIntensity={0.65}
-          roughness={0.35}
-          metalness={0.8}
+          emissiveIntensity={0.3}
+          roughness={0.28}
+          metalness={1}
+          envMapIntensity={1.6}
           transparent
           opacity={0}
         />

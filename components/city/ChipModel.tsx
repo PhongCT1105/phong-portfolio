@@ -93,8 +93,11 @@ export default function ChipModel({
   return (
     <group>
       {/* ceramic body */}
+      {/* R5: env response raised 0.7 → 1.2 so the ceramic picks up the HDRI as
+          well as the new fab-shelf key light — at 0.7 the slab read flat grey
+          from the work camera regardless of how the rig was aimed. */}
       <RoundedBox args={[SIZE, THICK, SIZE]} radius={0.06} smoothness={2}>
-        <meshStandardMaterial color="#9d92a0" metalness={0.06} roughness={0.55} envMapIntensity={0.7} />
+        <meshStandardMaterial color="#9d92a0" metalness={0.06} roughness={0.55} envMapIntensity={1.2} />
       </RoundedBox>
       {/* accent identity: thin emissive edge band around the ceramic */}
       <mesh position={[0, -THICK / 2 + 0.06, 0]}>

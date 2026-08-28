@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { useJourney } from '@/lib/journey';
 import { prefersReducedMotion } from '@/lib/session';
 import ChipModel from '@/components/city/ChipModel';
+import { NO_RAYCAST, aimRotation, ensureRectAreaLights, getBlobShadowMaterial } from '@/components/city/textures';
 
 /** order matches SITE_CONTENT.projects */
 const CHIPS = [
@@ -23,6 +24,18 @@ const ROW_ROT = Math.atan2(150 - ROW.x, -30 - ROW.z);
 const HALL = { x: 196, z: -128 };
 const HALL_ROT = Math.atan2(150 - HALL.x, -30 - HALL.z);
 const RIB_XS = [-26, -13, 0, 13, 26];
+
+/**
+ * R5 studio rig for the shelf. The ROW group is rotated so its LOCAL +Z points at
+ * the held work camera (150,16,-30) — so local −X is camera-LEFT and local +X is
+ * camera-right, and these two lights are the classic warm-key / cool-fill pair.
+ * RectAreaLights cast no shadows and cost one LTC lookup: cheap enough to keep on
+ * the lite tier, where they do most of the work of separating chip from plinth.
+ */
+const KEY_POS: [number, number, number] = [-26, 22, 17];
+const FILL_POS: [number, number, number] = [25, 13, 15];
+const KEY_ROT = aimRotation(KEY_POS, [-2, 5, 0]);
+const FILL_ROT = aimRotation(FILL_POS, [4, 4, 0]);
 
 /** ignore raycast clicks that actually landed on interactive DOM */
 function domGuard(event: ThreeEvent<MouseEvent>): boolean {
@@ -60,6 +73,7 @@ function InteractiveChip({
   const [hovered, setHovered] = useState(false);
   useCursor(hovered);
   const reduced = useMemo(() => prefersReducedMotion(), []);
+  const shadowMat = useMemo(() => getBlobShadowMaterial(), []);
 
   useFrame((state, dt) => {
     const { station, workFocus, workOpen, boot } = useJourney.getState();
@@ -136,6 +150,16 @@ function InteractiveChip({
 
   return (
     <group position={[lx, 0, 0]}>
+      {/* R5 grounding: the pedestal's contact shadow on the plinth (top y=0.7),
+          and the chip's shadow on the pedestal cap (top y=3.0). The chip is wider
+          (5.6u) than the cap (3u), so its blob is CLAMPED to the cap rather than
+          hanging off into space — it reads as the whole top going dark under it. */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.72, 0]} scale={[3.45, 3.45, 1]} raycast={NO_RAYCAST} renderOrder={-1} material={shadowMat}>
+        <planeGeometry args={[1, 1]} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 3.02, 0]} scale={[2.9, 2.9, 1]} raycast={NO_RAYCAST} renderOrder={-1} material={shadowMat}>
+        <planeGeometry args={[1, 1]} />
+      </mesh>
       {/* pedestal */}
       <mesh position={[0, 1.5, 0]}>
         <boxGeometry args={[3, 3, 3]} />
@@ -253,9 +277,16 @@ function HallBackdrop() {
 
 /** The Fab: interactive PGA-chip shelf in the foreground, glass hall behind. */
 export default function Fab() {
+  // uploads the LTC lookup textures once, before any RectAreaLight renders
+  useMemo(() => ensureRectAreaLights(), []);
   return (
     <group>
       <group position={[ROW.x, 0, ROW.z]} rotation={[0, ROW_ROT, 0]}>
+        {/* R5 studio rig: warm key from camera-left, cool fill from camera-right.
+            Static (no reduced-motion gating needed) and shadow-free, so both tiers
+            keep them — they are what makes the ceramic slabs read as objects. */}
+        <rectAreaLight args={['#ffe8c2', 4.2, 24, 10]} position={KEY_POS} rotation={KEY_ROT} />
+        <rectAreaLight args={['#d8e3e7', 1.5, 20, 8]} position={FILL_POS} rotation={FILL_ROT} />
         {/* display plinth strip */}
         <mesh position={[0, 0.35, 0]}>
           <boxGeometry args={[42, 0.7, 6]} />

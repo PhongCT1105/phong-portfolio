@@ -7,10 +7,35 @@ import { useJourney } from '@/lib/journey';
 import { prefersReducedMotion } from '@/lib/session';
 import { MacBookModel, TowerModel, GpuCardModel } from '@/components/city/Devices';
 import ChipModel from '@/components/city/ChipModel';
+import { NO_RAYCAST, aimRotation, ensureRectAreaLights, getBlobShadowMaterial } from '@/components/city/textures';
 
 const HALL = { x: -135, z: 5 };
 /** face the now-station camera at (−85,14,−45) */
 const HALL_ROT = Math.atan2(-85 - HALL.x, -45 - HALL.z);
+
+/**
+ * R5 studio rig for the NOW bench, same warm-key / cool-fill pattern as the fab
+ * shelf. HALL_ROT points local +Z at the held camera, so local −X is camera-left.
+ * The key is pulled slightly green to sit inside this chapter's accent instead of
+ * fighting it; the fill stays neutral-cool so the metal has somewhere to go.
+ */
+const KEY_POS: [number, number, number] = [-17, 20, 30];
+const FILL_POS: [number, number, number] = [31, 13, 28];
+const KEY_ROT = aimRotation(KEY_POS, [7, 5, 12]);
+const FILL_ROT = aimRotation(FILL_POS, [10, 4, 12]);
+
+/**
+ * R5 contact shadows, sized per machine (they are four different objects on one
+ * bench) and laid on the PEDESTAL cap at y=1.7, not the plaza. Static: the hover
+ * lift and the idle breath move the machine, the shadow stays put — which is what
+ * sells the lift as a lift.
+ */
+const MACHINE_SHADOWS: { w: number; d: number; z: number }[] = [
+  { w: 9.0, d: 6.4, z: 0.44 }, // MacBook, 8×5.6 base at scale 1.1
+  { w: 6.4, d: 4.6, z: 0.6 }, // CPU chip, 5.6 slab tilted back
+  { w: 9.6, d: 4.0, z: 0.4 }, // GPU card, 9.4 wide and edge-on
+  { w: 6.2, d: 7.8, z: -0.6 } // tower, 5.5×7.6
+];
 
 /**
  * The NOW chapter made literal: four MISMATCHED real machines — a laptop, a
@@ -65,6 +90,9 @@ export default function Scheduler() {
   const hoveredDevice = useRef<number | null>(null);
   const hoverLift = useRef<number[]>(DEVICES.map(() => 0));
   const reduced = useMemo(() => prefersReducedMotion(), []);
+  const shadowMat = useMemo(() => getBlobShadowMaterial(), []);
+  // uploads the RectAreaLight LTC textures once, before the rig renders
+  useMemo(() => ensureRectAreaLights(), []);
   const depotMat = useRef<THREE.MeshStandardMaterial>(null);
   const horizonMat = useRef<THREE.MeshStandardMaterial>(null);
   const labels = useMemo(() => DEVICES.map((d) => makeLabelTexture(d.name, d.sub)), []);
@@ -166,6 +194,10 @@ export default function Scheduler() {
       {/* soft work light over the plaza so the machines read against the void */}
       <pointLight position={[0, 16, 8]} color="#9be15d" intensity={40} distance={70} decay={2} />
       <pointLight position={[0, 8, 18]} color="#cfe8c0" intensity={18} distance={44} decay={2} />
+      {/* R5 studio rig: warm-green key from camera-left, cool fill from the right.
+          Static and shadow-free — both tiers keep them. */}
+      <rectAreaLight args={['#e6f2c6', 4, 34, 10]} position={KEY_POS} rotation={KEY_ROT} />
+      <rectAreaLight args={['#d8e3e7', 1.5, 26, 8]} position={FILL_POS} rotation={FILL_ROT} />
       {/* plaza slab */}
       <mesh position={[0, 0.5, 3]}>
         <boxGeometry args={[46, 1, 34]} />
@@ -225,6 +257,16 @@ export default function Scheduler() {
           <mesh position={[0, 1, 0]}>
             <boxGeometry args={[11, 1.4, 8]} />
             <meshStandardMaterial color="#111811" roughness={0.5} metalness={0.5} />
+          </mesh>
+          {/* R5 grounding: contact shadow on the pedestal cap (top y=1.7) */}
+          <mesh
+            rotation={[-Math.PI / 2, 0, 0]}
+            position={[0, 1.72, MACHINE_SHADOWS[i].z]}
+            scale={[MACHINE_SHADOWS[i].w, MACHINE_SHADOWS[i].d, 1]}
+            raycast={NO_RAYCAST} renderOrder={-1}
+            material={shadowMat}
+          >
+            <planeGeometry args={[1, 1]} />
           </mesh>
           {/* status strip: brightness = pull speed, red = dead */}
           <mesh position={[0, 1.15, 4.05]}>

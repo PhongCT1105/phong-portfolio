@@ -92,7 +92,8 @@ export default function Scheduler() {
     const dead = phase > 0.55 && phase < 0.9;
 
     // pedestal status strips: brightness tracks pull speed; dead goes red
-    const breathe = 0.85 + Math.sin(state.clock.elapsedTime * 2.2) * 0.15;
+    const t = state.clock.elapsedTime;
+    const breathe = 0.85 + Math.sin(t * 2.2) * 0.15;
     DEVICES.forEach((device, i) => {
       // hover: the pointed-at machine's strip runs ~1.6x hot and the machine
       // lifts 0.15u off its pedestal, both spring-damped (8 in / 5 out)
@@ -110,9 +111,16 @@ export default function Scheduler() {
         }
       }
       const group = machineRefs.current[i];
-      if (group) group.position.y = reduced ? 0 : hoverLift.current[i] * 0.15;
+      // R4 idle life: the machines breathe on a per-index phase, ADDED to the
+      // hover lift so the pointer response is unchanged — a rack of live boxes,
+      // not four props bolted to their pedestals.
+      const breath = reduced ? 0 : Math.sin(t * 0.72 + i * 0.8) * 0.02;
+      if (group) group.position.y = (reduced ? 0 : hoverLift.current[i] * 0.15) + breath;
     });
-    if (depotMat.current) depotMat.current.emissiveIntensity = bootRamp * 0.9;
+    // depot face: a slow ±10% roll (one long swell + one faster ripple) so the
+    // queue board reads like a live CRT instead of a painted rectangle
+    const depotPulse = reduced ? 1 : 1 + 0.07 * Math.sin(t * 0.55) + 0.03 * Math.sin(t * 2.9);
+    if (depotMat.current) depotMat.current.emissiveIntensity = bootRamp * 0.9 * depotPulse;
 
     // NVIDIA-green horizon rises at the end of the now chapter
     if (horizonMat.current) {

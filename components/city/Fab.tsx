@@ -50,6 +50,9 @@ function InteractiveChip({
   const glow = useRef(0);
   const scale = useRef(1);
   const lift = useRef(0);
+  // R4 idle life: how much of the resting "breath" this chip is currently owed
+  // (1 while it sits unfocused on the shelf, damped to 0 as it takes the stage)
+  const idle = useRef(1);
   const hover = useRef(false);
   // ONE cursor owner: drei's useCursor writes document.body.style.cursor from an
   // effect on the hover flag (never per frame), so four chips can no longer
@@ -82,11 +85,27 @@ function InteractiveChip({
     const liftTarget = !hot || reduced ? 0 : (focused && atStation) || opened ? 0.1 : 0.25;
     lift.current = THREE.MathUtils.damp(lift.current, liftTarget, hot ? 8 : 5, delta);
 
+    // R4: nothing sits perfectly still. The resting chips breathe on a
+    // per-index phase; the focused/opened chip is deliberately steady, so the
+    // breath is damped out rather than fighting the focus lift + 1.85x scale.
+    // This is a separate ADDITIVE term — hover lift and focus rise are untouched.
+    idle.current = THREE.MathUtils.damp(
+      idle.current,
+      reduced || (focused && atStation) || opened ? 0 : 1,
+      5,
+      delta
+    );
+    const t = state.clock.elapsedTime;
+    const breath = Math.sin(t * 0.72 + index * 0.8) * 0.012 * idle.current;
+    // pedestal light pulses ±8% on the same slow clock, offset ~1.1rad so the
+    // glow and the lift never peak together
+    const pulse = 1 + Math.sin(t * 0.72 + index * 0.8 + 1.1) * 0.08 * idle.current;
+
     if (groupRef.current) {
-      groupRef.current.position.y = 3.4 + rise.current + lift.current;
+      groupRef.current.position.y = 3.4 + rise.current + lift.current + breath;
       groupRef.current.scale.setScalar(scale.current);
     }
-    if (lightRef.current) lightRef.current.intensity = glow.current * 60;
+    if (lightRef.current) lightRef.current.intensity = glow.current * 60 * pulse;
     if (spinRef.current) {
       // focused chip turntables slowly, like a museum piece
       const spinSpeed = opened ? 0.5 : focused && atStation ? 0.22 : 0;

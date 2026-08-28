@@ -86,7 +86,7 @@ function Vault({
   // face the held receipts camera
   const rotY = Math.atan2(85 - x, 60 - z);
 
-  useFrame((_, dt) => {
+  useFrame((state, dt) => {
     const { station, localT, boot, receiptHover, receiptFocus } = useJourney.getState();
     const target = vaultOpenTarget(station, localT, index);
     const delta = Math.min(dt, 0.05);
@@ -112,11 +112,20 @@ function Vault({
     const spotlight = receiptFocus === index || receiptHover === index;
     const light = Math.max(open.current, spotlight ? 0.5 : 0) * exitFade * bootRamp;
 
+    // R4 idle life: what spills out of an open vault is candle-light, not a
+    // fluorescent panel — two detuned sines give it a slow wander plus a fast
+    // jitter. Per-index phases keep the four vaults from flickering in unison.
+    // The DOOR is deliberately excluded: steel does not shimmer.
+    const t = state.clock.elapsedTime;
+    const flicker = reduced
+      ? 1
+      : 1 + 0.06 * Math.sin(t * 3.1 + index * 2.1) + 0.03 * Math.sin(t * 7.7 + index);
+
     // the circular door swings on its hinge
     const swing = Math.min(1, open.current + crack.current);
     if (doorRef.current) doorRef.current.rotation.y = -swing * 1.9;
-    if (glowRef.current) glowRef.current.emissiveIntensity = 0.06 + light * 2.6;
-    if (lightRef.current) lightRef.current.intensity = light * 46;
+    if (glowRef.current) glowRef.current.emissiveIntensity = (0.06 + light * 2.6) * flicker;
+    if (lightRef.current) lightRef.current.intensity = light * 46 * flicker;
     edgeRefs.current.forEach((m) => {
       if (m) m.emissiveIntensity = (0.14 + light * 1.1) * edgeBoost.current * exitFade * bootRamp;
     });

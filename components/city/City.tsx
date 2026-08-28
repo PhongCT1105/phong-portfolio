@@ -255,15 +255,19 @@ function CrownsAndBeacons({ towers }: { towers: Tower[] }) {
   const beaconRefs = useRef<(THREE.MeshStandardMaterial | null)[]>([]);
 
   const masts = useMemo(() => {
+    // R4 verification: phase is multiplied by 2 and taken mod the 2s beacon
+    // cycle, so the old set (0 / 0.9 / 0.45 / 1.4) landed on 0 / 1.8 / 0.9 / 0.8
+    // — the last two beacons pulsed within 0.1s of each other, reading as one
+    // synchronised blink. Quarter-cycle steps spread all four evenly instead.
     const base: { x: number; z: number; base: number; h: number; phase: number }[] = [
       { x: 38, z: 8, base: 25.5, h: 5, phase: 0 },
-      { x: 24, z: 26, base: 20.5, h: 4, phase: 0.9 }
+      { x: 24, z: 26, base: 20.5, h: 4, phase: 0.25 }
     ];
     // two more on the tallest west / south towers, phase-offset (M7 guidance)
     const west = towers.filter((t) => t.x < -40).sort((a, b) => b.h - a.h)[0];
     const south = towers.filter((t) => t.z > 60).sort((a, b) => b.h - a.h)[0];
-    if (west) base.push({ x: west.x, z: west.z, base: west.h + (west.crown?.h ?? 0), h: 4, phase: 0.45 });
-    if (south) base.push({ x: south.x, z: south.z, base: south.h + (south.crown?.h ?? 0), h: 4, phase: 1.4 });
+    if (west) base.push({ x: west.x, z: west.z, base: west.h + (west.crown?.h ?? 0), h: 4, phase: 0.5 });
+    if (south) base.push({ x: south.x, z: south.z, base: south.h + (south.crown?.h ?? 0), h: 4, phase: 0.75 });
     return base;
   }, [towers]);
 

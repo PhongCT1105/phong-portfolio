@@ -5,7 +5,8 @@ import { SITE_CONTENT } from '@/lib/content';
 import { prefersReducedMotion } from '@/lib/session';
 import IconLinks from '@/components/IconLinks';
 
-const WORDS = ['systems', 'infra', 'pipelines', 'platforms'];
+/** every word must be PLURAL — "…that survive failure" has to agree */
+const WORDS = ['systems', 'clusters', 'pipelines', 'platforms'];
 const SCRAMBLE_CHARS = '01<>[]{}#/\\*+=';
 
 export default function Hero() {

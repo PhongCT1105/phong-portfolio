@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { SITE_CONTENT, type Project } from '@/lib/content';
 import { useJourney } from '@/lib/journey';
+import { railScrollTo } from '@/components/SmoothScroll';
 
 const COVER_ART: Record<string, React.ReactNode> = {
   flashml: (
@@ -294,7 +295,9 @@ export default function WorkShelf() {
   }, []);
 
   useEffect(() => {
-    const applyHash = () => {
+    // a cold deep link lands instantly (the boot loader owns that first second);
+    // a hash change DURING the visit rides the rail like every other nav
+    const applyHash = (ride: boolean) => {
       const match = window.location.hash.match(/^#work\/([\w-]+)$/);
       if (match) {
         const index = projects.findIndex((p) => p.slug === match[1]);
@@ -308,16 +311,17 @@ export default function WorkShelf() {
           if (useJourney.getState().tier !== 'off' && workEl && roadEl) {
             const start = workEl.offsetTop - window.innerHeight * 0.35;
             const span = roadEl.offsetTop - workEl.offsetTop;
-            window.scrollTo(0, Math.max(0, start + (WORK_THRESHOLDS[index] + 0.05) * span));
-          } else {
-            workEl?.scrollIntoView();
+            railScrollTo(Math.max(0, start + (WORK_THRESHOLDS[index] + 0.05) * span), 0, !ride);
+          } else if (workEl) {
+            railScrollTo(workEl, 0, !ride);
           }
         }
       }
     };
-    applyHash();
-    window.addEventListener('hashchange', applyHash);
-    return () => window.removeEventListener('hashchange', applyHash);
+    applyHash(false);
+    const onHashChange = () => applyHash(true);
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
   }, [projects]);
 
   // SCROLL-DRIVEN SHELF: focus is DERIVED from scroll position through the tall

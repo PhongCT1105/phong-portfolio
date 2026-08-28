@@ -1,10 +1,11 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
-import { RoundedBox } from '@react-three/drei';
+import { RoundedBox, useCursor } from '@react-three/drei';
 import { useJourney } from '@/lib/journey';
+import { prefersReducedMotion } from '@/lib/session';
 
 /**
  * Bank-style vault monuments: a circular steel door with radial spokes, rim
@@ -51,6 +52,12 @@ function makeOrgTexture(label: string): THREE.CanvasTexture {
 
 const STEEL = { color: '#9aa598', metalness: 0.92, roughness: 0.32, envMapIntensity: 1.2 };
 
+/** ignore raycast events that actually landed on interactive DOM above the canvas */
+function domGuard(event: ThreeEvent<MouseEvent | PointerEvent>): boolean {
+  const target = event.nativeEvent.target as HTMLElement | null;
+  return !!target?.closest('button, a, .receipt-readout, .site-nav, .casebook');
+}
+
 function Vault({
   x,
   z,
@@ -69,6 +76,12 @@ function Vault({
   const lightRef = useRef<THREE.PointLight>(null);
   const edgeRefs = useRef<(THREE.MeshStandardMaterial | null)[]>([]);
   const open = useRef(0);
+  const crack = useRef(0);
+  const edgeBoost = useRef(1);
+  const hover = useRef(false);
+  const [hovered, setHovered] = useState(false);
+  useCursor(hovered);
+  const reduced = useMemo(() => prefersReducedMotion(), []);
   const label = useMemo(() => makeOrgTexture(org), [org]);
   // face the held receipts camera
   const rotY = Math.atan2(85 - x, 60 - z);
@@ -76,8 +89,14 @@ function Vault({
   useFrame((_, dt) => {
     const { station, localT, boot, receiptHover, receiptFocus } = useJourney.getState();
     const target = vaultOpenTarget(station, localT, index);
-    const speed = 1 - Math.exp(-Math.min(dt, 0.05) * 5);
+    const delta = Math.min(dt, 0.05);
+    const speed = 1 - Math.exp(-delta * 5);
     open.current += (target - open.current) * speed;
+    // hover response: the door cracks a touch further and the org-color frame
+    // brightens ~1.4x — visible even when the door is already fully swung.
+    const hot = hover.current;
+    crack.current = THREE.MathUtils.damp(crack.current, hot && !reduced ? 0.06 : 0, hot ? 8 : 5, delta);
+    edgeBoost.current = THREE.MathUtils.damp(edgeBoost.current, hot ? 1.4 : 1, hot ? 8 : 5, delta);
 
     // (the readout's focus is derived deterministically from scroll in
     // components/Receipts.tsx — vaults only animate; no per-vault announces)
@@ -94,23 +113,43 @@ function Vault({
     const light = Math.max(open.current, spotlight ? 0.5 : 0) * exitFade * bootRamp;
 
     // the circular door swings on its hinge
-    if (doorRef.current) doorRef.current.rotation.y = -open.current * 1.9;
+    const swing = Math.min(1, open.current + crack.current);
+    if (doorRef.current) doorRef.current.rotation.y = -swing * 1.9;
     if (glowRef.current) glowRef.current.emissiveIntensity = 0.06 + light * 2.6;
     if (lightRef.current) lightRef.current.intensity = light * 46;
     edgeRefs.current.forEach((m) => {
-      if (m) m.emissiveIntensity = (0.14 + light * 1.1) * exitFade * bootRamp;
+      if (m) m.emissiveIntensity = (0.14 + light * 1.1) * edgeBoost.current * exitFade * bootRamp;
     });
   });
 
   const onClick = (event: ThreeEvent<MouseEvent>) => {
-    const target = event.nativeEvent.target as HTMLElement | null;
-    if (target?.closest('button, a, .receipt-readout, .site-nav, .casebook')) return;
+    if (domGuard(event)) return;
     event.stopPropagation();
     useJourney.getState().setReceiptFocus(index);
   };
 
+  const onPointerOver = (event: ThreeEvent<PointerEvent>) => {
+    if (domGuard(event)) return;
+    event.stopPropagation();
+    hover.current = true;
+    setHovered(true);
+    useJourney.getState().setReceiptHover(index);
+  };
+
+  const onPointerOut = () => {
+    hover.current = false;
+    setHovered(false);
+    if (useJourney.getState().receiptHover === index) useJourney.getState().setReceiptHover(null);
+  };
+
   return (
-    <group position={[x, 0, z]} rotation={[0, rotY, 0]} onClick={onClick}>
+    <group
+      position={[x, 0, z]}
+      rotation={[0, rotY, 0]}
+      onClick={onClick}
+      onPointerOver={onPointerOver}
+      onPointerOut={onPointerOut}
+    >
       {/* monument slab */}
       <RoundedBox args={[10, 13, 2.6]} radius={0.12} smoothness={2} position={[0, 6.5, 0]}>
         <meshStandardMaterial color="#0d130f" roughness={0.5} metalness={0.55} envMapIntensity={0.8} />

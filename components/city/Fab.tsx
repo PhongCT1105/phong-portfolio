@@ -1,9 +1,11 @@
 'use client';
 
-import { useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
+import { useCursor } from '@react-three/drei';
 import * as THREE from 'three';
 import { useJourney } from '@/lib/journey';
+import { prefersReducedMotion } from '@/lib/session';
 import ChipModel from '@/components/city/ChipModel';
 
 /** order matches SITE_CONTENT.projects */
@@ -47,7 +49,14 @@ function InteractiveChip({
   const rise = useRef(0);
   const glow = useRef(0);
   const scale = useRef(1);
+  const lift = useRef(0);
   const hover = useRef(false);
+  // ONE cursor owner: drei's useCursor writes document.body.style.cursor from an
+  // effect on the hover flag (never per frame), so four chips can no longer
+  // clobber each other's pointer every tick.
+  const [hovered, setHovered] = useState(false);
+  useCursor(hovered);
+  const reduced = useMemo(() => prefersReducedMotion(), []);
 
   useFrame((state, dt) => {
     const { station, workFocus, workOpen, boot } = useJourney.getState();
@@ -58,16 +67,23 @@ function InteractiveChip({
     const opened = workOpen === slug;
     const atStation = station === 2;
     const bootRamp = Math.max(0, Math.min(1, (boot - 0.4) / 0.2));
+    const hot = hover.current;
 
-    const glowTarget =
-      bootRamp * (opened ? 1 : focused && atStation ? 0.9 : hover.current ? 0.45 : 0.06);
-    glow.current += (glowTarget - glow.current) * speed;
+    // hover brightens the chip ~1.3x on top of whatever state it is in
+    const glowBase = opened ? 1 : focused && atStation ? 0.9 : hot ? 0.45 : 0.06;
+    const glowTarget = bootRamp * glowBase * (hot ? 1.3 : 1);
+    glow.current = THREE.MathUtils.damp(glow.current, glowTarget, hot ? 8 : 5, delta);
     rise.current += ((opened ? 1.6 : focused && atStation ? 0.5 : 0) - rise.current) * speed;
     // the focused chip DOMINATES: ~1.85x scale vs its dim siblings
     scale.current += (((focused && atStation) || opened ? 1.85 : 1) - scale.current) * speed;
+    // hover lift: a plain chip rises 0.25u; the already-scaled focused chip only
+    // adds a hint (+0.1) so hover never competes with focus. Reduced motion keeps
+    // the cursor + glow and skips the travel.
+    const liftTarget = !hot || reduced ? 0 : (focused && atStation) || opened ? 0.1 : 0.25;
+    lift.current = THREE.MathUtils.damp(lift.current, liftTarget, hot ? 8 : 5, delta);
 
     if (groupRef.current) {
-      groupRef.current.position.y = 3.4 + rise.current;
+      groupRef.current.position.y = 3.4 + rise.current + lift.current;
       groupRef.current.scale.setScalar(scale.current);
     }
     if (lightRef.current) lightRef.current.intensity = glow.current * 60;
@@ -83,7 +99,6 @@ function InteractiveChip({
           speed;
       }
     }
-    document.body.style.cursor = hover.current ? 'pointer' : '';
   });
 
   const onClick = (event: ThreeEvent<MouseEvent>) => {
@@ -119,9 +134,11 @@ function InteractiveChip({
               if (domGuard(event as unknown as ThreeEvent<MouseEvent>)) return;
               event.stopPropagation();
               hover.current = true;
+              setHovered(true);
             }}
             onPointerOut={() => {
               hover.current = false;
+              setHovered(false);
             }}
           >
             <ChipModel label={label} sub={sub} accent={color} />

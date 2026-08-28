@@ -155,8 +155,6 @@ function ReceiptReadout() {
     <div
       className="receipt-readout text-scrim"
       style={{ '--dot-color': receipt.color } as React.CSSProperties}
-      onPointerEnter={() => useJourney.getState().setReceiptHover(focusIdx)}
-      onPointerLeave={() => useJourney.getState().setReceiptHover(null)}
     >
       <div className="receipt-readout__main">
         <strong>{receipt.title}</strong>
@@ -175,6 +173,7 @@ function ReceiptReadout() {
             {receipt.source}
           </span>
           <span className="receipt-readout__dots">
+            {/* DOM → 3D crosstalk: hovering dot i flares vault i out in the city */}
             {SITE_CONTENT.receipts.map((r, i) => (
               <button
                 key={r.title}
@@ -182,6 +181,8 @@ function ReceiptReadout() {
                 style={{ '--dot-color': r.color } as React.CSSProperties}
                 aria-label={`Show ${r.title}`}
                 onClick={() => useJourney.getState().setReceiptFocus(i)}
+                onPointerEnter={() => useJourney.getState().setReceiptHover(i)}
+                onPointerLeave={() => useJourney.getState().setReceiptHover(null)}
               />
             ))}
           </span>

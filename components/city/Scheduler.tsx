@@ -1,9 +1,10 @@
 'use client';
 
 import { useMemo, useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useJourney } from '@/lib/journey';
+import { prefersReducedMotion } from '@/lib/session';
 import { MacBookModel, TowerModel, GpuCardModel } from '@/components/city/Devices';
 import ChipModel from '@/components/city/ChipModel';
 
@@ -58,6 +59,12 @@ interface Crate {
 export default function Scheduler() {
   const crateRef = useRef<THREE.InstancedMesh>(null);
   const stripMats = useRef<(THREE.MeshStandardMaterial | null)[]>([]);
+  const machineRefs = useRef<(THREE.Group | null)[]>([]);
+  // hover lives in refs only: these machines are not clickable, so they need no
+  // cursor change and no store field — they just answer the pointer.
+  const hoveredDevice = useRef<number | null>(null);
+  const hoverLift = useRef<number[]>(DEVICES.map(() => 0));
+  const reduced = useMemo(() => prefersReducedMotion(), []);
   const depotMat = useRef<THREE.MeshStandardMaterial>(null);
   const horizonMat = useRef<THREE.MeshStandardMaterial>(null);
   const labels = useMemo(() => DEVICES.map((d) => makeLabelTexture(d.name, d.sub)), []);
@@ -86,15 +93,24 @@ export default function Scheduler() {
 
     // pedestal status strips: brightness tracks pull speed; dead goes red
     const breathe = 0.85 + Math.sin(state.clock.elapsedTime * 2.2) * 0.15;
-    stripMats.current.forEach((m, i) => {
-      if (!m) return;
-      if (i === DEATH_INDEX && dead) {
-        m.emissive.set('#ff8b7a');
-        m.emissiveIntensity = bootRamp * 0.9;
-      } else {
-        m.emissive.set(ACCENT);
-        m.emissiveIntensity = bootRamp * (0.35 + DEVICES[i].speed * 1.0) * breathe;
+    DEVICES.forEach((device, i) => {
+      // hover: the pointed-at machine's strip runs ~1.6x hot and the machine
+      // lifts 0.15u off its pedestal, both spring-damped (8 in / 5 out)
+      const hot = hoveredDevice.current === i;
+      hoverLift.current[i] = THREE.MathUtils.damp(hoverLift.current[i], hot ? 1 : 0, hot ? 8 : 5, delta);
+      const boost = 1 + hoverLift.current[i] * 0.6;
+      const m = stripMats.current[i];
+      if (m) {
+        if (i === DEATH_INDEX && dead) {
+          m.emissive.set('#ff8b7a');
+          m.emissiveIntensity = bootRamp * 0.9 * boost;
+        } else {
+          m.emissive.set(ACCENT);
+          m.emissiveIntensity = bootRamp * (0.35 + device.speed * 1.0) * breathe * boost;
+        }
       }
+      const group = machineRefs.current[i];
+      if (group) group.position.y = reduced ? 0 : hoverLift.current[i] * 0.15;
     });
     if (depotMat.current) depotMat.current.emissiveIntensity = bootRamp * 0.9;
 
@@ -184,7 +200,19 @@ export default function Scheduler() {
 
       {/* four mismatched machines on lit pedestals */}
       {DEVICES.map((device, i) => (
-        <group key={device.name} position={[device.x, 0, 12]}>
+        <group
+          key={device.name}
+          position={[device.x, 0, 12]}
+          onPointerOver={(event: ThreeEvent<PointerEvent>) => {
+            const dom = event.nativeEvent.target as HTMLElement | null;
+            if (dom?.closest('button, a, .site-nav, .casebook')) return;
+            event.stopPropagation();
+            hoveredDevice.current = i;
+          }}
+          onPointerOut={() => {
+            if (hoveredDevice.current === i) hoveredDevice.current = null;
+          }}
+        >
           {/* pedestal */}
           <mesh position={[0, 1, 0]}>
             <boxGeometry args={[11, 1.4, 8]} />
@@ -202,29 +230,35 @@ export default function Scheduler() {
               emissiveIntensity={0}
             />
           </mesh>
-          {/* the machine itself */}
-          {i === 0 ? (
-            <group position={[0, 1.7, 0.4]} scale={1.1}>
-              <MacBookModel />
-            </group>
-          ) : i === 1 ? (
-            <group position={[0, 3.6, 0.6]} rotation={[-1.05, 0, 0]} scale={1.05}>
-              <ChipModel label="FLASHML" sub="CPU NODE · 0.5X" accent={ACCENT} />
-            </group>
-          ) : i === 2 ? (
-            <group position={[0, 4.2, 0.4]}>
-              <GpuCardModel accent={ACCENT} />
-              {/* display stand */}
-              <mesh position={[0, -2.9, 0]}>
-                <boxGeometry args={[3.4, 1.2, 2.4]} />
-                <meshStandardMaterial color="#141a14" roughness={0.6} metalness={0.4} />
-              </mesh>
-            </group>
-          ) : (
-            <group position={[0, 1.7, 0]}>
-              <TowerModel accent={ACCENT} />
-            </group>
-          )}
+          {/* the machine itself — lifts on hover */}
+          <group
+            ref={(g) => {
+              machineRefs.current[i] = g;
+            }}
+          >
+            {i === 0 ? (
+              <group position={[0, 1.7, 0.4]} scale={1.1}>
+                <MacBookModel />
+              </group>
+            ) : i === 1 ? (
+              <group position={[0, 3.6, 0.6]} rotation={[-1.05, 0, 0]} scale={1.05}>
+                <ChipModel label="FLASHML" sub="CPU NODE · 0.5X" accent={ACCENT} />
+              </group>
+            ) : i === 2 ? (
+              <group position={[0, 4.2, 0.4]}>
+                <GpuCardModel accent={ACCENT} />
+                {/* display stand */}
+                <mesh position={[0, -2.9, 0]}>
+                  <boxGeometry args={[3.4, 1.2, 2.4]} />
+                  <meshStandardMaterial color="#141a14" roughness={0.6} metalness={0.4} />
+                </mesh>
+              </group>
+            ) : (
+              <group position={[0, 1.7, 0]}>
+                <TowerModel accent={ACCENT} />
+              </group>
+            )}
+          </group>
           {/* nameplate */}
           <mesh position={[0, 13.2, 2]}>
             <planeGeometry args={[8.4, 2.1]} />

@@ -28,14 +28,17 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .brand-item__logo--wide { width: 74px; }
 .brand-item__text { display: flex; flex-direction: column; gap: 3px; }
 .brand-item__text strong { font: 11px var(--mono); letter-spacing: .08em; color: var(--fg-soft); }
-.brand-item__text span { font: 8.5px var(--mono); letter-spacing: .13em; color: var(--muted-2); }
+/* R6 MICRO-TYPE FLOOR: nothing mono under 10px anywhere on the page (9.5 → 10.5).
+   Where the bump would have pushed a line wider than its container, the tracking
+   comes down with it — the extra size buys more legibility than the tracking did. */
+.brand-item__text span { font: 10px var(--mono); letter-spacing: .11em; color: var(--muted-2); }
 @media (prefers-reduced-motion: reduce) {
   .brand-strip__track { animation: none !important; transform: none !important; flex-wrap: wrap; width: 100%; }
 }
 .brand-chip { display: flex; flex-direction: column; gap: 5px; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 13px 18px; background: var(--panel); transition: border-color .25s, transform .25s var(--ease-out); }
 .brand-chip:hover { transform: translateY(-2px); border-color: var(--chip-color, var(--line-strong)); }
 .brand-chip b { font-weight: 700; font-size: 15px; letter-spacing: -.01em; color: var(--chip-color, var(--fg)); }
-.brand-chip span { font: 9px var(--mono); letter-spacing: .14em; color: var(--muted); }
+.brand-chip span { font: 10px var(--mono); letter-spacing: .12em; color: var(--muted); }
 
 /* ===== receipts ===== */
 .receipts__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
@@ -48,9 +51,9 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .receipt-card--featured .receipt-card__value { color: var(--accent-bright); }
 .receipt-card__title { font-size: 16px; font-weight: 600; }
 .receipt-card__body { font-size: 13px; line-height: 1.6; color: var(--muted); flex-grow: 1; }
-.receipt-card__source { display: flex; align-items: center; gap: 8px; font: 9px var(--mono); letter-spacing: .12em; color: var(--muted); }
+.receipt-card__source { display: flex; align-items: center; gap: 8px; font: 10px var(--mono); letter-spacing: .1em; color: var(--muted); }
 .receipt-viz { width: 100%; height: 56px; flex-shrink: 0; }
-.viz-label { font: 9.5px var(--mono); letter-spacing: .08em; fill: var(--muted); }
+.viz-label { font: 10.5px var(--mono); letter-spacing: .07em; fill: var(--muted); }
 .viz-draw { stroke-dasharray: 320; stroke-dashoffset: 320; transition: stroke-dashoffset 1.2s var(--ease-out) .3s; }
 .receipt-card.is-lit .viz-draw { stroke-dashoffset: 0; }
 .viz-step { opacity: 0; transition: opacity .4s var(--ease-out); }
@@ -61,7 +64,7 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
   .viz-draw { stroke-dashoffset: 0; } .viz-step { opacity: 1; } .viz-bar { transform: none; }
 }
 .receipt-card__secondary { display: flex; flex-wrap: wrap; gap: 6px; }
-.receipt-card__secondary span { font: 8.5px var(--mono); letter-spacing: .08em; color: var(--fg-soft); border: 1px solid var(--line); border-radius: 999px; padding: 4px 8px; }
+.receipt-card__secondary span { font: 10px var(--mono); letter-spacing: .06em; color: var(--fg-soft); border: 1px solid var(--line); border-radius: 999px; padding: 4px 9px; }
 .receipt-card__source i { width: 6px; height: 6px; border-radius: 50%; background: var(--dot-color, var(--accent)); flex-shrink: 0; }
 .receipts__note { max-width: 360px; font-size: 14px; line-height: 1.6; color: var(--muted); padding-bottom: 8px; }
 
@@ -159,13 +162,13 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .shelf-card { width: 212px; height: 300px; border-radius: 10px; border: 1px solid rgba(226,232,221,.16); background: linear-gradient(155deg, var(--card-hi, #101710), var(--card-lo, #0a0d0a)); padding: 18px; display: flex; flex-direction: column; cursor: pointer; opacity: .85; transition: all .45s var(--ease-out); position: relative; }
 .shelf-card:hover { opacity: 1; transform: translateY(-8px); }
 .shelf-card.is-focused { width: 258px; height: 348px; opacity: 1; border: 1.5px solid var(--card-accent, var(--accent)); transform: translateY(-10px); box-shadow: 0 34px 70px rgba(0,0,0,.6), 0 0 50px color-mix(in srgb, var(--card-accent, #9be15d) 16%, transparent); }
-.shelf-card__badge { align-self: flex-start; font: 9px var(--mono); letter-spacing: .12em; border: 1px solid color-mix(in srgb, var(--card-accent, #9be15d) 45%, transparent); color: color-mix(in srgb, var(--card-accent, #9be15d) 75%, #fff); border-radius: 999px; padding: 5px 10px; }
+.shelf-card__badge { align-self: flex-start; font: 10px var(--mono); letter-spacing: .1em; border: 1px solid color-mix(in srgb, var(--card-accent, #9be15d) 45%, transparent); color: color-mix(in srgb, var(--card-accent, #9be15d) 75%, #fff); border-radius: 999px; padding: 5px 10px; }
 .shelf-card.is-focused .shelf-card__badge { background: var(--accent-bright); border-color: var(--accent-bright); color: #071004; }
 .shelf-card svg { margin: 22px auto 0; opacity: .95; }
 .shelf-card__meta { margin-top: auto; }
 .shelf-card__meta strong { display: block; font-size: 24px; font-weight: 700; letter-spacing: -.03em; }
 .shelf-card.is-focused .shelf-card__meta strong { font-size: 28px; }
-.shelf-card__meta span { display: block; margin-top: 6px; font: 9px var(--mono); letter-spacing: .12em; color: var(--muted); }
+.shelf-card__meta span { display: block; margin-top: 6px; font: 10px var(--mono); letter-spacing: .1em; color: var(--muted); }
 .shelf__caption { display: flex; align-items: center; gap: 22px; padding-top: 24px; flex-wrap: wrap; }
 .shelf__caption-index { font: 11px var(--mono); letter-spacing: .12em; color: var(--muted-2); }
 .shelf__caption-title { font-size: 26px; font-weight: 650; letter-spacing: -.02em; }
@@ -178,7 +181,7 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .shelf__dashes { display: flex; align-items: center; gap: 6px; }
 .shelf__dashes span { width: 22px; height: 3px; background: rgba(226,232,221,.2); border-radius: 2px; transition: background .3s; }
 .shelf__dashes span.is-on { background: var(--accent); }
-.shelf__hint { font: 8px var(--mono); letter-spacing: .16em; color: var(--muted-2); }
+.shelf__hint { font: 10px var(--mono); letter-spacing: .13em; color: var(--muted-2); }
 /* 3D tiers: the chips ARE the shelf — this transparent window gives the scene room */
 .shelf__window { position: relative; min-height: 46vh; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 14px; border-bottom: 2px solid rgba(226,232,221,.22); background: linear-gradient(to bottom, transparent 60%, rgba(155,225,93,.03)); }
 /* the work chapter's 2-second message: the focused project's name, giant */
@@ -203,7 +206,7 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 @keyframes workGiantIn { from { opacity: 0; transform: translateX(-50%) translateY(12px) scale(.94); } }
 @media (prefers-reduced-motion: reduce) { .work-giant { animation: none; } }
 @media (max-width: 800px) { .work-giant { display: none; } }
-.shelf__window-hint { font: 9px var(--mono); letter-spacing: .18em; color: var(--muted-2); }
+.shelf__window-hint { font: 10px var(--mono); letter-spacing: .15em; color: var(--muted-2); }
 
 /* ===== scroll-driven work track: chips auto-advance, case file opens itself ===== */
 .work--track { min-height: 380svh; }
@@ -220,7 +223,7 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .work-case.is-live { display: flex; animation: work-case-in .5s var(--ease-out); }
 .work-case h3 { margin: 0; font-size: clamp(20px, 2vw, 28px); font-weight: 700; letter-spacing: -.03em; line-height: 1.1; }
 .work-case .casebook__metric b { font-size: 21px; }
-.work-case .casebook__arch-svg { max-width: 360px; }
+.work-case .casebook__arch-svg { max-width: none; }
 .work-case .casebook__stack { margin-top: 0; }
 .work-case__index { margin-left: auto; font: 10px var(--mono); letter-spacing: .12em; color: var(--muted-2); }
 .work-case__links { display: flex; gap: 18px; flex-wrap: wrap; font: 11px var(--mono); }
@@ -250,14 +253,32 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .casebook__side { border-right: 1px solid rgba(226,232,221,.1); padding: 36px; display: flex; flex-direction: column; gap: 22px; }
 .casebook__cover { min-height: 260px; border-radius: 14px; border: 1.5px solid color-mix(in srgb, var(--card-accent, #9be15d) 50%, transparent); background: linear-gradient(155deg, #101710, #0a0d0a); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; font-size: 30px; font-weight: 700; letter-spacing: -.03em; }
 .casebook__shot { min-height: 110px; border: 1.5px dashed rgba(226,232,221,.25); border-radius: 14px; display: flex; align-items: center; justify-content: center; font: 10px/1.7 var(--mono); letter-spacing: .12em; color: var(--muted-2); text-align: center; padding: 10px; }
+/* R6 DARK CROP: the GitHub OG card is a white-background image in a #080a08 modal,
+   so it read as a lightbox punched through the panel. The frame owns the border and
+   the radius now; the img is graded down, and the ::after lays an inset vignette +
+   a dark rim over the top so the white plate falls off into the panel instead of
+   ending on a hard edge. No content is faked — this is the real repo card, dimmed. */
 .casebook__img { display: flex; flex-direction: column; gap: 8px; }
-.casebook__img img { width: 100%; border-radius: 14px; border: 1.5px solid color-mix(in srgb, var(--card-accent, #9be15d) 45%, transparent); display: block; }
-.casebook__img span { font: 8.5px var(--mono); letter-spacing: .1em; color: var(--muted-2); }
+.casebook__img-frame { position: relative; border-radius: 14px; overflow: hidden; background: #060806; border: 1.5px solid color-mix(in srgb, var(--card-accent, #9be15d) 38%, transparent); }
+.casebook__img-frame::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: radial-gradient(118% 96% at 50% 42%, rgba(6,8,6,0) 38%, rgba(6,8,6,.46) 100%);
+  box-shadow: inset 0 0 0 1px rgba(6,8,6,.8), inset 0 -30px 40px -24px rgba(6,8,6,.95), inset 0 24px 36px -28px rgba(6,8,6,.85);
+}
+.casebook__img img { width: 100%; display: block; filter: brightness(.82) contrast(1.05) saturate(.85); }
+.casebook__img span { font: 10px var(--mono); letter-spacing: .12em; color: var(--muted-2); }
 .casebook__cover--compact { min-height: 0; flex-direction: row; gap: 14px; padding: 12px 16px; font-size: 20px; }
 .casebook__cover--compact svg { width: 64px; height: 46px; }
 .casebook__arch { border: 1px solid var(--line); border-radius: 12px; background: rgba(8,11,8,.5); padding: 10px 12px; }
-.casebook__arch-svg { width: 100%; max-width: 420px; height: auto; display: block; }
-.arch-label { font: 9px var(--mono); letter-spacing: .06em; fill: var(--fg-soft); }
+/* R6: the diagram was capped at 420px inside a ~710px modal column — a half-empty
+   container with a small drawing floating in it. It now fills whatever panel it is
+   dropped into (modal or inline case file) and scales with it. */
+.casebook__arch-svg { width: 100%; max-width: none; height: auto; display: block; }
+/* micro-type floor applies inside the SVG too. letter-spacing goes to 0: the boxes
+   in WorkShelf.tsx are laid out in viewBox units against a 0.6em mono advance, and
+   at 10px the longest labels ("CREDIBILITY SCORE", "ONNX + 14 VARIANTS") only clear
+   their re-fitted boxes with the tracking removed. */
+.arch-label { font: 10px var(--mono); letter-spacing: 0; fill: var(--fg-soft); }
 .casebook__metric { position: relative; }
 .casebook__metric::before { content: ""; position: absolute; top: -1px; left: 0; height: 1px; width: 0; background: var(--card-accent, var(--accent)); transition: width .8s var(--ease-out) .5s; }
 .casebook.is-open .casebook__metric::before { width: 100%; }
@@ -269,17 +290,17 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .casebook__links a:hover { text-decoration: underline; }
 .casebook__main { padding: 40px 44px; display: flex; flex-direction: column; gap: 20px; }
 .casebook__meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.casebook__badge { font: 8px var(--mono); letter-spacing: .12em; color: #071004; background: var(--accent-bright); border-radius: 999px; padding: 5px 10px; }
-.casebook__period { font: 9px var(--mono); letter-spacing: .12em; color: var(--muted); }
+.casebook__badge { font: 10px var(--mono); letter-spacing: .1em; color: #071004; background: var(--accent-bright); border-radius: 999px; padding: 5px 10px; }
+.casebook__period { font: 10px var(--mono); letter-spacing: .1em; color: var(--muted); }
 .casebook__main h3 { margin: 0; font-size: clamp(28px, 3.4vw, 44px); font-weight: 700; letter-spacing: -.03em; line-height: 1; }
 .casebook__label { font: 10px var(--mono); letter-spacing: .16em; color: var(--accent); margin-bottom: 8px; }
 .casebook__text { font-size: 14px; line-height: 1.65; color: var(--fg-soft); margin: 0; }
 .casebook__metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .casebook__metric { border-top: 1px solid rgba(226,232,221,.15); padding-top: 10px; }
 .casebook__metric b { display: block; font-size: 26px; font-weight: 700; color: var(--accent-bright); }
-.casebook__metric span { display: block; font: 8px var(--mono); letter-spacing: .1em; color: var(--muted); margin-top: 4px; }
+.casebook__metric span { display: block; font: 10px/1.45 var(--mono); letter-spacing: .06em; color: var(--muted); margin-top: 4px; }
 .casebook__stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 8px; }
-.casebook__stack span { border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; font: 9px var(--mono); letter-spacing: .1em; color: var(--muted); }
+.casebook__stack span { border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; font: 10px var(--mono); letter-spacing: .08em; color: var(--muted); }
 
 /* ===== road ===== */
 .road__track { position: relative; padding-top: 26px; }
@@ -291,14 +312,17 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .road-stop__year { font: 10px var(--mono); letter-spacing: .14em; color: var(--stop-color, var(--accent)); }
 .road-stop__org { font-size: clamp(19px, 1.8vw, 24px); font-weight: 650; letter-spacing: -.02em; }
 .road-stop__role { font-size: 13px; line-height: 1.55; color: var(--muted); }
-.road-stop__metric { align-self: flex-start; font: 9px var(--mono); letter-spacing: .1em; color: var(--fg-soft); border: 1px solid var(--line-strong); border-radius: 999px; padding: 6px 11px; }
+/* the longest metric is "97% RECALL@5 · $30K CONTRACT" (28 glyphs): at 10px/.07em
+   that is ~190px of advance inside a ~230px road column, so the pill still fits on
+   one line at 1440 and simply wraps inside itself on narrower grids. */
+.road-stop__metric { align-self: flex-start; font: 10px/1.45 var(--mono); letter-spacing: .07em; color: var(--fg-soft); border: 1px solid var(--line-strong); border-radius: 999px; padding: 6px 11px; }
 .road-stop--current .road-stop__metric { color: #071004; background: var(--accent-bright); border-color: var(--accent-bright); }
 /* (recession levels live in the visibility block below — do not re-declare here) */
 .road-stop.is-active .road-stop__dot { background: var(--stop-color); box-shadow: 0 0 16px color-mix(in srgb, var(--stop-color, #9be15d) 80%, transparent); }
 .road-stop.is-active .road-stop__metric { border-color: color-mix(in srgb, var(--stop-color, #9be15d) 70%, transparent); }
 @media (prefers-reduced-motion: reduce) { .road-stop { opacity: 1; } }
 .honors { border-top: 1px solid var(--line); margin-top: clamp(34px, 5vw, 52px); padding-top: 26px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.honors__label { font: 9px var(--mono); letter-spacing: .18em; color: var(--muted-2); }
+.honors__label { font: 10px var(--mono); letter-spacing: .15em; color: var(--muted-2); }
 .honors span:not(.honors__label) { font: 10px var(--mono); letter-spacing: .08em; color: var(--fg-soft); border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; }
 
 /* ===== now / scheduler ===== */
@@ -307,7 +331,7 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .now__copy h2 { margin: 0; font-size: clamp(38px, 4.6vw, 56px); line-height: 1; letter-spacing: -.04em; font-weight: 650; }
 .now__body { font-size: 15px; line-height: 1.7; color: var(--muted); margin: 0; }
 .now__tags { display: flex; flex-wrap: wrap; gap: 8px; }
-.now__tags span { border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; font: 9px var(--mono); letter-spacing: .1em; color: var(--muted); }
+.now__tags span { border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; font: 10px var(--mono); letter-spacing: .08em; color: var(--muted); }
 .now__next { border-left: 2px solid #76b900; padding: 4px 0 4px 16px; font-size: 14px; color: var(--fg-soft); margin: 0; }
 .now__next b { color: #76b900; font-weight: 650; }
 
@@ -327,14 +351,16 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
   filter: drop-shadow(0 0 38px rgba(155, 225, 93, 0.35));
 }
 .now__stat span { font: 11px var(--mono); letter-spacing: 0.16em; color: var(--fg-soft); }
-.now__stat .now__stat-sub { font-size: 9px; color: var(--muted-2); }
+.now__stat .now__stat-sub { font-size: 10px; letter-spacing: .13em; color: var(--muted-2); }
 @media (max-width: 1050px) { .now__stat b { font-size: clamp(90px, 16vw, 150px); } }
 
 /* the inline case file leads with the tagline; the why-line stays quiet */
 .work-case__why { color: var(--muted); font-style: normal; }
+/* modal diagrams fill their panel but stop before the labels outgrow body copy */
+.casebook__panel .casebook__arch-svg { max-width: 640px; }
 .scheduler { flex: 1 1 420px; max-width: 500px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: rgba(8,11,8,.6); padding: clamp(20px, 2.4vw, 30px); display: flex; flex-direction: column; gap: 20px; }
 .now { justify-content: space-between; }
-.scheduler__head { display: flex; justify-content: space-between; gap: 14px; font: 9px var(--mono); letter-spacing: .15em; color: var(--muted-2); }
+.scheduler__head { display: flex; justify-content: space-between; gap: 14px; font: 10px var(--mono); letter-spacing: .12em; color: var(--muted-2); }
 .scheduler__head span:last-child { color: var(--accent); }
 .scheduler__queue { align-self: center; border: 1.5px solid rgba(155,225,93,.6); border-radius: 12px; padding: 14px 34px; font: 12px var(--mono); letter-spacing: .1em; background: rgba(155,225,93,.06); }
 .scheduler__paths { align-self: center; width: min(540px, 100%); }
@@ -346,9 +372,9 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .scheduler-worker i { display: block; height: 8px; border-radius: 4px; background: rgba(255,255,255,.07); overflow: hidden; }
 .scheduler-worker i em { display: block; height: 100%; width: var(--fill, 50%); background: var(--accent); animation: workerPulse 2.6s ease-in-out infinite alternate; }
 .scheduler-worker--dead i em { background: var(--danger); animation: none; }
-.scheduler-worker b { font: 9px var(--mono); color: var(--muted); font-weight: 400; }
+.scheduler-worker b { font: 10px var(--mono); color: var(--muted); font-weight: 400; }
 .scheduler__foot { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line); padding-top: 20px; gap: 14px; }
-.scheduler__foot small { font: 9px var(--mono); letter-spacing: .12em; color: var(--muted-2); }
+.scheduler__foot small { font: 10px var(--mono); letter-spacing: .1em; color: var(--muted-2); }
 .scheduler__foot b { font-size: clamp(22px, 2.4vw, 30px); font-weight: 700; color: var(--accent-bright); }
 @keyframes workerPulse { to { transform: translateX(4%); opacity: .85; } }
 
@@ -561,4 +587,14 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
   .brand-item__logo--wide { width: 90px; }
   .brand-item__text strong { font-size: 12.5px; }
   .brand-item__text span { font-size: 10px; }
+}
+
+/* ===== R6: the DOM grid must not print across the 3D sky =====
+   base.css already fades .global-grid out at the bottom (68% -> 100%). The top of
+   the viewport is where the canvas owns the frame — skyline, sky, beacons — and a
+   flat 48px lattice laid over it flattens all that depth. One ramp does both ends:
+   clear through the top 18%, full only from 55% to 68%, gone again by 100%. */
+.global-grid {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 18%, #000 55%, #000 68%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, transparent 18%, #000 55%, #000 68%, transparent 100%);
 }

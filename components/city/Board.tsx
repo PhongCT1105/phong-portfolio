@@ -146,9 +146,18 @@ export default function Board() {
       {/* gold pin pads outside the die. R5: real ENIG gold is a MIRROR — full
           metalness with a tight roughness and a 1.6 env response lets the night
           HDRI do the selling, so the emissive can drop from 0.65 to 0.3 and stop
-          reading as four glowing bars. */}
+          reading as four glowing bars.
+          R6 BEVEL: the pads were sharp instanced boxes — one flat top and four
+          walls that all take the same normal, so at orbit distance the edges
+          vanished and each pad read as a painted rectangle. A 10-sided truncated
+          cone (top radius 0.42 vs base 0.5) is the cheapest fix that keeps ONE
+          instanced draw: the sloped wall picks up a bright ring off the HDRI right
+          where the pad meets the substrate, so the edge reads without a second
+          mesh, a second material, or any change to the matrices below — the
+          existing (16|26, 0.8, 26|16) scale squashes the cylinder into exactly the
+          same elliptical footprint the boxes occupied. */}
       <instancedMesh ref={padRef} args={[undefined, undefined, pads.length]} frustumCulled={false}>
-        <boxGeometry />
+        <cylinderGeometry args={[0.42, 0.5, 1, 10]} />
         <meshStandardMaterial
           color="#d8b45a"
           emissive="#c9a227"

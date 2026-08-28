@@ -7,7 +7,14 @@ import { useJourney } from '@/lib/journey';
 import { prefersReducedMotion } from '@/lib/session';
 import { MacBookModel, TowerModel, GpuCardModel } from '@/components/city/Devices';
 import ChipModel from '@/components/city/ChipModel';
-import { NO_RAYCAST, aimRotation, ensureRectAreaLights, getBlobShadowMaterial } from '@/components/city/textures';
+import {
+  NO_RAYCAST,
+  aimRotation,
+  ensureRectAreaLights,
+  getBlobShadowMaterial,
+  makeDepotBoardTexture,
+  makePacketCoreTexture
+} from '@/components/city/textures';
 
 const HALL = { x: -135, z: 5 };
 /** face the now-station camera at (−85,14,−45) */
@@ -52,6 +59,15 @@ const DEVICES = [
 const DEATH_INDEX = 2;
 const ALIVE = [0, 1, 3];
 const CRATE_COUNT = 40;
+/**
+ * R6 packet elongation. Every crate runs the same parabola from the depot mouth to
+ * its bay intake, so its ground-plane heading is CONSTANT per bay — precompute the
+ * yaw once and the per-frame cost is a single setFromAxisAngle. Stretching local Z
+ * along that heading gives each packet a faint motion streak while everything stays
+ * in the one instanced mesh.
+ */
+const BAY_YAW = DEVICES.map((d) => Math.atan2(d.x, 16.5));
+const UP_AXIS = new THREE.Vector3(0, 1, 0);
 const DEATH_CYCLE = 14; // seconds; the GPU card dies each cycle, jobs return
 
 const ACCENT = '#9be15d';
@@ -79,6 +95,8 @@ interface Crate {
   t: number;
   arc: number;
   returning: boolean;
+  /** per-instance size, 0.8–1.3, fixed at construction from the crate index */
+  size: number;
 }
 
 export default function Scheduler() {
@@ -102,13 +120,18 @@ export default function Scheduler() {
       bay: i % DEVICES.length,
       t: (i * 0.27) % 1,
       arc: 2 + (i % 5) * 0.5,
-      returning: false
+      returning: false,
+      // 0.80 → 1.30 in 0.05 steps, walked by a stride coprime with 11 so adjacent
+      // crates never land on the same size — a queue of differently sized jobs
+      size: 0.8 + ((i * 5) % 11) * 0.05
     }))
   );
   const scratchMatrix = useMemo(() => new THREE.Matrix4(), []);
   const scratchPos = useMemo(() => new THREE.Vector3(), []);
   const scratchScale = useMemo(() => new THREE.Vector3(1.1, 1.1, 1.1), []);
   const quat = useMemo(() => new THREE.Quaternion(), []);
+  const depotBoard = useMemo(() => makeDepotBoardTexture(), []);
+  const packetCore = useMemo(() => makePacketCoreTexture(), []);
 
   useFrame((state, dt) => {
     const { station, boot, localT } = useJourney.getState();
@@ -146,7 +169,10 @@ export default function Scheduler() {
       if (group) group.position.y = (reduced ? 0 : hoverLift.current[i] * 0.15) + breath;
     });
     // depot face: a slow ±10% roll (one long swell + one faster ripple) so the
-    // queue board reads like a live CRT instead of a painted rectangle
+    // queue board reads like a live CRT instead of a painted rectangle. The board
+    // texture now carries the per-row values, so this scales the WHOLE board: at
+    // 0.9 the header glyphs sit just under the 0.9 bloom threshold and cross it
+    // only at the top of the swell, while every queue row stays well below it.
     const depotPulse = reduced ? 1 : 1 + 0.07 * Math.sin(t * 0.55) + 0.03 * Math.sin(t * 2.9);
     if (depotMat.current) depotMat.current.emissiveIntensity = bootRamp * 0.9 * depotPulse;
 
@@ -183,6 +209,10 @@ export default function Scheduler() {
       const z = -6 + 16.5 * t;
       const y = 3 + (2.6 - 3) * t + Math.sin(t * Math.PI) * crate.arc;
       scratchPos.set(x, y, z);
+      // R6: per-instance size + a 1.45x stretch along the bay heading. Both are set
+      // here in the compose, so the whole fleet is still one instanced draw.
+      quat.setFromAxisAngle(UP_AXIS, BAY_YAW[crate.bay]);
+      scratchScale.set(crate.size, crate.size, crate.size * 1.45);
       scratchMatrix.compose(scratchPos, quat, scratchScale);
       mesh.setMatrixAt(i, scratchMatrix);
     });
@@ -214,15 +244,21 @@ export default function Scheduler() {
           <meshStandardMaterial color="#0a0f0a" emissive="#9be15d" emissiveIntensity={0.7} />
         </mesh>
       ))}
+      {/* R6 queue board: a painted CRT, not a lime rectangle. emissiveMap only —
+          the material colour stays black so the ONLY light this face throws is the
+          board's own rows, and the CRT-roll pulse below scales all of them at once. */}
       <mesh position={[0, 9, -5.4]}>
         <planeGeometry args={[7, 12]} />
         <meshStandardMaterial
           ref={depotMat}
-          color="#061006"
-          emissive="#9be15d"
+          color="#000000"
+          emissive="#ffffff"
+          emissiveMap={depotBoard}
           emissiveIntensity={0}
+          roughness={0.9}
+          metalness={0}
           transparent
-          opacity={0.9}
+          opacity={0.95}
         />
       </mesh>
       {/* queue sign on the depot face */}
@@ -324,10 +360,18 @@ export default function Scheduler() {
         </group>
       ))}
 
-      {/* job crates */}
+      {/* job crates — R6: one instanced draw still, but each packet now has a warm
+          near-white core falling off to a dark rim (emissiveMap) and its own size. */}
       <instancedMesh ref={crateRef} args={[undefined, undefined, CRATE_COUNT]} frustumCulled={false}>
         <boxGeometry />
-        <meshStandardMaterial color="#0a120a" emissive="#b8ff72" emissiveIntensity={1.1} roughness={0.5} />
+        <meshStandardMaterial
+          color="#0b1206"
+          emissive="#ffffff"
+          emissiveMap={packetCore}
+          emissiveIntensity={0.85}
+          roughness={0.45}
+          metalness={0.1}
+        />
       </instancedMesh>
       {/* NVIDIA-green horizon glow — behind the hall, the road continues */}
       <mesh position={[0, 12, -90]}>

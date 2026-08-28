@@ -2,12 +2,18 @@
 
 import { useMemo, useRef, useState } from 'react';
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
-import { useCursor } from '@react-three/drei';
+import { RoundedBox, useCursor } from '@react-three/drei';
 import * as THREE from 'three';
 import { useJourney } from '@/lib/journey';
 import { prefersReducedMotion } from '@/lib/session';
 import ChipModel from '@/components/city/ChipModel';
-import { NO_RAYCAST, aimRotation, ensureRectAreaLights, getBlobShadowMaterial } from '@/components/city/textures';
+import {
+  NO_RAYCAST,
+  aimRotation,
+  ensureRectAreaLights,
+  getBlobShadowMaterial,
+  makeNameplateTexture
+} from '@/components/city/textures';
 
 /** order matches SITE_CONTENT.projects */
 const CHIPS = [
@@ -74,6 +80,12 @@ function InteractiveChip({
   useCursor(hovered);
   const reduced = useMemo(() => prefersReducedMotion(), []);
   const shadowMat = useMemo(() => getBlobShadowMaterial(), []);
+  // R6: the etched serial milled into the plinth face — a real display case
+  // labels its exhibit. Cached per string inside the helper.
+  const plate = useMemo(
+    () => makeNameplateTexture(`ZL-0${index + 1} · ${label.toUpperCase()}`),
+    [index, label]
+  );
 
   useFrame((state, dt) => {
     const { station, workFocus, workOpen, boot } = useJourney.getState();
@@ -160,10 +172,48 @@ function InteractiveChip({
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 3.02, 0]} scale={[2.9, 2.9, 1]} raycast={NO_RAYCAST} renderOrder={-1} material={shadowMat}>
         <planeGeometry args={[1, 1]} />
       </mesh>
-      {/* pedestal */}
-      <mesh position={[0, 1.5, 0]}>
-        <boxGeometry args={[3, 3, 3]} />
+      {/* R6 chamfered plinth. Four stacked parts — block, engraved groove, collar,
+          chamfer cap — replacing the bare 3×3×3 cube. The stack still tops out at
+          EXACTLY y=3.0, so the chip pose, both blob shadows and the pedestal light
+          above are untouched; only the silhouette changed. All decoration, so all
+          of it opts out of raycasting (the chip alone owns the hover). */}
+      <mesh position={[0, 1.15, 0]} raycast={NO_RAYCAST}>
+        <boxGeometry args={[3, 2.3, 3]} />
         <meshStandardMaterial color="#0c120c" roughness={0.55} metalness={0.45} />
+      </mesh>
+      {/* engraved edge line: inset 0.14u and near-black, so the ring reads as a
+          machined groove catching a thread of the chip's own colour */}
+      <mesh position={[0, 2.37, 0]} raycast={NO_RAYCAST}>
+        <boxGeometry args={[2.86, 0.14, 2.86]} />
+        <meshStandardMaterial
+          color="#050805"
+          roughness={0.9}
+          metalness={0.2}
+          emissive={color}
+          emissiveIntensity={0.14}
+        />
+      </mesh>
+      <mesh position={[0, 2.57, 0]} raycast={NO_RAYCAST}>
+        <boxGeometry args={[3, 0.26, 3]} />
+        <meshStandardMaterial color="#0c120c" roughness={0.55} metalness={0.45} />
+      </mesh>
+      {/* chamfer cap: 5% oversized and rounded, so the RectAreaLight key draws a
+          bright lip along the top edge instead of dying on a hard corner */}
+      <RoundedBox args={[3.15, 0.3, 3.15]} radius={0.075} smoothness={2} position={[0, 2.85, 0]} raycast={NO_RAYCAST}>
+        <meshStandardMaterial color="#131a13" roughness={0.42} metalness={0.6} />
+      </RoundedBox>
+      {/* etched serial nameplate, on the face the held work camera looks at
+          (the ROW group's local +Z aims straight at it) */}
+      <mesh position={[0, 1.74, 1.53]} raycast={NO_RAYCAST}>
+        <planeGeometry args={[2.2, 0.3]} />
+        <meshStandardMaterial
+          map={plate}
+          emissive="#ffffff"
+          emissiveMap={plate}
+          emissiveIntensity={0.3}
+          roughness={0.75}
+          metalness={0.35}
+        />
       </mesh>
       <pointLight ref={lightRef} position={[0, 7.5, 1.5]} color={color} intensity={0} distance={20} decay={2} />
       {/* resting pose shows the etched label; the focused chip turntables,

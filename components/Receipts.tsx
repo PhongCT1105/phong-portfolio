@@ -84,11 +84,19 @@ function ReceiptViz({ viz, color }: { viz: string; color: string }) {
           strokeWidth="2"
         />
         <circle className="viz-step" cx="286" cy="10" r="4.5" fill={color} style={{ transitionDelay: '900ms' }} />
-        <text x="14" y="38" className="viz-label">
-          PYPI RELEASE
-        </text>
-        <text x="286" y="30" textAnchor="end" className="viz-label">
+        {/* LABEL CLEARANCE: the curve runs 48 → 10, so the only band it never
+            crosses on the right is BELOW it. The old y=30 put this label straight
+            through the rising line; y=46 clears the curve (y≈27 at x=182) by ~12
+            units and still reads as the end-of-line callout because it is anchored
+            on the same x as the endpoint dot. Above the endpoint is not an option —
+            the curve tops out at y=10 and the dot owns that last 10 units. */}
+        <text x="286" y="46" textAnchor="end" className="viz-label">
           100+ PILOT USERS
+        </text>
+        {/* pulled up from y=38: at the 10.5px floor this label is ~86 wide, and the
+            curve sits at y≈41.5 by the time it clears the last glyph */}
+        <text x="14" y="34" className="viz-label">
+          PYPI RELEASE
         </text>
       </svg>
     );
@@ -106,7 +114,11 @@ function ReceiptViz({ viz, color }: { viz: string; color: string }) {
         fill={color}
         style={{ transitionDelay: '400ms', transformOrigin: '50% 50px' }}
       />
-      <text x="90" y="6" textAnchor="middle" className="viz-label">
+      {/* was x=90 y=6 centred over the tall bar: at 9.5px the cap-height already
+          clipped against the top of the viewBox, and the 10.5px floor makes it
+          worse. The bar's top is y=8, so there is no room above it — moved into
+          the empty gutter to its left instead, anchored to the bar edge. */}
+      <text x="56" y="16" textAnchor="end" className="viz-label">
         NO RAG
       </text>
       <text x="210" y="28" textAnchor="middle" className="viz-label">

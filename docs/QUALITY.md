@@ -93,6 +93,31 @@ R8 ARRIVAL
    schedules the next wakeup.
 5. Stop: two consecutive all-BUY audits with nothing above minor, or morning → summary.
 
+## Critic-fed residuals (IT6+ queue, from the IT1 $10K audit)
+
+- NOW bench occlusion AT THE HOLD: machines half-hidden behind the copy card at this
+  audit's settle — shift bench/card/camera so all four machines + queue read at 1440x900.
+- Focused vault (FPT, focus 0) hides behind the $30K numeral — offset row or numeral so
+  the focused vault's flare plays on-stage.
+- Casebook GitHub OG images show a "0 contributors · 0 stars" strip that un-sells the
+  click — crop the stats strip (container overflow crop of the image bottom), don't fake it.
+- Long nav rides (≥2 viewports): switch expo-out to ease-in-out so low-fps machines read
+  travel, not jump-then-settle.
+- Contact PCB: one glowing trace route from the terminal toward a device to anchor the
+  board center at settle.
+
 ## Iteration log
 
-- (pending IT1)
+- IT1 (response layer): pointer clobber fixed (44/44 stable samples), vault hover flare
+  (48% px change), dot-i-flares-vault-i crosstalk, nav rides the rail (2.3s monotonic),
+  focus rings, brand-strip honesty, hero grammar. Validator: ALL PASS; rails intact.
+  First $10K audit: hero/receipts/contact BUY; work/road/now HESITATE (gates slicing cards
+  = worst, casebook interior second, NOW bench occluded at hold).
+- IT2 (film pass + idle life): CA→Bloom→SplitTone→Vignette→Grain in ONE merged pass;
+  luminance-neutral split-tone; chips/machines breathe, vault flicker, depot CRT roll,
+  hand-held wobble additive after rail (holds bit-exact); beacon phases truly spread.
+  Committed 05ff921; validation rides with IT3's round.
+- IT3 (studio light + materials): blob shadows under all hero objects; RectAreaLight
+  key/fill on fab shelf + NOW bench; vault steel env 1.8 + per-part roughness + rim
+  lights + frame falloff; PCB gold + silkscreen. tsc clean, committed 3d0ffde (build
+  deferred behind running validator).

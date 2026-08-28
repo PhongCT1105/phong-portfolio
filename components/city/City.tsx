@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { useJourney } from '@/lib/journey';
 import {
   CRANES,
+  HERO_TOWERS,
   IDENTITY_QUAT,
   WORLD_D,
   WORLD_W,
@@ -312,6 +313,89 @@ function CrownsAndBeacons({ towers }: { towers: Tower[] }) {
   );
 }
 
+/**
+ * R6 facade relief on the three HERO_TOWERS — the only towers the hero camera
+ * at (-10,14,118) actually reads as objects rather than as a skyline.
+ *
+ * Two pieces, both cheap:
+ *  - five vertical rib strips on each of the two visible faces (+Z toward the
+ *    camera, −X because the camera sits west of all three). They are DARK and
+ *    stand 0.04u proud of the facade, so they punch vertical shadow lines
+ *    through the emissive window grid — mullions, the thing that makes a glass
+ *    box read as a building instead of a lit texture.
+ *  - a parapet lip ringing the roof edge, faintly warm, so the roofline has a
+ *    terminating edge instead of dissolving into sky.
+ * Ribs start above the podium where a tower has one, so nothing is buried.
+ * Two instanced draws, 42 boxes total.
+ */
+const HERO_RIBS_PER_FACE = 5;
+
+function HeroFacades() {
+  const { ribs, lips } = useMemo(() => {
+    const ribs: { p: [number, number, number]; s: [number, number, number] }[] = [];
+    const lips: { p: [number, number, number]; s: [number, number, number] }[] = [];
+    for (const t of HERO_TOWERS) {
+      const base = t.podium ? t.podium.h : 0;
+      const span = t.h - base;
+      const midY = base + span / 2;
+      for (let i = 0; i < HERO_RIBS_PER_FACE; i += 1) {
+        // evenly spaced across the face, inset from the corners
+        const f = (i + 0.5) / HERO_RIBS_PER_FACE - 0.5;
+        // +Z facade — dead-on to the hero camera
+        ribs.push({
+          p: [t.x + f * t.w * 0.9, midY, t.z + t.d / 2 + 0.04],
+          s: [0.24, span * 0.99, 0.08]
+        });
+        // −X facade — the raking side the camera also sees
+        ribs.push({
+          p: [t.x - t.w / 2 - 0.04, midY, t.z + f * t.d * 0.9],
+          s: [0.08, span * 0.99, 0.24]
+        });
+      }
+      const lipY = t.h + 0.22;
+      lips.push({ p: [t.x, lipY, t.z + t.d / 2 + 0.12], s: [t.w + 0.5, 0.44, 0.24] });
+      lips.push({ p: [t.x, lipY, t.z - t.d / 2 - 0.12], s: [t.w + 0.5, 0.44, 0.24] });
+      lips.push({ p: [t.x - t.w / 2 - 0.12, lipY, t.z], s: [0.24, 0.44, t.d + 0.5] });
+      lips.push({ p: [t.x + t.w / 2 + 0.12, lipY, t.z], s: [0.24, 0.44, t.d + 0.5] });
+    }
+    return { ribs, lips };
+  }, []);
+
+  const ribRef = useRef<THREE.InstancedMesh>(null);
+  const lipRef = useRef<THREE.InstancedMesh>(null);
+
+  useLayoutEffect(() => {
+    const matrix = new THREE.Matrix4();
+    const pos = new THREE.Vector3();
+    const scale = new THREE.Vector3();
+    const write = (mesh: THREE.InstancedMesh | null, list: typeof ribs) => {
+      if (!mesh) return;
+      list.forEach((b, i) => {
+        pos.fromArray(b.p);
+        scale.fromArray(b.s);
+        matrix.compose(pos, IDENTITY_QUAT, scale);
+        mesh.setMatrixAt(i, matrix);
+      });
+      mesh.instanceMatrix.needsUpdate = true;
+    };
+    write(ribRef.current, ribs);
+    write(lipRef.current, lips);
+  }, [ribs, lips]);
+
+  return (
+    <group>
+      <instancedMesh ref={ribRef} args={[undefined, undefined, ribs.length]} frustumCulled={false}>
+        <boxGeometry />
+        <meshStandardMaterial color="#070b07" roughness={0.92} metalness={0.12} emissive="#ffe9c4" emissiveIntensity={0.03} />
+      </instancedMesh>
+      <instancedMesh ref={lipRef} args={[undefined, undefined, lips.length]} frustumCulled={false}>
+        <boxGeometry />
+        <meshStandardMaterial color="#0d140d" roughness={0.8} metalness={0.28} emissive="#ffe9c4" emissiveIntensity={0.09} />
+      </instancedMesh>
+    </group>
+  );
+}
+
 /** thin emissive parapet banners on the hero towers (defect 5) */
 function HeroBanners() {
   const banners: { pos: [number, number, number]; w: number; rotY: number }[] = [
@@ -494,6 +578,7 @@ export default function City({ density = 1 }: { density?: number }) {
       <Gates />
       <Scheduler />
       <Board />
+      <HeroFacades />
       <HeroBanners />
       <CraneSilhouettes />
       <Signage />

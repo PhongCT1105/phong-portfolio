@@ -48,7 +48,11 @@ function mulberry(seed: number) {
   };
 }
 
-const HERO_TOWERS: Tower[] = [
+/**
+ * The three towers the hero camera actually frames. Exported so City.tsx can
+ * give exactly these facade relief (R6) — everything else stays instanced flats.
+ */
+export const HERO_TOWERS: Tower[] = [
   { x: 38, z: 8, w: 9, h: 22, d: 9, tier: 0, variant: 0, rot: 0, crown: { w: 5.5, h: 3.5, d: 5.5 }, podium: { w: 14, h: 2.6, d: 14 } },
   { x: 52, z: 22, w: 8, h: 19, d: 8, tier: 0, variant: 1, rot: 0, podium: { w: 12.5, h: 2.2, d: 12.5 } },
   { x: 24, z: 26, w: 7, h: 18, d: 7, tier: 0, variant: 2, rot: 0, crown: { w: 4, h: 2.5, d: 4 } }

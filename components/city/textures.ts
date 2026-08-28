@@ -202,9 +202,20 @@ export function makeSilkscreenTexture(): THREE.CanvasTexture {
 }
 
 /**
- * G2: window texture — dark facade, 15–25% windows lit, ~70% warm white / 30% pale green.
- * Several variants so neighboring towers don't repeat.
+ * G2: window texture — dark facade, 15–25% windows lit.
+ *
+ * R6 colour temperature: a real tower is lit by whatever each tenant installed.
+ * ~70% warm tungsten, ~25% cool daylight/monitor blue, ~5% mint (the city's own
+ * accent, kept rare so it stays a note rather than a hue). Each lit cell also
+ * draws its own 0.5–1.0 intensity, so a facade reads as scattered individual
+ * rooms instead of one stamped sprite sheet.
  */
+const WINDOW_TEMPS = [
+  { p: 0.7, rgb: '255, 233, 196' }, // warm tungsten  #ffe9c4
+  { p: 0.95, rgb: '207, 224, 255' }, // cool daylight  #cfe0ff
+  { p: 1, rgb: '158, 255, 192' } // mint accent    #9effc0
+];
+
 export function makeWindowTexture(seed: number, litProb = 0.2): THREE.CanvasTexture {
   const rand = mulberry(seed);
   const size = 128;
@@ -219,11 +230,10 @@ export function makeWindowTexture(seed: number, litProb = 0.2): THREE.CanvasText
   for (let y = 4; y < size * 2 - cell; y += cell) {
     for (let x = 4; x < size - cell; x += cell) {
       if (rand() > litProb) continue;
-      const warm = rand() < 0.7;
-      const bright = 0.55 + rand() * 0.45;
-      ctx.fillStyle = warm
-        ? `rgba(255, 233, 196, ${bright})`
-        : `rgba(158, 255, 192, ${bright})`;
+      const temp = rand();
+      const bright = 0.5 + rand() * 0.5;
+      const rgb = (WINDOW_TEMPS.find((t) => temp < t.p) ?? WINDOW_TEMPS[0]).rgb;
+      ctx.fillStyle = `rgba(${rgb}, ${bright})`;
       ctx.fillRect(x, y, win, win + 2);
     }
   }
@@ -413,5 +423,219 @@ export function makeGroundTexture(towers: Tower[]): THREE.CanvasTexture {
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = 4;
+  return texture;
+}
+
+/* ------------------------------------------------------ IT4a / R6 additions
+   New exported helpers only — nothing above this line is touched. */
+
+/**
+ * R6 pedestal nameplate: the small etched serial strip milled into the front of
+ * a display plinth ("ZL-01 · FLASHML"). Engraved rather than printed — a dark
+ * ghost above the glyphs and a pale one below fakes a light-from-above bevel, so
+ * the text reads as CUT INTO the metal instead of stuck on it.
+ *
+ * Cached per string: four chips share one canvas each, uploaded once.
+ */
+const nameplateTextures = new Map<string, THREE.CanvasTexture>();
+
+export function makeNameplateTexture(text: string): THREE.CanvasTexture {
+  const cached = nameplateTextures.get(text);
+  if (cached) return cached;
+  const w = 1024;
+  const h = 140; // 7.31:1 — matches the 2.2u × 0.3u plate
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d')!;
+
+  // brushed plate: a vertical ramp plus a few horizontal grain streaks
+  const base = ctx.createLinearGradient(0, 0, 0, h);
+  base.addColorStop(0, '#161c16');
+  base.addColorStop(0.5, '#0f150f');
+  base.addColorStop(1, '#080d08');
+  ctx.fillStyle = base;
+  ctx.fillRect(0, 0, w, h);
+  const grain = mulberry(5501);
+  ctx.globalAlpha = 0.06;
+  for (let i = 0; i < 90; i += 1) {
+    ctx.fillStyle = grain() > 0.5 ? '#ffffff' : '#000000';
+    ctx.fillRect(0, Math.floor(grain() * h), w, 1);
+  }
+  ctx.globalAlpha = 1;
+
+  // milled border: bright top edge, dark bottom edge
+  ctx.strokeStyle = 'rgba(190,204,186,0.22)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(9, 9, w - 18, h - 18);
+  ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+  ctx.strokeRect(13, 13, w - 26, h - 26);
+
+  ctx.font = '600 62px "JetBrains Mono", Consolas, monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  // engraving: dark shadow on the upper inner wall, highlight on the lower
+  ctx.fillStyle = 'rgba(0,0,0,0.9)';
+  ctx.fillText(text, w / 2, h / 2 - 3);
+  ctx.fillStyle = 'rgba(206,220,202,0.34)';
+  ctx.fillText(text, w / 2, h / 2 + 3);
+  ctx.fillStyle = 'rgba(158,172,155,0.95)';
+  ctx.fillText(text, w / 2, h / 2);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 4;
+  nameplateTextures.set(text, texture);
+  return texture;
+}
+
+/* --------------------------------------- R6: NOW depot board + job packet core */
+
+let depotBoardTexture: THREE.CanvasTexture | null = null;
+
+/**
+ * R6 — the depot face used to be ONE lime rectangle: a 7x12 plane emitting a flat
+ * #9be15d at 0.9 across every pixel, which is why it read as blown-out. This paints
+ * it as an actual queue board instead: near-black substrate, a header line, eight
+ * job rows alternating dim/bright, one RUNNING row hot, and CRT scanlines over all
+ * of it.
+ *
+ * Used as the emissiveMap ONLY (material color stays black, the same convention the
+ * nameplates in Scheduler.tsx already use), so every row glows at its own painted
+ * value and the mean emitted energy of the face drops by better than an order of
+ * magnitude. Only the header GLYPH STROKES are painted hot enough to reach the
+ * bloom threshold (0.9 in CityScene) — and only at the top of the CRT-roll swell,
+ * so the board breathes into bloom rather than sitting in it.
+ */
+export function makeDepotBoardTexture(): THREE.CanvasTexture {
+  if (depotBoardTexture) return depotBoardTexture;
+  const W = 448; // 7:12, matching the plane
+  const H = 768;
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+  const mono = (px: number, weight: number) =>
+    `${weight} ${px}px "JetBrains Mono", ui-monospace, SFMono-Regular, monospace`;
+
+  // substrate: black board, one dim bezel line. Black = emits nothing.
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = 'rgba(96, 146, 62, 0.5)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(11, 11, W - 22, H - 22);
+
+  // header — the only line allowed near the bloom threshold, and only its strokes
+  const headY = 30;
+  ctx.fillStyle = 'rgba(126, 176, 82, 0.13)';
+  ctx.fillRect(22, headY, W - 44, 60);
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#eaffc8';
+  ctx.font = mono(30, 700);
+  ctx.textAlign = 'left';
+  ctx.fillText('JOB QUEUE', 36, headY + 31);
+  ctx.font = mono(24, 500);
+  ctx.textAlign = 'right';
+  ctx.fillText('08 / 40', W - 36, headY + 31);
+  // rule under the header, dim
+  ctx.fillStyle = 'rgba(126, 176, 82, 0.42)';
+  ctx.fillRect(22, headY + 62, W - 44, 2);
+
+  // eight queue rows. lvl 3 = the one RUNNING job (bright, still ~0.7 luminance),
+  // lvl 2 / lvl 1 alternate so the board has texture without a second hot area.
+  const ROWS: { id: string; job: string; st: string; lvl: 1 | 2 | 3 }[] = [
+    { id: '0417', job: 'batch-12', st: 'RUNNING', lvl: 3 },
+    { id: '0418', job: 'shard-07', st: 'RUNNING', lvl: 2 },
+    { id: '0419', job: 'batch-13', st: 'PENDING', lvl: 1 },
+    { id: '0420', job: 'eval-02 ', st: 'PENDING', lvl: 2 },
+    { id: '0421', job: 'batch-14', st: 'PENDING', lvl: 1 },
+    { id: '0422', job: 'shard-08', st: 'QUEUED ', lvl: 2 },
+    { id: '0423', job: 'batch-15', st: 'QUEUED ', lvl: 1 },
+    { id: '0424', job: 'eval-03 ', st: 'QUEUED ', lvl: 2 }
+  ];
+  const INK: Record<number, string> = { 1: '#4f6a39', 2: '#7fa85c', 3: '#bfe88a' };
+  const ROW_TOP = 116;
+  const ROW_H = 71;
+  ctx.font = mono(26, 500);
+  ROWS.forEach((row, i) => {
+    const y = ROW_TOP + i * ROW_H;
+    if (i % 2 === 0) {
+      ctx.fillStyle = 'rgba(96, 146, 62, 0.055)';
+      ctx.fillRect(22, y, W - 44, ROW_H - 8);
+    }
+    if (row.lvl === 3) {
+      // running marker: a short bar in the gutter, not a glowing full-row fill
+      ctx.fillStyle = INK[3];
+      ctx.fillRect(22, y + 14, 5, ROW_H - 36);
+    }
+    ctx.fillStyle = INK[row.lvl];
+    ctx.textAlign = 'left';
+    ctx.fillText(row.id, 38, y + (ROW_H - 8) / 2);
+    ctx.fillText(row.job, 140, y + (ROW_H - 8) / 2);
+    ctx.textAlign = 'right';
+    ctx.fillText(row.st.trim(), W - 38, y + (ROW_H - 8) / 2);
+  });
+
+  // footer: the real FlashML numbers, dim
+  ctx.fillStyle = 'rgba(126, 176, 82, 0.42)';
+  ctx.fillRect(22, ROW_TOP + 8 * ROW_H + 6, W - 44, 2);
+  ctx.fillStyle = '#7fa85c';
+  ctx.font = mono(22, 500);
+  ctx.textAlign = 'center';
+  ctx.fillText('47% FASTER · 3.7× SPREAD', W / 2, ROW_TOP + 8 * ROW_H + 34);
+
+  // CRT scanlines over everything — knocks ~35% off the mean and gives the roll
+  // pulse something to bite on
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+  for (let y = 0; y < H; y += 4) ctx.fillRect(0, y, W, 1.7);
+
+  // corner falloff so the panel does not end in four hard bright corners
+  const vignette = ctx.createRadialGradient(W / 2, H / 2, H * 0.22, W / 2, H / 2, H * 0.62);
+  vignette.addColorStop(0, 'rgba(0,0,0,0)');
+  vignette.addColorStop(1, 'rgba(0,0,0,0.55)');
+  ctx.fillStyle = vignette;
+  ctx.fillRect(0, 0, W, H);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 4;
+  depotBoardTexture = texture;
+  return texture;
+}
+
+let packetCoreTexture: THREE.CanvasTexture | null = null;
+
+/**
+ * R6 — job packets were 40 unlit uniform cubes: one flat emissive value over every
+ * face, which is why they read as flat squares rather than glowing payloads. This
+ * is a 64px emissive falloff — warm near-white core dropping to a near-black edge
+ * with a thin rim — applied as the emissiveMap of the ONE instanced material, so
+ * all 40 crates gain a lit core and a dark silhouette edge for a single 64x64
+ * upload and zero extra draw calls.
+ */
+export function makePacketCoreTexture(): THREE.CanvasTexture {
+  if (packetCoreTexture) return packetCoreTexture;
+  const size = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = '#080d05';
+  ctx.fillRect(0, 0, size, size);
+  const g = ctx.createRadialGradient(size / 2, size / 2, 1.5, size / 2, size / 2, size * 0.56);
+  // warmer core than the old flat #b8ff72: near-white through warm lime to dark
+  g.addColorStop(0, '#f4ffd8');
+  g.addColorStop(0.3, '#d6f79a');
+  g.addColorStop(0.62, '#79a844');
+  g.addColorStop(1, '#0d1408');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, size, size);
+  // rim: keeps the crate's edge readable once the core falls off
+  ctx.strokeStyle = 'rgba(150, 200, 96, 0.55)';
+  ctx.lineWidth = 2.5;
+  ctx.strokeRect(3, 3, size - 6, size - 6);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  packetCoreTexture = texture;
   return texture;
 }

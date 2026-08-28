@@ -71,34 +71,42 @@ const ARCH_ART: Record<string, (accent: string) => React.ReactNode> = {
       <ArchBox x={4} y={37} w={58} label="SUBMIT" />
       <Arrow x1={62} y1={48} x2={86} y2={48} />
       <ArchBox x={88} y={37} w={62} label="QUEUE" accent={accent} />
-      <Arrow x1={150} y1={44} x2={186} y2={16} />
-      <Arrow x1={150} y1={48} x2={186} y2={48} />
-      <Arrow x1={150} y1={52} x2={186} y2={80} />
-      <ArchBox x={188} y={5} w={94} label="FAST · PULLS 61" accent={accent} />
-      <ArchBox x={188} y={37} w={94} label="MID · PULLS 39" />
-      <ArchBox x={188} y={69} w={94} label="DIES → RETURNS" />
-      <Arrow x1={282} y1={48} x2={302} y2={48} />
+      <Arrow x1={150} y1={44} x2={178} y2={16} />
+      <Arrow x1={150} y1={48} x2={178} y2={48} />
+      <Arrow x1={150} y1={52} x2={178} y2={80} />
+      {/* the worker column is 12 units wider than it was: .arch-label goes to the
+          10px micro-type floor, and "FAST · PULLS 61" needs ~90 units of advance at
+          that size — it would have burst a 94-wide box */}
+      <ArchBox x={180} y={5} w={106} label="FAST · PULLS 61" accent={accent} />
+      <ArchBox x={180} y={37} w={106} label="MID · PULLS 39" />
+      <ArchBox x={180} y={69} w={106} label="DIES → RETURNS" />
+      <Arrow x1={286} y1={48} x2={302} y2={48} />
       <ArchBox x={304} y={37} w={34} label="OUT" />
     </svg>
   ),
   'captain-ddoski': (accent) => (
     <svg className="casebook__arch-svg" viewBox="0 0 340 96">
-      <ArchBox x={4} y={37} w={80} label="AGENT ACTION" />
-      <Arrow x1={84} y1={48} x2={112} y2={48} />
-      <ArchBox x={114} y={37} w={104} label="CREDIBILITY SCORE" accent={accent} />
-      <Arrow x1={218} y1={44} x2={248} y2={20} />
-      <Arrow x1={218} y1={52} x2={248} y2={76} />
+      {/* re-fitted for the 10px .arch-label floor: "CREDIBILITY SCORE" is 17
+          glyphs ≈ 102 units of advance, so its box goes 104 → 116 */}
+      <ArchBox x={4} y={37} w={84} label="AGENT ACTION" />
+      <Arrow x1={88} y1={48} x2={110} y2={48} />
+      <ArchBox x={112} y={37} w={116} label="CREDIBILITY SCORE" accent={accent} />
+      <Arrow x1={228} y1={44} x2={248} y2={20} />
+      <Arrow x1={228} y1={52} x2={248} y2={76} />
       <ArchBox x={250} y={9} w={86} label="HIGH → AUTO" />
       <ArchBox x={250} y={65} w={86} label="LOW → HUMAN" accent={accent} />
     </svg>
   ),
   'on-device-qa': (accent) => (
     <svg className="casebook__arch-svg" viewBox="0 0 340 96">
-      <ArchBox x={4} y={37} w={70} label="FLAN-T5" />
-      <Arrow x1={74} y1={48} x2={102} y2={48} />
-      <ArchBox x={104} y={37} w={98} label="ONNX + 14 VARIANTS" />
-      <Arrow x1={202} y1={48} x2={230} y2={48} />
-      <ArchBox x={232} y={37} w={104} label="ARM64 · 163MS" accent={accent} />
+      {/* rebalanced for the 10px floor: "ONNX + 14 VARIANTS" is 18 glyphs ≈ 108
+          units and was already overrunning its 98-wide box at 9px — width moved
+          from the two short boxes into the long one */}
+      <ArchBox x={4} y={37} w={56} label="FLAN-T5" />
+      <Arrow x1={60} y1={48} x2={84} y2={48} />
+      <ArchBox x={86} y={37} w={118} label="ONNX + 14 VARIANTS" />
+      <Arrow x1={204} y1={48} x2={228} y2={48} />
+      <ArchBox x={230} y={37} w={106} label="ARM64 · 163MS" accent={accent} />
     </svg>
   ),
   'hospital-nav': (accent) => (
@@ -158,15 +166,22 @@ function CaseBook({ project, onClose }: { project: Project | null; onClose: () =
           <div className="casebook__side">
             {project.image ? (
               <div className="casebook__img">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={project.image}
-                  alt={`${project.title} repository card`}
-                  onError={(event) => {
-                    (event.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-                <span>AUTO IMAGE FROM GITHUB — REAL SCREENSHOTS COMING</span>
+                {/* the GitHub OG card is a WHITE image dropped into a near-black
+                    modal — it glared. The frame does the grading (see v2.css):
+                    the img is knocked back and the ::after lays an inset dark
+                    crop + accent rim over it so it sits in the panel instead of
+                    punching a hole in it. */}
+                <div className="casebook__img-frame">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={project.image}
+                    alt={`${project.title} repository card`}
+                    onError={(event) => {
+                      (event.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+                <span>IMAGERY · GITHUB</span>
               </div>
             ) : (
               <div className="casebook__shot">

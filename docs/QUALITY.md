@@ -121,3 +121,22 @@ R8 ARRIVAL
   key/fill on fab shelf + NOW bench; vault steel env 1.8 + per-part roughness + rim
   lights + frame falloff; PCB gold + silkscreen. tsc clean, committed 3d0ffde (build
   deferred behind running validator).
+- IT4 (geometry + painted detail, two parallel implementers): chamfered plinths + serial
+  plates; gate gantries + stronger near-fade (ignition pool preserved); hero facade ribs;
+  window temperature variance; grid sky fade; depot queue-row board; packet variance; PCB
+  pad chamfer; viz label fixes; casebook dark frame + full-width diagrams; 10px type floor.
+  Committed 102d8a6.
+- IT5 (toy + arrival + residuals): drag-to-orbit focused chip (capture, Lenis stop,
+  spring-back, grab cursors, HUD); boot integrates real readiness (fonts + first painted
+  frame) + narrative stages + 2s intro dolly (additive, decays to exact rail pose);
+  long rides ease-in-out; OG stats crop attempt; PCB trace pulse. Committed 84c17f3.
+- ROUND-2 AUDIT (on IT4 build; 42-45s converged settles — 10s settles are mid-transit on
+  SwiftShader, so round-1's receipts BUY was judged on a non-final frame): hero BUY,
+  receipts HESITATE ($30K numeral parks over the focused vault at the true hold), work
+  BUY, road HESITATE (gate posts STILL print through cards at t=0.43 hold + transit —
+  IT4a's proximity fade insufficient), NOW BUY (occlusion residual resolved), contact
+  BUY. Also: film-pass grain invisible in blacks (0.2 levels vs 1.5-3 target); warm key
+  reads neutral; blob shadows invisible on near-black grounds; IT5's OG crop measured
+  ZERO effect (uncropped zeros row); SwiftShader fps halved (~1.7→~0.8) since film
+  pass + RectAreaLights — real-GPU risk unknown, add adaptive quality; PCB trace enters
+  off-frame, board center still unanchored; NOW stat caption grazes machine labels.

@@ -177,3 +177,19 @@ R8 ARRIVAL
   (gates/numeral/OG/hint/deep-link/console/monotonic/390). Honest minors: chip-face
   warmth R-G 0.3-3.8 vs ≥5 target; boot 9.5-12.5s on sub-1fps SwiftShader (real-GPU
   deadline 3.2s); focused mobile thumbnail brightest element at ~151; THREE.Clock warn.
+- ROUND-6 VERIFY-ONLY (same build, fresh eyes): **CLEAN AUDIT #2 — the loop ends.**
+  All six BUY; interactivity held everywhere it is promised (vault flare 39.7%, dot
+  refocus, orbit + spring-back, casebook open/Esc); zero console errors; all spot
+  checks pass. New minors observed: orbit spring-back is fps-coupled (slow only on
+  sub-1fps software rendering); queue board slightly clips the MACBOOK bench label.
+
+## Loop closed (IT8 / round 6, 2026-08-28 ~05:10)
+
+Converged per the stop rule: two consecutive all-BUY audits with nothing above minor
+(rounds 5 and 6, on the same IT8 build). Residual minors on record, none blocking:
+chip-face warmth under the R-G≥5 target; boot 10-13s only under sub-1fps software
+rendering (real-GPU deadline is 3.2s); casebook + shelf imagery is still auto-GitHub
+OG (graded dark) awaiting Phong's real screenshots; real-GPU performance, long-ride
+easing feel, and adaptive-quality behavior on real GPUs unverified headless; focused
+mobile thumbnail is the brightest element; THREE.Clock deprecation warning (three.js
+internals); NOW queue board slightly clips the MACBOOK nameplate.

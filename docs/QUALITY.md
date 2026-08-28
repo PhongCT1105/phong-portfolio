@@ -171,3 +171,9 @@ R8 ARRIVAL
   (min(dt,0.5), discard only >2s) + evaluates from 12 samples so sub-1fps machines
   trip the degrade in seconds; keys deepened to #ffc484 @ 10/9.5 (split-tone eats pale
   warmth); mobile shelf thumbnails graded down (brightness .72 duotone family).
+- ROUND-5 AUDIT (IT8 build): **CLEAN AUDIT #1** — all six chapters BUY, nothing above
+  minor. Adaptive degrade verified live (lands ~18-28s post-boot at 0.9fps, grain σ
+  1.87→0.14, no flapping for 117s, bloom+vignette persist); all round-4 fixes hold
+  (gates/numeral/OG/hint/deep-link/console/monotonic/390). Honest minors: chip-face
+  warmth R-G 0.3-3.8 vs ≥5 target; boot 9.5-12.5s on sub-1fps SwiftShader (real-GPU
+  deadline 3.2s); focused mobile thumbnail brightest element at ~151; THREE.Clock warn.

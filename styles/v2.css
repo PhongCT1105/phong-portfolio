@@ -280,7 +280,7 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .work-drag-hint {
   position: absolute;
   left: 50%;
-  top: calc(2% + clamp(52px, 6vw, 105px) + 10px);
+  bottom: 92px;
   transform: translateX(-50%);
   font: 10px var(--mono);
   letter-spacing: .22em;
@@ -290,6 +290,8 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
   animation: dragHintIn .6s var(--ease-out) both .25s;
 }
 @keyframes dragHintIn { from { opacity: 0; transform: translateX(-50%) translateY(6px); } }
+/* once the visitor has dragged, the affordance has done its job */
+.work-drag-hint.is-done { opacity: 0; transition: opacity .5s; }
 @media (prefers-reduced-motion: reduce) { .work-drag-hint { animation: none; } }
 @media (max-width: 800px) { .work-drag-hint { display: none; } }
 
@@ -712,8 +714,8 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
   .road-year-giant { font-size: clamp(150px, 8.5vw, 215px); }
   .work-giant { font-size: clamp(140px, 8vw, 195px); }
   .work-stage .work-giant { font-size: clamp(105px, 5.5vw, 145px); }
-  /* the affordance tracks whatever the giant's line box is at this breakpoint */
-  .work-drag-hint { top: calc(2% + clamp(105px, 5.5vw, 145px) + 12px); }
+  /* the affordance stays bottom-anchored at every breakpoint */
+  .work-drag-hint { bottom: 96px; }
   .work-stage { grid-template-columns: minmax(0, 1fr) minmax(360px, 560px); }
   .receipt-readout__main strong { font-size: 22px; }
   .receipt-readout__main p { font-size: 16px; max-width: 640px; }

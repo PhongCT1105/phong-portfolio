@@ -140,3 +140,21 @@ R8 ARRIVAL
   ZERO effect (uncropped zeros row); SwiftShader fps halved (~1.7→~0.8) since film
   pass + RectAreaLights — real-GPU risk unknown, add adaptive quality; PCB trace enters
   off-frame, board center still unanchored; NOW stat caption grazes machine labels.
+- ROUND-3 AUDIT (on IT5 build): same verdict line — hero/work/now/contact BUY, receipts/
+  road HESITATE (both are the IT6 fixes, unbuilt at audit time). IT5 verified: arrival
+  loader stages advance off real readiness, dolly plays then settles to the exact hold;
+  orbit toy PASSES all seven checks (rotate/spring-back/no-scroll-fight/click-vs-drag
+  slop/grab cursors/HUD); PCB trace pulse travels. NEW gaps: boot dt-clamp made loader
+  fps-coupled (59.6s at 0.8fps); OG crop 118% too shallow; DRAG TO ORBIT hint printed
+  over the chip; cold deep-link opened the casebook mid-ride.
+- IT6 (round-2 fix pass): road cards actually opaque (the real culprit was the recession
+  opacity ladder — now a brightness filter at opacity 1, scrim .955+) + station-3 gate
+  alpha cap 0.5 + thicker lattice; numeral moved to the sky window (projection-verified);
+  OG crop rebuilt as positioned img (133%) + stronger duotone; additive grain in sqrt
+  space (σ≈1.6 display levels); warm keys #ffd9a8 ×1.6 + light pools; adaptive quality
+  (40/22ms hysteresis, one toggle/30s) gating film pass + fills; trace to die rim; NOW
+  stat lifted. Committed ef75dd9.
+- IT7 (orchestrator inline, round-3 new gaps): boot integrates wall-clock (dt clamp
+  0.05→0.5s) and SNAPS to 100% at the deadline; DRAG TO ORBIT hint bottom-anchored in
+  stage air + hides after first drag; cold deep-link casebook opens only after the
+  scroll settles (750ms stillness or 5s cap, token-cancelled on newer hash).

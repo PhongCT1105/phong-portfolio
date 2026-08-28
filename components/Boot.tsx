@@ -92,14 +92,21 @@ export default function Boot() {
 
     const tick = (now: number) => {
       if (cancelled) return;
-      const dt = Math.min(0.05, (now - last) / 1000);
+      // clamp at 0.5s, not 0.05: a renderer at sub-1fps must still integrate in
+      // wall-clock time, or the loader runs 20x slower than the meter promises
+      const dt = Math.min(0.5, (now - last) / 1000);
       last = now;
 
       const overdue = now > deadline;
       const ceiling = overdue ? 1 : !fontsReady ? 0.55 : painted() ? 1 : 0.9;
-      value = Math.max(value, value + (ceiling - value) * (1 - Math.exp(-dt * rate)));
-      // an exponential approach never arrives — close enough IS arrived
-      if (ceiling - value < 0.004) value = ceiling;
+      if (overdue) {
+        // the deadline is a promise to the visitor — snap, don't approach
+        value = 1;
+      } else {
+        value = Math.max(value, value + (ceiling - value) * (1 - Math.exp(-dt * rate)));
+        // an exponential approach never arrives — close enough IS arrived
+        if (ceiling - value < 0.004) value = ceiling;
+      }
 
       if (meterRef.current) meterRef.current.style.width = `${Math.round(value * 100)}%`;
       // the city lights behind the overlay off the SAME number the meter shows

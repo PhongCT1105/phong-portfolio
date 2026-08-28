@@ -326,6 +326,8 @@ function InteractiveChip({
     setDragActive(true);
     window.clearTimeout(hudTimer.current);
     writeHud(hudText(baseYaw, basePitch));
+    // the affordance has done its job the moment a first drag begins
+    document.querySelector('.work-drag-hint')?.classList.add('is-done');
 
     try {
       (event.target as unknown as { setPointerCapture?: (id: number) => void }).setPointerCapture?.(

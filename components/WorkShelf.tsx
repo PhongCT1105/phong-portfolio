@@ -317,12 +317,15 @@ export default function WorkShelf() {
   useEffect(() => {
     // a cold deep link lands instantly (the boot loader owns that first second);
     // a hash change DURING the visit rides the rail like every other nav
+    let hashToken = 0;
     const applyHash = (ride: boolean) => {
       const match = window.location.hash.match(/^#work\/([\w-]+)$/);
       if (match) {
         const index = projects.findIndex((p) => p.slug === match[1]);
         if (index >= 0) {
-          useJourney.getState().setWork(index, match[1]);
+          const slug = match[1];
+          // focus now; the modal waits for the ride (below)
+          useJourney.getState().setWork(index, null);
           // land the visitor at the scroll depth that DERIVES this project,
           // otherwise the scroll-driven focus would immediately clobber the
           // deep link back to the first chip
@@ -335,13 +338,36 @@ export default function WorkShelf() {
           } else if (workEl) {
             railScrollTo(workEl, 0, !ride);
           }
+          // open the case study only once the scroll beneath has actually
+          // settled — otherwise Esc during the ride strands the visitor
+          // between stations (round-3 audit, new gap 4)
+          const token = ++hashToken;
+          const deadline = performance.now() + 5000;
+          let lastY = -1;
+          let stable = 0;
+          const check = () => {
+            if (token !== hashToken) return; // superseded by a newer hash
+            const y = window.scrollY;
+            if (Math.abs(y - lastY) < 4) stable += 1;
+            else stable = 0;
+            lastY = y;
+            if (stable >= 3 || performance.now() > deadline) {
+              useJourney.getState().setWork(index, slug);
+              return;
+            }
+            window.setTimeout(check, 250);
+          };
+          check();
         }
       }
     };
     applyHash(false);
     const onHashChange = () => applyHash(true);
     window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
+    return () => {
+      hashToken += 1; // cancel any pending settle-gated open
+      window.removeEventListener('hashchange', onHashChange);
+    };
   }, [projects]);
 
   // SCROLL-DRIVEN SHELF: focus is DERIVED from scroll position through the tall

@@ -11,6 +11,34 @@ import { makeSilkscreenTexture } from '@/components/city/textures';
 const UPLINK = { x: 210, z: 170 };
 
 /**
+ * CRITIC RESIDUAL — the contact board had no focal anchor: at settle the eye landed
+ * on a field of empty substrate. This is ONE routed trace, drawn the way a real board
+ * routes one: orthogonal runs joined by 45° doglegs, from a via out on the substrate
+ * down into the gold pad cluster on the die's far face. A pulse crawls along it, so
+ * the board reads as powered rather than printed.
+ *
+ * Coordinates are (x, z) on the board plane, and they are chosen against the ACTUAL
+ * settle framing (camera [-30,500,300] → [0,0,0], fov 55): this route projects to
+ * NDC y .93 → .68 just right of centre, i.e. the empty band above the die and below
+ * the top of frame, where nothing else — 3D or DOM — is competing. The −Z pad row
+ * spans z −295..−269, so the run stops at −302 and never overlaps it.
+ */
+const TRACE: [number, number][] = [
+  [170, -452],
+  [170, -400],
+  [110, -340],
+  [110, -316],
+  [40, -316],
+  [40, -302]
+];
+/** peak emissive at the head of the pulse (the rail caps this view's brights) */
+const TRACE_PEAK = 1.2;
+/** dim standing glow so the route still reads between pulses */
+const TRACE_BASE = 0.16;
+/** seconds for one head-to-tail pass, plus the dark gap before the next */
+const TRACE_PERIOD = 5.2;
+
+/**
  * M8 — the reveal: from orbit the city turns out to be one chip on a PCB.
  * Board, package rim, and gold pin pads fade in only at the lift-off station.
  */
@@ -36,6 +64,30 @@ export default function Board() {
   const padRef = useRef<THREE.InstancedMesh>(null);
   const silkscreen = useMemo(() => makeSilkscreenTexture(), []);
 
+  /** the routed trace, pre-solved into segment transforms + normalised centres */
+  const traceSegments = useMemo(() => {
+    let run = 0;
+    const raw = TRACE.slice(1).map((point, i) => {
+      const [x0, z0] = TRACE[i];
+      const [x1, z1] = point;
+      const dx = x1 - x0;
+      const dz = z1 - z0;
+      const length = Math.hypot(dx, dz);
+      const start = run;
+      run += length;
+      return {
+        // local +X of a box rotated by `rot` about Y points at (cos, -sin) in (x,z)
+        rot: Math.atan2(-dz, dx),
+        position: [(x0 + x1) / 2, -0.15, (z0 + z1) / 2] as [number, number, number],
+        // +1.6 so consecutive segments overlap and the doglegs have no gaps
+        length: length + 1.6,
+        mid: start + length / 2
+      };
+    });
+    return raw.map((s) => ({ ...s, at: s.mid / run }));
+  }, []);
+  const traceMats = useRef<(THREE.MeshStandardMaterial | null)[]>([]);
+
   useFrame((state, dt) => {
     const { station, localT, boot } = useJourney.getState();
     const delta = Math.min(dt, 0.05);
@@ -51,6 +103,20 @@ export default function Board() {
     if (padRef.current) {
       const m = padRef.current.material as THREE.MeshStandardMaterial;
       m.opacity = reveal.current;
+    }
+
+    // the pulse: a soft head travelling 0 → 1 along the route, then a dark gap.
+    // Segments are STAGGERED by their own position on the route (not by index), so
+    // the light crawls at a constant speed through the doglegs.
+    if (traceMats.current.length) {
+      const head = ((state.clock.elapsedTime % TRACE_PERIOD) / TRACE_PERIOD) * 1.34 - 0.17;
+      traceSegments.forEach((seg, i) => {
+        const m = traceMats.current[i];
+        if (!m) return;
+        const d = (head - seg.at) / 0.11;
+        m.opacity = reveal.current * 0.9;
+        m.emissiveIntensity = reveal.current * (TRACE_BASE + TRACE_PEAK * Math.exp(-d * d));
+      });
     }
 
     // uplink beam blinks on the terminal caret's ~0.9s cycle
@@ -169,6 +235,40 @@ export default function Board() {
           opacity={0}
         />
       </instancedMesh>
+      {/* CRITIC RESIDUAL — the routed trace + its start via. Accent green, the hue
+          the uplink base already uses, so the view gains a focal point and NOT a
+          third colour. It sits at y=-0.15: above the substrate (-0.6) and above the
+          silkscreen plane (-0.3), which is depthWrite:false, so nothing z-fights. */}
+      {traceSegments.map((seg, i) => (
+        <mesh key={i} position={seg.position} rotation={[0, seg.rot, 0]} renderOrder={2}>
+          <boxGeometry args={[seg.length, 0.5, 4.4]} />
+          <meshStandardMaterial
+            ref={(m) => {
+              traceMats.current[i] = m;
+            }}
+            color="#0a140a"
+            emissive="#9be15d"
+            emissiveIntensity={0}
+            roughness={0.4}
+            metalness={0.6}
+            transparent
+            opacity={0}
+          />
+        </mesh>
+      ))}
+      <mesh position={[TRACE[0][0], -0.15, TRACE[0][1]]} renderOrder={2}>
+        <cylinderGeometry args={[5.2, 5.2, 0.6, 12]} />
+        <meshStandardMaterial
+          ref={registerFade(0.9)}
+          color="#0a140a"
+          emissive="#9be15d"
+          emissiveIntensity={0.35}
+          roughness={0.4}
+          metalness={0.6}
+          transparent
+          opacity={0}
+        />
+      </mesh>
       {/* uplink beam at the I/O corner — blinks with the terminal caret */}
       <mesh position={[UPLINK.x, 160, UPLINK.z]}>
         <boxGeometry args={[0.9, 320, 0.9]} />

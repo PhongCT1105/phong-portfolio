@@ -5,13 +5,37 @@ import { BOOT_KEY, getOrCreateSessionId, prefersReducedMotion } from '@/lib/sess
 import { useJourney } from '@/lib/journey';
 
 type LogLine = { text: string; cls: string; dots?: boolean };
+/** a narrative label + the boot value at which it has actually been earned */
+type Stage = LogLine & { at: number };
 
-const sleep = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
+/**
+ * R8 ARRIVAL — the loader now measures something.
+ *
+ * The old sequence was five `await sleep(200)`s: the meter was a stopwatch, and it
+ * hit 100% while the city was still compiling shaders. This version integrates
+ * toward a CEILING that only real readiness lifts:
+ *
+ *   0 → .55   always available (the connection beat)
+ *   .55 → .90 unlocked by document.fonts.ready — the type the page is about to
+ *             draw is actually resident
+ *   .90 → 1   unlocked by the FIRST PAINTED 3D FRAME (journey.firstFrame, set from
+ *             a useFrame in CityScene after one full render), or immediately on the
+ *             2D fallback tier where there is no frame to wait for
+ *
+ * The labels are read OFF that value, so they are descriptions of progress rather
+ * than a script running beside it. A deadline caps the whole thing so a stalled
+ * font file or a dead GL context can never trap a visitor behind the overlay.
+ */
+const FRESH_DEADLINE_MS = 3200;
+const RETURN_DEADLINE_MS = 1600;
+/** approach rate toward the current ceiling (per second, exponential) */
+const FRESH_RATE = 2.2;
+const RETURN_RATE = 8;
 
 export default function Boot() {
   const [done, setDone] = useState(false);
   const [lines, setLines] = useState<LogLine[]>([]);
-  const [meter, setMeter] = useState(0);
+  const meterRef = useRef<HTMLSpanElement>(null);
   const ran = useRef(false);
 
   useEffect(() => {
@@ -19,62 +43,101 @@ export default function Boot() {
     ran.current = true;
 
     let cancelled = false;
-
-    const run = async () => {
-      const sessionId = getOrCreateSessionId();
-      const already = window.sessionStorage.getItem(BOOT_KEY) === '1';
-      const { setBoot } = useJourney.getState();
-
-      if (prefersReducedMotion()) {
-        setBoot(1);
-        setDone(true);
-        window.dispatchEvent(new Event('phong:booted'));
-        return;
-      }
-
-      document.body.classList.add('is-booting');
-
-      if (already) {
-        setLines([{ text: `SESSION ${sessionId} · CONNECTED`, cls: 'ok boot-line--big' }]);
-        setMeter(100);
-        setBoot(0.7);
-        await sleep(220);
-      } else {
-        const script: LogLine[] = [
-          { text: 'ESTABLISHING CONNECTION', cls: '', dots: true },
-          { text: `SESSION ${sessionId}`, cls: 'ok' },
-          { text: 'AI INFRASTRUCTURE', cls: '' },
-          { text: 'DISTRIBUTED SYSTEMS', cls: '' },
-          { text: '10× BUILDER', cls: '' }
-        ];
-        // each log line lands a VISIBLE district delta behind the overlay
-        for (let i = 0; i < script.length; i += 1) {
-          if (cancelled) return;
-          setLines(script.slice(0, i + 1));
-          setMeter(Math.round(((i + 1) / 6) * 100));
-          setBoot(0.16 * (i + 1));
-          await sleep(i === 0 ? 240 : 200);
-        }
-        if (cancelled) return;
-        // CONNECTED is the beat: hold, land it big, then fade + sign flicker
-        await sleep(200);
-        setLines((prev) => [...prev, { text: 'CONNECTED', cls: 'ok boot-line--big' }]);
-        setMeter(100);
-        setBoot(0.9);
-        await sleep(300);
-      }
-
-      if (cancelled) return;
-      window.sessionStorage.setItem(BOOT_KEY, '1');
-      setDone(true); // overlay fade begins…
-      document.body.classList.remove('is-booting');
-      window.setTimeout(() => setBoot(1), 250); // …sign flickers on 250ms into the fade
-      window.dispatchEvent(new Event('phong:booted'));
+    let raf = 0;
+    const timers: number[] = [];
+    const later = (fn: () => void, ms: number) => {
+      timers.push(window.setTimeout(fn, ms));
     };
 
-    run();
+    const sessionId = getOrCreateSessionId();
+    const already = window.sessionStorage.getItem(BOOT_KEY) === '1';
+    const { setBoot } = useJourney.getState();
+
+    if (prefersReducedMotion()) {
+      setBoot(1);
+      setDone(true);
+      window.dispatchEvent(new Event('phong:booted'));
+      return;
+    }
+
+    document.body.classList.add('is-booting');
+
+    const stages: Stage[] = already
+      ? [{ at: 0, text: `SESSION ${sessionId} · RECONNECTING`, cls: '', dots: true }]
+      : [
+          { at: 0, text: 'ESTABLISHING CONNECTION', cls: '', dots: true },
+          { at: 0.18, text: `SESSION ${sessionId}`, cls: 'ok' },
+          { at: 0.36, text: 'POWERING THE GRID', cls: '' },
+          { at: 0.58, text: 'LIGHTING DOWNTOWN', cls: '' },
+          { at: 0.8, text: 'OPENING THE VAULTS', cls: '' }
+        ];
+
+    // real gate 1: the fonts this page is about to lay out
+    let fontsReady = false;
+    if (document.fonts?.ready) document.fonts.ready.then(() => (fontsReady = true));
+    else fontsReady = true;
+    // real gate 2: a painted 3D frame — or none owed, on the 2D fallback tier
+    const painted = () => {
+      const state = useJourney.getState();
+      return state.firstFrame || state.tier === 'off';
+    };
+
+    const deadline = performance.now() + (already ? RETURN_DEADLINE_MS : FRESH_DEADLINE_MS);
+    const rate = already ? RETURN_RATE : FRESH_RATE;
+
+    let value = 0;
+    let shown = 0;
+    let sentBoot = -1;
+    let last = performance.now();
+
+    const tick = (now: number) => {
+      if (cancelled) return;
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+
+      const overdue = now > deadline;
+      const ceiling = overdue ? 1 : !fontsReady ? 0.55 : painted() ? 1 : 0.9;
+      value = Math.max(value, value + (ceiling - value) * (1 - Math.exp(-dt * rate)));
+      // an exponential approach never arrives — close enough IS arrived
+      if (ceiling - value < 0.004) value = ceiling;
+
+      if (meterRef.current) meterRef.current.style.width = `${Math.round(value * 100)}%`;
+      // the city lights behind the overlay off the SAME number the meter shows
+      if (value - sentBoot > 0.004) {
+        sentBoot = value;
+        setBoot(value);
+      }
+      const next = stages.filter((s) => value >= s.at).length;
+      if (next !== shown) {
+        shown = next;
+        setLines(stages.slice(0, next));
+      }
+
+      if (value >= 1) {
+        // CONNECTED is the beat: it lands only once the city is genuinely up
+        setLines([...stages, { text: 'CONNECTED', cls: 'ok boot-line--big' }]);
+        setBoot(0.94);
+        later(() => {
+          if (cancelled) return;
+          window.sessionStorage.setItem(BOOT_KEY, '1');
+          setDone(true); // overlay fade begins…
+          document.body.classList.remove('is-booting');
+          // …sign flickers on 250ms in. boot hitting exactly 1 is also what arms
+          // the intro dolly in CityScene's CameraRig — i.e. the camera starts
+          // moving as the loader clears, not before.
+          later(() => setBoot(1), 250);
+          window.dispatchEvent(new Event('phong:booted'));
+        }, 320);
+        return;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+
     return () => {
       cancelled = true;
+      cancelAnimationFrame(raf);
+      timers.forEach((t) => window.clearTimeout(t));
       document.body.classList.remove('is-booting');
     };
   }, []);
@@ -93,7 +156,7 @@ export default function Boot() {
           ))}
         </div>
         <div className="boot__meter" aria-hidden="true">
-          <span style={{ width: `${meter}%` }} />
+          <span ref={meterRef} style={{ width: 0 }} />
         </div>
       </div>
     </div>

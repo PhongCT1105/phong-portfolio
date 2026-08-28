@@ -177,7 +177,12 @@ function CaseBook({ project, onClose }: { project: Project | null; onClose: () =
                     src={project.image}
                     alt={`${project.title} repository card`}
                     onError={(event) => {
-                      (event.target as HTMLImageElement).style.display = 'none';
+                      // the frame is a FIXED-ratio crop window now, so hiding just
+                      // the img would leave a bordered void — drop the whole block
+                      // (caption included: no image, nothing to credit)
+                      const block = (event.target as HTMLImageElement).closest<HTMLElement>('.casebook__img');
+                      if (block) block.style.display = 'none';
+                      else (event.target as HTMLImageElement).style.display = 'none';
                     }}
                   />
                 </div>
@@ -481,12 +486,26 @@ export default function WorkShelf() {
               >
                 {focused.title}
               </b>
+              {/* R7 affordance: the toy has to announce itself, and only where it
+                  exists — the 3D shelf (this branch never renders at tier 'off')
+                  with no case study covering the stage. */}
+              {openSlug ? null : <span className="work-drag-hint">DRAG TO ORBIT</span>}
               <div className="shelf__dashes">
                 {projects.map((project, index) => (
                   <span key={project.slug} className={index === focus ? 'is-on' : ''} />
                 ))}
               </div>
-              <span className="shelf__window-hint">SCROLL — THE SHELF TURNS ITSELF · ← → TO BROWSE</span>
+              {/* R7 HUD: Fab.tsx writes the live orbit angles straight into this
+                  node's textContent while dragging (no React render per frame) and
+                  restores `data-hint` 1s after release. The literal child below is
+                  the same string, so a WorkShelf re-render is a no-op for React. */}
+              <span
+                id="work-orbit-hud"
+                className="shelf__window-hint"
+                data-hint="SCROLL — THE SHELF TURNS ITSELF · ← → TO BROWSE"
+              >
+                SCROLL — THE SHELF TURNS ITSELF · ← → TO BROWSE
+              </span>
             </div>
             <div className="work-cases">
               {projects.map((project, index) => (

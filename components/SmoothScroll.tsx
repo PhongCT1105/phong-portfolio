@@ -13,6 +13,19 @@ export const getLenis = (): Lenis | null => lenisRef;
 const expoOut = (t: number): number => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t));
 
 /**
+ * CRITIC RESIDUAL — long rides. Pure expo-out spends ~80% of its travel in the
+ * first ~25% of the duration: over half a page that reads as a considered glide,
+ * but a hero→contact ride is a JUMP followed by a long settle, and on a low-fps
+ * machine the jump is a handful of frames the eye cannot follow. From two
+ * viewports up, the ride eases in as well as out, so the travel is legible even
+ * when it is only rendering at 20fps. Short rides keep the snappier expo-out.
+ */
+const easeInOutCubic = (t: number): number =>
+  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+/** rides this many viewports or longer switch curves */
+const LONG_RIDE_VIEWPORTS = 2;
+
+/**
  * In-page navigation that rides the scroll rail instead of teleporting.
  * Duration scales with distance (1.6s next-door → 2.6s hero→contact).
  * Reduced motion (and the pre-Lenis window before mount) keeps the instant jump.
@@ -29,7 +42,8 @@ export function railScrollTo(target: number | HTMLElement, offset = 0, instant =
   }
   const viewports = Math.abs(dest - window.scrollY) / Math.max(1, window.innerHeight);
   const duration = Math.min(2.6, 1.6 + viewports * 0.18);
-  lenis.scrollTo(dest, { duration, easing: expoOut });
+  const easing = viewports >= LONG_RIDE_VIEWPORTS ? easeInOutCubic : expoOut;
+  lenis.scrollTo(dest, { duration, easing });
 }
 
 export default function SmoothScroll() {

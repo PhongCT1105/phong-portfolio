@@ -22,6 +22,11 @@ interface JourneyState {
   ranges: number[];
   /** 0..1 — city power-on driven by the boot sequence (1 = fully lit) */
   boot: number;
+  /**
+   * true once the 3D scene has actually PAINTED a frame (not merely mounted).
+   * R8: the boot loader holds its last 10% on this, so "100%" is a real claim.
+   */
+  firstFrame: boolean;
   /** which project the work shelf has focused (0..3) — single source of truth */
   workFocus: number;
   /** slug of the opened case study, or null */
@@ -35,6 +40,7 @@ interface JourneyState {
   setProgress: (progress: number) => void;
   setRanges: (ranges: number[]) => void;
   setBoot: (boot: number) => void;
+  setFirstFrame: () => void;
   setWork: (focus: number, open: string | null) => void;
   setTier: (tier: 'full' | 'lite' | 'off') => void;
   setReceiptHover: (index: number | null) => void;
@@ -49,11 +55,15 @@ export const useJourney = create<JourneyState>((set, get) => ({
   localT: 0,
   ranges: DEFAULT_RANGES,
   boot: 0,
+  firstFrame: false,
   workFocus: 0,
   workOpen: null,
   tier: 'off',
   receiptHover: null,
   setBoot: (boot) => set({ boot: Math.max(0, Math.min(1, boot)) }),
+  setFirstFrame: () => {
+    if (!get().firstFrame) set({ firstFrame: true });
+  },
   setWork: (workFocus, workOpen) => set({ workFocus, workOpen }),
   setTier: (tier) => set({ tier }),
   setReceiptHover: (receiptHover) => set({ receiptHover }),

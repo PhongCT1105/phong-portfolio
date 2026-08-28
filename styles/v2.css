@@ -206,7 +206,27 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 @keyframes workGiantIn { from { opacity: 0; transform: translateX(-50%) translateY(12px) scale(.94); } }
 @media (prefers-reduced-motion: reduce) { .work-giant { animation: none; } }
 @media (max-width: 800px) { .work-giant { display: none; } }
-.shelf__window-hint { font: 10px var(--mono); letter-spacing: .15em; color: var(--muted-2); }
+.shelf__window-hint { font: 10px var(--mono); letter-spacing: .15em; color: var(--muted-2); transition: color .4s var(--ease-out); }
+/* R7: the same line becomes the live orbit readout while the chip is being dragged */
+.shelf__window-hint.is-orbiting { color: var(--accent-bright); transition: none; }
+/* R7 affordance under the giant title — the toy has to say it is a toy.
+   Rides the giant's own top offset so it never collides with it (the giant is
+   absolutely positioned at top:2% with line-height 1). */
+.work-drag-hint {
+  position: absolute;
+  left: 50%;
+  top: calc(2% + clamp(52px, 6vw, 105px) + 10px);
+  transform: translateX(-50%);
+  font: 10px var(--mono);
+  letter-spacing: .22em;
+  color: color-mix(in srgb, var(--accent) 72%, var(--muted-2));
+  pointer-events: none;
+  white-space: nowrap;
+  animation: dragHintIn .6s var(--ease-out) both .25s;
+}
+@keyframes dragHintIn { from { opacity: 0; transform: translateX(-50%) translateY(6px); } }
+@media (prefers-reduced-motion: reduce) { .work-drag-hint { animation: none; } }
+@media (max-width: 800px) { .work-drag-hint { display: none; } }
 
 /* ===== scroll-driven work track: chips auto-advance, case file opens itself ===== */
 .work--track { min-height: 380svh; }
@@ -259,13 +279,19 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
    a dark rim over the top so the white plate falls off into the panel instead of
    ending on a hard edge. No content is faked — this is the real repo card, dimmed. */
 .casebook__img { display: flex; flex-direction: column; gap: 8px; }
-.casebook__img-frame { position: relative; border-radius: 14px; overflow: hidden; background: #060806; border: 1.5px solid color-mix(in srgb, var(--card-accent, #9be15d) 38%, transparent); }
+/* CRITIC RESIDUAL: the GitHub OG card ends in a "0 contributors · 0 stars" strip
+   — real, but it un-sells the click. The bottom ~15% is CROPPED away rather than
+   faked: the frame is a fixed 2.36:1 window (the OG plate is 1280×640, i.e. 2:1,
+   so 2 ÷ .847 = 2.36) and the img inside is 118% tall with object-fit cover +
+   object-position top. 100%w × 118%h of a 2.36 box is exactly 2:1, so cover
+   scales with NO horizontal crop and overflow:hidden eats only the stats row. */
+.casebook__img-frame { position: relative; aspect-ratio: 2.36; border-radius: 14px; overflow: hidden; background: #060806; border: 1.5px solid color-mix(in srgb, var(--card-accent, #9be15d) 38%, transparent); }
 .casebook__img-frame::after {
   content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
   background: radial-gradient(118% 96% at 50% 42%, rgba(6,8,6,0) 38%, rgba(6,8,6,.46) 100%);
   box-shadow: inset 0 0 0 1px rgba(6,8,6,.8), inset 0 -30px 40px -24px rgba(6,8,6,.95), inset 0 24px 36px -28px rgba(6,8,6,.85);
 }
-.casebook__img img { width: 100%; display: block; filter: brightness(.82) contrast(1.05) saturate(.85); }
+.casebook__img img { width: 100%; height: 118%; object-fit: cover; object-position: top; display: block; filter: brightness(.82) contrast(1.05) saturate(.85); }
 .casebook__img span { font: 10px var(--mono); letter-spacing: .12em; color: var(--muted-2); }
 .casebook__cover--compact { min-height: 0; flex-direction: row; gap: 14px; padding: 12px 16px; font-size: 20px; }
 .casebook__cover--compact svg { width: 64px; height: 46px; }
@@ -577,6 +603,8 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
   .road-year-giant { font-size: clamp(150px, 8.5vw, 215px); }
   .work-giant { font-size: clamp(140px, 8vw, 195px); }
   .work-stage .work-giant { font-size: clamp(105px, 5.5vw, 145px); }
+  /* the affordance tracks whatever the giant's line box is at this breakpoint */
+  .work-drag-hint { top: calc(2% + clamp(105px, 5.5vw, 145px) + 12px); }
   .work-stage { grid-template-columns: minmax(0, 1fr) minmax(360px, 560px); }
   .receipt-readout__main strong { font-size: 22px; }
   .receipt-readout__main p { font-size: 16px; max-width: 640px; }

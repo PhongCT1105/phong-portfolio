@@ -168,6 +168,29 @@ function FogRig() {
   return null;
 }
 
+/**
+ * R8: flips `journey.firstFrame` after the first fully PAINTED frame. useFrame runs
+ * BEFORE the render for that frame, so the flag waits for the second invocation —
+ * by then one complete frame of the city exists on the canvas. The boot loader holds
+ * its last 10% on this, which is what makes the meter's 100% an honest claim.
+ */
+function FirstFrameFlag() {
+  const seen = useRef(0);
+  useFrame(() => {
+    if (seen.current > 1) return;
+    seen.current += 1;
+    if (seen.current === 2) useJourney.getState().setFirstFrame();
+  });
+  return null;
+}
+
+/** R8 intro dolly: how far back along the view axis, how much wider, for how long */
+const INTRO_BACK = 10;
+const INTRO_FOV = 4;
+const INTRO_SECONDS = 2;
+/** page-progress movement that counts as "the visitor took the wheel" */
+const INTRO_CANCEL = 0.0006;
+
 function CameraRig() {
   const curve = useMemo(
     () => new THREE.CatmullRomCurve3(RAIL_POINTS.map((p) => new THREE.Vector3(...p)), false, 'centripetal', 0.5),
@@ -181,11 +204,23 @@ function CameraRig() {
   // the damped wobble amount. `pos.current` stays the untouched pose source.
   const prevPos = useRef(new THREE.Vector3(...RAIL_POINTS[0]));
   const wobble = useRef(1);
+  // R8 intro dolly state: -1 = armed and waiting for the loader to clear,
+  // 0..1 = playing, 1 = spent. `introW` is the additive weight, and it is the
+  // ONLY thing that touches the finished pose.
+  const introT = useRef(-1);
+  const introW = useRef(0);
+  const introKilled = useRef(false);
+  const introAnchor = useRef(0);
+  const baseFov = useRef(0);
+  const lastFov = useRef(-1);
   const reduced = useMemo(() => prefersReducedMotion(), []);
 
   useFrame((state, dt) => {
-    const { station, localT } = useJourney.getState();
+    const { station, localT, boot, progress } = useJourney.getState();
     const delta = Math.min(dt, 0.05);
+    const cam = state.camera as THREE.PerspectiveCamera;
+    // captured before anything below can touch it, so it is the rail's true FOV
+    if (baseFov.current === 0 && cam.isPerspectiveCamera) baseFov.current = cam.fov;
 
     // per-segment mapping: station i travels rail segment i, so every station
     // lands exactly on its keyframe (page progress ≠ curve arc length).
@@ -251,6 +286,59 @@ function CameraRig() {
       state.camera.position.y += Math.sin(t * 0.17) * 0.09 * w;
       state.camera.rotation.z += Math.sin(t * 0.13) * 0.004 * w;
     }
+
+    // R8 ARRIVAL DOLLY — same contract as the wobble above: a purely ADDITIVE
+    // offset on the finished pose that decays to EXACTLY zero, so from the moment
+    // it is spent the rail is bit-exact again. It arms when boot reaches 1 (which
+    // Boot.tsx does 250ms into the overlay fade, i.e. as the loader clears) and
+    // eases expo-out from +10u back along the view axis and +4° of FOV into the
+    // hero keyframe. Any scroll during those 2s hands the camera straight back.
+    if (!reduced && introT.current < 1) {
+      if (introT.current < 0) {
+        if (boot >= 1) {
+          introT.current = 0;
+          introW.current = 1;
+          introAnchor.current = progress;
+        }
+      } else {
+        if (!introKilled.current && Math.abs(progress - introAnchor.current) > INTRO_CANCEL) {
+          introKilled.current = true;
+        }
+        if (introKilled.current) {
+          // the visitor took the wheel: fold the offset away fast
+          introW.current = THREE.MathUtils.damp(introW.current, 0, 8, delta);
+          if (introW.current < 0.002) {
+            introW.current = 0;
+            introT.current = 1;
+          }
+        } else {
+          introT.current += delta / INTRO_SECONDS;
+          const t = Math.min(1, introT.current);
+          // expo-out on the REMAINING offset — 1 at t=0, exactly 0 at t=1
+          introW.current = t >= 1 ? 0 : Math.pow(2, -10 * t);
+          if (t >= 1) introT.current = 1;
+        }
+      }
+    }
+    if (introW.current > 0) {
+      const w = introW.current;
+      // pull straight back along the view axis: the orientation lookAt just set
+      // stays valid, so the shot only widens — it never swings
+      scratch2.current.copy(state.camera.position).sub(look.current).normalize();
+      state.camera.position.addScaledVector(scratch2.current, INTRO_BACK * w);
+      if (cam.isPerspectiveCamera) {
+        const fov = baseFov.current + INTRO_FOV * w;
+        if (fov !== lastFov.current) {
+          cam.fov = fov;
+          cam.updateProjectionMatrix();
+          lastFov.current = fov;
+        }
+      }
+    } else if (cam.isPerspectiveCamera && lastFov.current !== -1 && cam.fov !== baseFov.current) {
+      cam.fov = baseFov.current;
+      cam.updateProjectionMatrix();
+      lastFov.current = baseFov.current;
+    }
   });
 
   return null;
@@ -281,6 +369,7 @@ export default function CityScene({ tier }: { tier: QualityTier }) {
       <City density={tier === 'lite' ? 0.6 : 1} />
       <CameraRig />
       <FogRig />
+      <FirstFrameFlag />
       {tier === 'full' ? <FilmPass reduced={reduced} /> : null}
     </Canvas>
   );

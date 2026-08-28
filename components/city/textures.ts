@@ -639,3 +639,81 @@ export function makePacketCoreTexture(): THREE.CanvasTexture {
   packetCoreTexture = texture;
   return texture;
 }
+
+/* ---------------------------------------------------------- IT6 additions
+   Append-only: nothing above this line is touched. */
+
+/**
+ * IT6 — LIGHT POOLS. Round 2: "the blob shadows are invisible on near-black
+ * grounds". They are working exactly as written; the problem is that black on
+ * black is nothing. A shadow only reads as grounding when there is light around
+ * it to be missing from, so every hero object now also gets a warm pool laid
+ * UNDER it and OVER its blob shadow: the shadow keeps the soft dark core right
+ * at the contact patch, the pool throws a halo around it at ~1.6× the footprint,
+ * and the contrast between the two is what makes the object sit on the surface.
+ *
+ * The ramp starts at 0.5 in the middle rather than 1: the object hides the
+ * centre anyway, and holding the core down stops the pool from simply cancelling
+ * the shadow it is supposed to frame.
+ */
+let lightPoolTexture: THREE.CanvasTexture | null = null;
+
+export function makeLightPoolTexture(): THREE.CanvasTexture {
+  if (lightPoolTexture) return lightPoolTexture;
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d')!;
+  ctx.clearRect(0, 0, size, size);
+  const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  g.addColorStop(0, 'rgba(255,255,255,0.5)');
+  g.addColorStop(0.3, 'rgba(255,255,255,1)');
+  g.addColorStop(0.58, 'rgba(255,255,255,0.42)');
+  g.addColorStop(0.8, 'rgba(255,255,255,0.12)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, size, size);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.NoColorSpace;
+  lightPoolTexture = texture;
+  return texture;
+}
+
+let lightPoolMaterial: THREE.MeshBasicMaterial | null = null;
+
+/**
+ * ONE shared additive material for every pool, same discipline as the blob
+ * shadow: one upload, one material instance, no batching break. Additive with a
+ * warm tint means it can only ever ADD light — it never darkens a lit surface —
+ * and `depthWrite:false` keeps it out of the ground's z-fight the same way.
+ */
+export function getLightPoolMaterial(): THREE.MeshBasicMaterial {
+  if (lightPoolMaterial) return lightPoolMaterial;
+  lightPoolMaterial = new THREE.MeshBasicMaterial({
+    color: '#ffd0a0',
+    map: makeLightPoolTexture(),
+    transparent: true,
+    opacity: 0.12,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    toneMapped: false,
+    fog: false
+  });
+  return lightPoolMaterial;
+}
+
+/**
+ * IT6 — ADAPTIVE QUALITY flag. CityScene samples frame time and flips this when
+ * the full tier is too expensive for the machine it landed on; the two studio
+ * rigs (Fab, Scheduler) read it per frame and drop their cool-fill
+ * RectAreaLights, which are the priciest lights in the scene. A plain module
+ * object rather than a store: it is read inside useFrame, so it must never
+ * trigger a React render, and it must not create an import cycle back into
+ * CityScene (City → Fab → CityScene would be one).
+ */
+export const QUALITY = { fills: true };
+
+export function setQualityFills(on: boolean): void {
+  QUALITY.fills = on;
+}

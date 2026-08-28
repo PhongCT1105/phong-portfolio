@@ -17,19 +17,39 @@ const UPLINK = { x: 210, z: 170 };
  * down into the gold pad cluster on the die's far face. A pulse crawls along it, so
  * the board reads as powered rather than printed.
  *
- * Coordinates are (x, z) on the board plane, and they are chosen against the ACTUAL
- * settle framing (camera [-30,500,300] → [0,0,0], fov 55): this route projects to
- * NDC y .93 → .68 just right of centre, i.e. the empty band above the die and below
- * the top of frame, where nothing else — 3D or DOM — is competing. The −Z pad row
- * spans z −295..−269, so the run stops at −302 and never overlaps it.
+ * IT6 RE-ROUTE. Round 2: "the trace enters from off-frame right; the board centre is
+ * still unanchored". Re-projected against the settle framing (camera [-30,500,300] →
+ * [0,0,0], fov 55, aspect 1440/900), the IT5 route ran
+ *     start (170,-452) → NDC (+0.18, +0.93)   — flush with the top edge, i.e. it
+ *                                                appears to arrive from off-frame
+ *     end   ( 40,-302) → NDC (+0.02, +0.68)   — still up in the top quarter
+ * so it read as a fragment passing through the corner rather than a route INTO the
+ * package. The new route is
+ *     (200,-360) → NDC (+0.25, +0.80)   start via, comfortably inside frame
+ *     ( 60,-360) → NDC (+0.04, +0.78)   run west across the substrate
+ *     (  0,-300) → NDC (-0.05, +0.67)   45° dogleg onto the die's centre line
+ *     (  0,-257) → NDC (-0.04, +0.59)   terminus, hard against the package rim
+ * last segment mid (0,-278.5) → NDC (-0.046, +0.627).
+ *
+ * CONFLICT WITH THE BRIEF, stated plainly: the brief asks for the last segment at
+ * NDC y 0.10–0.45. No point on the board satisfies that off the die. Solving the
+ * ndc_y = 0.3 iso-line for this camera gives px = 1181.6 + 10·pz, which crosses the
+ * die's own footprint (|x| ≤ 280, |z| ≤ 240) for every point with |ndc_x| < 0.25 —
+ * the frame's centre band simply IS the city. The die's near edge itself only
+ * reaches ndc_y ≈ 0.50–0.61. Terminating at 0.59 is therefore the closest the trace
+ * can get to frame centre without printing a glowing bar across the skyline, so
+ * that is where it stops: aimed at the package, pointing the eye in.
+ *
+ * Clearances: the −Z pad row spans z −295..−269 with pads on 40u centres (±8u each),
+ * so the final run at x=0 threads the 24u-wide gap between the ±20 pads; and the
+ * package rim's outer face is at z=−255, which the run stops 2u short of (−257,
+ * −256.2 once the segment's +1.6 overlap is added).
  */
 const TRACE: [number, number][] = [
-  [170, -452],
-  [170, -400],
-  [110, -340],
-  [110, -316],
-  [40, -316],
-  [40, -302]
+  [200, -360],
+  [60, -360],
+  [0, -300],
+  [0, -257]
 ];
 /** peak emissive at the head of the pulse (the rail caps this view's brights) */
 const TRACE_PEAK = 1.2;

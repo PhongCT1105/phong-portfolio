@@ -97,19 +97,31 @@ function Gate({ x, color, index }: { x: number; color: string; index: number }) 
     const prox = Math.abs(state.camera.position.x - x);
     const nearFade = station === 3 ? Math.max(0.05, Math.min(1, (prox - 14) / 26)) : 1;
 
+    // IT6 — the proximity fade alone was NOT enough: round 2 caught a far gate
+    // (Zolli, 26u away at the t=0.43 hold, i.e. nearFade ≈ 0.46) printing fully
+    // saturated through the card band, and mid-transit posts slicing Adobe/Zolli.
+    // `station === 3` is EXACTLY the condition "a DOM card band is on screen", so
+    // every gate is capped to half alpha for the whole chapter, on top of the
+    // proximity fade. Combined with the now-opaque card scrim (v2.css) a gate
+    // behind a card contributes under 3% of the pixel. The ignition flash is
+    // untouched: it is thrown by the pool light below, which has its own gentler
+    // curve, and a 0.5-alpha tube still reads as colour against the black avenue.
+    const stationCap = station === 3 ? 0.5 : 1;
+    const alpha = nearFade * stationCap;
+
     // emissive dims by nearFade² so a crossing tube dims perceptually (bloom
     // would otherwise keep a saturated core even at low alpha)
     const intensity = level.current * bootRamp * nearFade * nearFade;
     matRefs.current.forEach((m) => {
       if (m) {
         m.emissiveIntensity = intensity;
-        // floors at 0.05 with nearFade — the tube goes with the structure
-        m.opacity = nearFade;
+        // floors at 0.025 during station 3 — the tube goes with the structure
+        m.opacity = alpha;
       }
     });
     // the steel goes with it, otherwise a black lattice would still slice the cards
-    steel.opacity = nearFade;
-    blade.opacity = nearFade;
+    steel.opacity = alpha;
+    blade.opacity = alpha;
 
     // The pool the igniting gate throws is on the GROUND, below the card band,
     // so it keeps the older, gentler curve. Ignition fires ~21-30u out, which the
@@ -169,14 +181,20 @@ function Gate({ x, color, index }: { x: number; color: string; index: number }) 
           structure that could actually hold the tube up. */}
       {LEG_Z.map((lz) => (
         <group key={lz} position={[0, 0, lz]}>
+          {/* IT6 GAUGE: 0.16u posts / 0.12u braces vanished at the mid-distance
+              the road actually shows them at — a 0.16u member 60u from a 55°
+              camera on a 1440px frame is ~0.16 / (2·60·tan27.5°) · 1440 ≈ 1.8px
+              BEFORE the near-fade multiplies its alpha, so the lattice read as
+              nothing at all and the gantry collapsed back to a glowing staple.
+              0.30u / 0.22u puts them at ~3.5px / 2.5px, which survives the fade. */}
           {POST_OFFSETS.map((oz) => (
             <mesh key={oz} position={[0, 6.1, oz]} material={steel} raycast={NO_RAYCAST}>
-              <boxGeometry args={[0.16, 11.8, 0.16]} />
+              <boxGeometry args={[0.3, 11.8, 0.3]} />
             </mesh>
           ))}
           {BRACE_YS.map((by) => (
             <mesh key={by} position={[0, by, 0]} material={steel} raycast={NO_RAYCAST}>
-              <boxGeometry args={[0.12, 0.12, 1.2]} />
+              <boxGeometry args={[0.22, 0.22, 1.2]} />
             </mesh>
           ))}
           {/* seated on a pad wide enough for the new footprint */}

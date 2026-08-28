@@ -1,13 +1,12 @@
 'use client';
 
-import { Suspense, useMemo, useRef } from 'react';
+import { Suspense, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment } from '@react-three/drei';
 import {
   EffectComposer,
   Bloom,
   Vignette,
-  Noise,
   ChromaticAberration,
   wrapEffect
 } from '@react-three/postprocessing';
@@ -21,6 +20,7 @@ import { useJourney } from '@/lib/journey';
 import { prefersReducedMotion } from '@/lib/session';
 import type { QualityTier } from '@/components/city/CityLayer';
 import City from '@/components/city/City';
+import { setQualityFills } from '@/components/city/textures';
 
 /**
  * Camera rail through the six stations (city on XZ plane, Y up).
@@ -97,25 +97,74 @@ class SplitToneEffect extends Effect {
   }
 }
 
-const STATIC_GRAIN_FRAG = `
+/**
+ * IT6 GRAIN FLOOR — replaces the SOFT_LIGHT NoiseEffect, which round 2 measured
+ * at 0.2 8-bit levels in the blacks (target 1.5–3). SOFT_LIGHT is multiplicative
+ * around the input: on a near-black pixel it has almost nothing to modulate, so
+ * the grain died exactly where film grain is supposed to live. This is ADDITIVE
+ * and CENTERED — `(n - 0.5) * amplitude`, so it neither lifts nor crushes the
+ * mean — and it is applied in an approximately DISPLAY-referred domain rather
+ * than the linear one the composer works in.
+ *
+ * On that last point I am deliberately departing from the brief's wording ("adds
+ * … in linear space"). The effect chain runs before the linear→sRGB encode, and
+ * near black the sRGB transfer has a slope of ~12.9: a ±0.006 linear nudge on
+ * the #050c07 sky (linear ≈ 0.0043) swings roughly ±20 8-bit levels, which is
+ * not grain, it is dirt. Perturbing in sqrt space (a cheap gamma-2.0 stand-in
+ * for sRGB) makes the amplitude constant in DISPLAY levels from blacks to
+ * highlights, which is what the 1.5–3 level target actually asks for:
+ *   sigma = amplitude / sqrt(12) * 255 = 0.022 / 3.464 * 255 ≈ 1.6 levels
+ *   peak  = amplitude / 2      * 255 = ±2.8 levels
+ */
+const GRAIN_FRAG = `
+uniform float grainTime;
+uniform float grainAmp;
+
 void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
-	outputColor = vec4(vec3(rand(uv)), inputColor.a);
+	// one hash per pixel per frame; the time offset decorrelates consecutive frames
+	float n = rand(uv + vec2(grainTime, grainTime * 1.618));
+	vec3 d = sqrt(max(inputColor.rgb, 0.0));
+	d += (n - 0.5) * grainAmp;
+	outputColor = vec4(max(d, 0.0) * max(d, 0.0), inputColor.a);
 }
 `;
 
+interface GrainOptions {
+  amplitude?: number;
+  animated?: boolean;
+}
+
 /**
- * prefers-reduced-motion variant of the grain: identical to postprocessing's
- * NoiseEffect minus the `time` term, so the grain STAYS (the frame keeps its
- * film texture) but never crawls. Same blend/opacity, same merged pass.
+ * `animated: false` is the prefers-reduced-motion variant: the time uniform is
+ * frozen, so the frame keeps its film texture but the grain never crawls.
  */
-class StaticNoiseEffect extends Effect {
-  constructor() {
-    super('StaticNoiseEffect', STATIC_GRAIN_FRAG, { blendFunction: BlendFunction.SOFT_LIGHT });
+class GrainEffect extends Effect {
+  private readonly animated: boolean;
+
+  constructor({ amplitude = 0.022, animated = true }: GrainOptions = {}) {
+    super('GrainEffect', GRAIN_FRAG, {
+      blendFunction: BlendFunction.NORMAL,
+      uniforms: new Map<string, THREE.Uniform>([
+        ['grainAmp', new THREE.Uniform(amplitude)],
+        ['grainTime', new THREE.Uniform(0)]
+      ])
+    });
+    this.animated = animated;
+  }
+
+  update(_renderer: THREE.WebGLRenderer, _inputBuffer: THREE.WebGLRenderTarget, deltaTime = 0): void {
+    if (!this.animated) return;
+    const u = this.uniforms.get('grainTime');
+    // wrapped so the float never loses precision on a long-lived tab
+    if (u) u.value = (u.value + deltaTime * 60) % 1000;
   }
 }
 
 const SplitTone = wrapEffect(SplitToneEffect);
-const StaticNoise = wrapEffect(StaticNoiseEffect);
+const Grain = wrapEffect(GrainEffect);
+
+const GRAIN_ARGS: [GrainOptions] = [{ amplitude: 0.022, animated: true }];
+const GRAIN_STATIC_ARGS: [GrainOptions] = [{ amplitude: 0.022, animated: false }];
 
 const SPLIT_TONE_ARGS: [SplitToneOptions] = [
   { shadows: '#1a3038', highlights: '#ffd9b0', strength: 0.15 }
@@ -133,7 +182,18 @@ const SPLIT_TONE_ARGS: [SplitToneOptions] = [
  *  2. Bloom / 3. split-tone / 4. vignette / 5. grain, i.e. grade after glow,
  *     grain last so the vignette does not dim it.
  */
-function FilmPass({ reduced }: { reduced: boolean }) {
+function FilmPass({ reduced, degraded }: { reduced: boolean; degraded: boolean }) {
+  // IT6 ADAPTIVE QUALITY: on a machine that cannot hold the frame, the chain
+  // collapses to the two effects that carry the look (glow + falloff) and drops
+  // the three per-pixel ones. Same single EffectPass, ~half the ALU.
+  if (degraded) {
+    return (
+      <EffectComposer>
+        <Bloom mipmapBlur intensity={0.7} luminanceThreshold={0.9} luminanceSmoothing={0.2} />
+        <Vignette darkness={0.55} offset={0.28} />
+      </EffectComposer>
+    );
+  }
   return (
     <EffectComposer>
       {/* edge-weighted: modulationOffset keeps the middle ~40% of the frame clean */}
@@ -141,13 +201,77 @@ function FilmPass({ reduced }: { reduced: boolean }) {
       <Bloom mipmapBlur intensity={0.7} luminanceThreshold={0.9} luminanceSmoothing={0.2} />
       <SplitTone args={SPLIT_TONE_ARGS} blendFunction={BlendFunction.NORMAL} />
       <Vignette darkness={0.55} offset={0.28} />
-      {reduced ? (
-        <StaticNoise blendFunction={BlendFunction.SOFT_LIGHT} opacity={0.025} />
-      ) : (
-        <Noise premultiply={false} blendFunction={BlendFunction.SOFT_LIGHT} opacity={0.025} />
-      )}
+      <Grain args={reduced ? GRAIN_STATIC_ARGS : GRAIN_ARGS} blendFunction={BlendFunction.NORMAL} />
     </EffectComposer>
   );
+}
+
+/* -------------------------------------------------------- IT6 adaptive quality */
+
+/** rolling window used for the frame-time mean */
+const FT_WINDOW = 60;
+/** sustained mean above this (ms) drops the quality tier */
+const FT_DEGRADE = 40;
+/** sustained mean below this (ms) restores it — the gap IS the hysteresis */
+const FT_RESTORE = 22;
+/** how long the mean has to stay past a threshold before anything happens */
+const FT_DWELL = 3;
+/** a toggle can only fire this often, so the two thresholds can never flap */
+const FT_COOLDOWN = 30;
+
+/**
+ * Round 2 measured SwiftShader fps roughly halving once the film pass and the
+ * RectAreaLights landed. On a real GPU that is probably free; on a weak one it
+ * is not, and we cannot know which we got. So: sample the frame time, and if the
+ * full tier genuinely cannot hold it, spend the two most expensive things —
+ * the three per-pixel effects and the two cool-fill RectAreaLights — rather than
+ * ship a slideshow. Both thresholds need FT_DWELL seconds of sustained evidence
+ * and only one toggle can fire per FT_COOLDOWN, so a machine sitting near the
+ * boundary settles instead of oscillating.
+ */
+function AdaptiveQuality({ onChange }: { onChange: (degraded: boolean) => void }) {
+  const samples = useRef<number[]>([]);
+  const cursor = useRef(0);
+  const sum = useRef(0);
+  const overSince = useRef(-1);
+  const underSince = useRef(-1);
+  const degraded = useRef(false);
+  const lastToggle = useRef(-FT_COOLDOWN);
+
+  useFrame((state, dt) => {
+    // a tab returning from the background reports one enormous dt — not evidence
+    if (dt > 0.5 || dt <= 0) return;
+    const ms = dt * 1000;
+    const ring = samples.current;
+    if (ring.length < FT_WINDOW) {
+      ring.push(ms);
+      sum.current += ms;
+    } else {
+      sum.current += ms - ring[cursor.current];
+      ring[cursor.current] = ms;
+      cursor.current = (cursor.current + 1) % FT_WINDOW;
+    }
+    if (ring.length < FT_WINDOW) return;
+
+    const mean = sum.current / FT_WINDOW;
+    const now = state.clock.elapsedTime;
+    overSince.current = mean > FT_DEGRADE ? (overSince.current < 0 ? now : overSince.current) : -1;
+    underSince.current = mean < FT_RESTORE ? (underSince.current < 0 ? now : underSince.current) : -1;
+    if (now - lastToggle.current < FT_COOLDOWN) return;
+
+    if (!degraded.current && overSince.current >= 0 && now - overSince.current > FT_DWELL) {
+      degraded.current = true;
+      lastToggle.current = now;
+      setQualityFills(false);
+      onChange(true);
+    } else if (degraded.current && underSince.current >= 0 && now - underSince.current > FT_DWELL) {
+      degraded.current = false;
+      lastToggle.current = now;
+      setQualityFills(true);
+      onChange(false);
+    }
+  });
+  return null;
 }
 
 /** image-based lighting: bundled CC0 night HDRI gives metals/glass real reflections */
@@ -348,6 +472,9 @@ export default function CityScene({ tier }: { tier: QualityTier }) {
   // NOTE: CityLayer maps prefers-reduced-motion to tier 'off' (2D fallback), so
   // this is defensive — it only fires if the OS setting flips after tier detection.
   const reduced = useMemo(() => prefersReducedMotion(), []);
+  // IT6: only the full tier can degrade — 'lite' already has no composer, and
+  // its rigs stay at full light because they are the whole look there.
+  const [degraded, setDegraded] = useState(false);
   return (
     <Canvas
       dpr={[1, 1.75]}
@@ -370,7 +497,8 @@ export default function CityScene({ tier }: { tier: QualityTier }) {
       <CameraRig />
       <FogRig />
       <FirstFrameFlag />
-      {tier === 'full' ? <FilmPass reduced={reduced} /> : null}
+      {tier === 'full' ? <AdaptiveQuality onChange={setDegraded} /> : null}
+      {tier === 'full' ? <FilmPass reduced={reduced} degraded={degraded} /> : null}
     </Canvas>
   );
 }

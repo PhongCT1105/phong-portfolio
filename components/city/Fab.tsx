@@ -10,9 +10,11 @@ import { getLenis } from '@/components/SmoothScroll';
 import ChipModel from '@/components/city/ChipModel';
 import {
   NO_RAYCAST,
+  QUALITY,
   aimRotation,
   ensureRectAreaLights,
   getBlobShadowMaterial,
+  getLightPoolMaterial,
   makeNameplateTexture
 } from '@/components/city/textures';
 
@@ -39,6 +41,18 @@ const RIB_XS = [-26, -13, 0, 13, 26];
  * RectAreaLights cast no shadows and cost one LTC lookup: cheap enough to keep on
  * the lite tier, where they do most of the work of separating chip from plinth.
  */
+/**
+ * IT6 WARMTH. Round 2 sampled the lit chip face at 26,26,26 — dead neutral, i.e.
+ * the "warm key" was not measurably warm at all. Two reasons: #ffe8c2 only has a
+ * 23-level red-green spread to begin with, and at intensity 4.2 the ceramic was
+ * so far down the response curve that the tint never survived the grade. The key
+ * is now #ffd9a8 (38-level spread) at 6.7 — 4.2 × 1.6 — which should land the
+ * chip face's red-green delta comfortably past the 8-level target while the cool
+ * fill on the opposite side keeps the shadow side from following it warm.
+ */
+const KEY_COLOR = '#ffd9a8';
+const KEY_INTENSITY = 6.7;
+const FILL_INTENSITY = 1.5;
 const KEY_POS: [number, number, number] = [-26, 22, 17];
 const FILL_POS: [number, number, number] = [25, 13, 15];
 const KEY_ROT = aimRotation(KEY_POS, [-2, 5, 0]);
@@ -184,6 +198,7 @@ function InteractiveChip({
     [owner]
   );
   const shadowMat = useMemo(() => getBlobShadowMaterial(), []);
+  const poolMat = useMemo(() => getLightPoolMaterial(), []);
   // R6: the etched serial milled into the plinth face — a real display case
   // labels its exhibit. Cached per string inside the helper.
   const plate = useMemo(
@@ -397,6 +412,16 @@ function InteractiveChip({
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 3.02, 0]} scale={[2.9, 2.9, 1]} raycast={NO_RAYCAST} renderOrder={-1} material={shadowMat}>
         <planeGeometry args={[1, 1]} />
       </mesh>
+      {/* IT6 light pools — laid a hair ABOVE each blob shadow (y +0.01, renderOrder
+          0 vs −1) and UNDER the object, at ~1.6× the shadow's footprint. The plinth
+          strip is only 6u deep, so the ground pool is clamped to 5.2 in z rather
+          than the full 5.5. Additive: it can only add. */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.73, 0]} scale={[5.5, 5.2, 1]} raycast={NO_RAYCAST} material={poolMat}>
+        <planeGeometry args={[1, 1]} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 3.03, 0]} scale={[4.6, 4.6, 1]} raycast={NO_RAYCAST} material={poolMat}>
+        <planeGeometry args={[1, 1]} />
+      </mesh>
       {/* R6 chamfered plinth. Four stacked parts — block, engraved groove, collar,
           chamfer cap — replacing the bare 3×3×3 cube. The stack still tops out at
           EXACTLY y=3.0, so the chip pose, both blob shadows and the pedestal light
@@ -560,14 +585,22 @@ function HallBackdrop() {
 export default function Fab() {
   // uploads the LTC lookup textures once, before any RectAreaLight renders
   useMemo(() => ensureRectAreaLights(), []);
+  // IT6 adaptive quality: the cool fill is the first thing spent when the frame
+  // budget blows out. Written per frame from a plain module flag rather than
+  // React state so a toggle never re-renders the scene graph.
+  const fillRef = useRef<THREE.RectAreaLight>(null);
+  useFrame(() => {
+    const fill = fillRef.current;
+    if (fill) fill.intensity = QUALITY.fills ? FILL_INTENSITY : 0;
+  });
   return (
     <group>
       <group position={[ROW.x, 0, ROW.z]} rotation={[0, ROW_ROT, 0]}>
         {/* R5 studio rig: warm key from camera-left, cool fill from camera-right.
             Static (no reduced-motion gating needed) and shadow-free, so both tiers
             keep them — they are what makes the ceramic slabs read as objects. */}
-        <rectAreaLight args={['#ffe8c2', 4.2, 24, 10]} position={KEY_POS} rotation={KEY_ROT} />
-        <rectAreaLight args={['#d8e3e7', 1.5, 20, 8]} position={FILL_POS} rotation={FILL_ROT} />
+        <rectAreaLight args={[KEY_COLOR, KEY_INTENSITY, 24, 10]} position={KEY_POS} rotation={KEY_ROT} />
+        <rectAreaLight ref={fillRef} args={['#d8e3e7', FILL_INTENSITY, 20, 8]} position={FILL_POS} rotation={FILL_ROT} />
         {/* display plinth strip */}
         <mesh position={[0, 0.35, 0]}>
           <boxGeometry args={[42, 0.7, 6]} />

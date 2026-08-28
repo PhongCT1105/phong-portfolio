@@ -75,7 +75,13 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .receipts__sticky,
 .road__sticky { position: sticky; top: 0; min-height: 100svh; display: flex; flex-direction: column; justify-content: center; padding-top: 78px; padding-bottom: 20px; }
 .road--track { min-height: 280svh; }
-.receipts__window { min-height: 40vh; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 12px; }
+/* IT6 — the sky window. 40vh put its TOP at ~308px in a 900px viewport, which is
+   below the projected vault tops (~444px), so nothing could be parked above the
+   row. 52vh grows the window by 108px; because .receipts__sticky centres its
+   column, growing the window by X lifts the window's top by X/2 and drops the
+   readout by X/2 — which is exactly what is wanted here (numeral into the sky,
+   readout below the vault bases at ~703px). See the .receipt-giant block. */
+.receipts__window { min-height: 52vh; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 12px; }
 .receipt-readout { display: flex; align-items: center; gap: clamp(18px, 2.5vw, 34px); padding: 20px 26px; border-radius: var(--radius-md); }
 .receipt-readout__main { flex: 1 1 300px; display: flex; flex-direction: column; gap: 8px; }
 .receipt-readout__main strong { font-size: 19px; font-weight: 650; letter-spacing: -.01em; }
@@ -91,14 +97,29 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .receipt-readout .viz-bar { transform: scaleY(1); }
 .receipt-readout .receipt-viz { height: 50px; }
 
-/* the giant stage numeral — the receipt's 2-second message */
+/* the giant stage numeral — the receipt's 2-second message.
+
+   IT6 / ROUND-2 RESIDUAL — "the $30K numeral parks over the focused vault".
+   It used to hang off the READOUT wrapper (bottom: 100% + 10px), which pinned it
+   to the bottom of the sky window: at the converged station-1 hold it occupied
+   viewport y 442–658. Projection of the vault row with that hold camera
+   (pos 85,20,60 → look 120,4,-20, fov 55, aspect 1440/900):
+     FPT slab top  (86, 13, 17)   → NDC (-0.485, +0.014) → screen (371, 444)
+     NSF slab top  (116, 13, 30.5)→ NDC (+0.497, +0.011) → screen (1078, 445)
+     FPT ground    (86,  0, 17)   → screen y 703  (the row's base)
+   i.e. the whole vault row lives BELOW y≈444 — and the old numeral started at
+   442, straight over the focused door. It now anchors to the TOP of
+   .receipts__window (the window is the positioning context) and is trimmed to
+   12.5vw, which at 1440×900 puts it at y ≈ 236–416 with the glow reaching ~442:
+   entirely in the sky above both slab tops. Count-up + giantIn are untouched. */
 .receipts__window { position: relative; }
 .receipt-readout { position: relative; }
 .receipt-giant {
   position: absolute;
-  bottom: calc(100% + 10px);
+  top: 0;
+  bottom: auto;
   left: 20px;
-  font-size: clamp(120px, 15vw, 230px);
+  font-size: clamp(104px, 12.5vw, 190px);
   font-weight: 700;
   letter-spacing: -0.06em;
   line-height: 1;
@@ -108,10 +129,15 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 0 34px color-mix(in srgb, var(--org, #9be15d) 40%, transparent));
+  /* 34px → 26px: the drop-shadow is the numeral's real bottom edge, and 26px
+     keeps the glow's falloff above the 444px slab-top line too */
+  filter: drop-shadow(0 0 26px color-mix(in srgb, var(--org, #9be15d) 40%, transparent));
   animation: giantIn .7s var(--ease-out);
   pointer-events: none;
 }
+/* the head is the only thing between the sticky's top padding and the window, so
+   trimming its bottom margin is worth another ~18px of sky for the numeral */
+.receipts--track .section-head { margin-bottom: clamp(18px, 2vw, 28px); }
 @keyframes giantIn { from { opacity: 0; transform: scale(.9) translateY(14px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
 /* road spotlight: the current stop dominates, the rest recede */
@@ -128,6 +154,45 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 }
 .road-stop.is-current .road-stop__org { color: #fff; }
 .road-stop.is-current .road-stop__metric { color: #071004; background: var(--stop-color); border-color: var(--stop-color); font-weight: 700; }
+
+/* ==== IT6 · R6 LAYERING, part 1 of 2 (part 2 is the station cap in Gates.tsx) ==
+
+   ROUND-2 WALK DEFECT: gate posts print straight through the road cards. Two
+   things let them through, and BOTH had to go:
+
+   1. ELEMENT OPACITY. The spotlight recession above sets `opacity: .38` (.68 when
+      active) on the whole card — which makes every non-current card a literal
+      window, no matter how opaque its background is. On the 3D track the
+      recession is now expressed as a brightness/saturation FILTER instead: the
+      card stays fully opaque, the ink and the surface dim together, and the
+      spotlight reads exactly as before. (Tier 'off' keeps the opacity ladder
+      untouched — there is no canvas behind it there.)
+   2. SCRIM ALPHA. The winning background is NOT `.text-scrim` (rgba(5,8,5,.7));
+      it is the component-craft rule further down this file, whose base layer
+      bottoms out at rgba(9,12,9,0.78). Raised here to ≥.95 across the whole
+      ramp, blur kept, so even a fully lit tube behind it contributes <5%.
+
+   The honors row and the section head keep their current scrims: in the round-2
+   road frames (shots-q2/d1-road-stop2.png, e0-road-early.png) the gantries only
+   ever cross the card band — the crossbars top out just above the cards and the
+   legs die out before the honors rule. */
+.road--track .road-stop { opacity: 1; filter: brightness(.46) saturate(.72); }
+.road--track .road-stop.is-active { opacity: 1; filter: brightness(.76) saturate(.9); }
+.road--track .road-stop.is-current { opacity: 1; filter: none; }
+.road--track .road-stop.text-scrim {
+  background:
+    radial-gradient(120% 90% at 18% 0%, rgba(255, 255, 255, 0.05), transparent 46%),
+    linear-gradient(165deg, rgba(14, 19, 14, 0.985), rgba(7, 10, 7, 0.955));
+  /* the blur is dropped WITH the transparency it existed to soften: at ≥.955
+     alpha it has under 5% of a backdrop left to work on, so it is invisible —
+     and dropping it also removes the filter/backdrop-filter-on-one-element
+     interaction, which engines disagree about, from the card that must not leak. */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .road--track .road-stop, .road--track .road-stop.is-active { filter: none; }
+}
 
 /* the giant ghost year — the road's 2-second message, sticky through the chapter */
 .section-head { position: relative; }
@@ -280,18 +345,54 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
    ending on a hard edge. No content is faked — this is the real repo card, dimmed. */
 .casebook__img { display: flex; flex-direction: column; gap: 8px; }
 /* CRITIC RESIDUAL: the GitHub OG card ends in a "0 contributors · 0 stars" strip
-   — real, but it un-sells the click. The bottom ~15% is CROPPED away rather than
-   faked: the frame is a fixed 2.36:1 window (the OG plate is 1280×640, i.e. 2:1,
-   so 2 ÷ .847 = 2.36) and the img inside is 118% tall with object-fit cover +
-   object-position top. 100%w × 118%h of a 2.36 box is exactly 2:1, so cover
-   scales with NO horizontal crop and overflow:hidden eats only the stats row. */
-.casebook__img-frame { position: relative; aspect-ratio: 2.36; border-radius: 14px; overflow: hidden; background: #060806; border: 1.5px solid color-mix(in srgb, var(--card-accent, #9be15d) 38%, transparent); }
+   — real, but it un-sells the click. The bottom ~21% is CROPPED away rather than
+   faked.
+
+   WHY ROUND 2 MEASURED ZERO CROP (imgOverflowBelowFrame = -1px): nothing
+   "overrode" this rule — the rule that shipped in the audited build (IT4,
+   102d8a6) simply had no crop in it at all. It read
+       .casebook__img-frame { position: relative; border-radius: 14px; ... }
+       .casebook__img img   { width: 100%; display: block; filter: ... }
+   i.e. no aspect-ratio on the frame and no height on the img, so the frame's
+   height WAS the img's height and the img's bottom sat flush with the frame's
+   content box (‑1px = the 1.5px border rounding). IT5 added the aspect-ratio
+   version, but the round-2 audit ran against the IT4 build, so it measured the
+   pre-IT5 rule. The fix below is the IT5 idea, hardened.
+
+   HARDENING: the img is now ABSOLUTELY positioned inside the frame instead of
+   in flow. A percentage height only resolves against a definite containing
+   block, and "definite via aspect-ratio" is the exact case implementations have
+   historically disagreed on; against a positioned ancestor's padding box it
+   always resolves. So the crop cannot silently no-op again.
+
+   GEOMETRY: frame is 2 / 0.79 (= 2.532:1) and the img box is 133% of it, i.e.
+   0.5254·W tall against a natural 2:1 plate that wants 0.5·W. cover therefore
+   scales to height and overflows the width by ~5% (2.5% trimmed per side,
+   inside the OG plate's own gutter), and the visible band is the top 75% of the
+   source — the stats strip, which occupies the bottom ~21%, is gone. */
+/* isolation: the ::before wash below is a multiply blend — without a stacking
+   context of its own it would blend against the modal panel behind the frame */
+.casebook__img-frame { position: relative; isolation: isolate; aspect-ratio: 2 / 0.79; border-radius: 14px; overflow: hidden; background: #060806; border: 1.5px solid color-mix(in srgb, var(--card-accent, #9be15d) 38%, transparent); }
 .casebook__img-frame::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; z-index: 2;
   background: radial-gradient(118% 96% at 50% 42%, rgba(6,8,6,0) 38%, rgba(6,8,6,.46) 100%);
   box-shadow: inset 0 0 0 1px rgba(6,8,6,.8), inset 0 -30px 40px -24px rgba(6,8,6,.95), inset 0 24px 36px -28px rgba(6,8,6,.85);
 }
-.casebook__img img { width: 100%; height: 118%; object-fit: cover; object-position: top; display: block; filter: brightness(.82) contrast(1.05) saturate(.85); }
+/* duotone, part 2: an accent wash multiplied over the (already knocked-back)
+   plate, so the white GitHub chrome takes the card's own hue instead of staying
+   a bright neutral rectangle in a near-black modal */
+.casebook__img-frame::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; z-index: 1;
+  background: linear-gradient(168deg, color-mix(in srgb, var(--card-accent, #9be15d) 30%, #0a1408), color-mix(in srgb, var(--card-accent, #9be15d) 12%, #05080a));
+  mix-blend-mode: multiply;
+  opacity: .72;
+}
+.casebook__img img {
+  position: absolute; top: 0; left: 0; z-index: 0;
+  width: 100%; height: 133%;
+  object-fit: cover; object-position: top; display: block;
+  filter: brightness(.72) contrast(1.08) saturate(.7);
+}
 .casebook__img span { font: 10px var(--mono); letter-spacing: .12em; color: var(--muted-2); }
 .casebook__cover--compact { min-height: 0; flex-direction: row; gap: 14px; padding: 12px 16px; font-size: 20px; }
 .casebook__cover--compact svg { width: 64px; height: 46px; }
@@ -377,8 +478,13 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
   filter: drop-shadow(0 0 38px rgba(155, 225, 93, 0.35));
 }
 .now__stat span { font: 11px var(--mono); letter-spacing: 0.16em; color: var(--fg-soft); }
-.now__stat .now__stat-sub { font-size: 10px; letter-spacing: .13em; color: var(--muted-2); }
-@media (max-width: 1050px) { .now__stat b { font-size: clamp(90px, 16vw, 150px); } }
+/* ROUND-2 MINOR: the sub-caption grazed the 3D machine nameplates. Lifting the
+   whole stat block clear of the label band (relative offset, so the flex row's
+   layout and the copy card beside it do not move) and capping the sub-caption's
+   width keeps its second line from running into the plate row on the right. */
+.now__stat { position: relative; top: -54px; }
+.now__stat .now__stat-sub { font-size: 10px; letter-spacing: .13em; color: var(--muted-2); max-width: 320px; }
+@media (max-width: 1050px) { .now__stat b { font-size: clamp(90px, 16vw, 150px); } .now__stat { top: 0; } }
 
 /* the inline case file leads with the tagline; the why-line stays quiet */
 .work-case__why { color: var(--muted); font-style: normal; }
@@ -599,7 +705,10 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
   .hero2__name { font-size: clamp(168px, 9.8vw, 250px); }
   .hero2__statement { font-size: clamp(34px, 1.9vw, 46px); }
   .hero2__sub { font-size: 18px; max-width: 720px; }
-  .receipt-giant { font-size: clamp(230px, 11.5vw, 300px); }
+  /* IT6: was clamp(230px, 11.5vw, 300px). Re-solved against the same hold —
+     at 1800×1000 the window top lands at ~260px and the vault slab tops at
+     ~493px, so the numeral's line box has to stay under ~230px to sit in sky. */
+  .receipt-giant { font-size: clamp(170px, 10.5vw, 240px); }
   .road-year-giant { font-size: clamp(150px, 8.5vw, 215px); }
   .work-giant { font-size: clamp(140px, 8vw, 195px); }
   .work-stage .work-giant { font-size: clamp(105px, 5.5vw, 145px); }

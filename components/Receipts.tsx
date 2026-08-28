@@ -326,13 +326,16 @@ export default function Receipts() {
       <div className="receipts__sticky">
         {head}
         <div className="receipts__stage reveal">
+          {/* IT6: the giant numeral now lives INSIDE the sky window (which is the
+              positioning context) and is pinned to its TOP. Hanging off the
+              readout wrapper parked it directly over the vault row at the
+              converged station-1 hold — see the .receipt-giant block in v2.css
+              for the projection numbers. */}
           <div className="receipts__window">
+            <GiantValue />
             <span className="shelf__window-hint">SCROLL — THE VAULTS OPEN · CLICK A VAULT</span>
           </div>
-          <div style={{ position: 'relative' }}>
-            <GiantValue />
-            <ReceiptReadout />
-          </div>
+          <ReceiptReadout />
         </div>
       </div>
     </section>

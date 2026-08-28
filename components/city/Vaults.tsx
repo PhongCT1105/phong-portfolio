@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { RoundedBox, useCursor } from '@react-three/drei';
 import { useJourney } from '@/lib/journey';
 import { prefersReducedMotion } from '@/lib/session';
-import { NO_RAYCAST, getBlobShadowMaterial } from '@/components/city/textures';
+import { NO_RAYCAST, getBlobShadowMaterial, getLightPoolMaterial } from '@/components/city/textures';
 
 /**
  * Bank-style vault monuments: a circular steel door with radial spokes, rim
@@ -98,6 +98,7 @@ function Vault({
   const reduced = useMemo(() => prefersReducedMotion(), []);
   const label = useMemo(() => makeOrgTexture(org), [org]);
   const shadowMat = useMemo(() => getBlobShadowMaterial(), []);
+  const poolMat = useMemo(() => getLightPoolMaterial(), []);
   // face the held receipts camera
   const rotY = Math.atan2(85 - x, 60 - z);
 
@@ -178,6 +179,13 @@ function Vault({
           monument sits on the plaza instead of hovering over the trace ground.
           y=0.03 keeps it under the seated ring at y=0.06. */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, 0.5]} scale={[11.5, 4.6, 1]} raycast={NO_RAYCAST} renderOrder={-1} material={shadowMat}>
+        <planeGeometry args={[1, 1]} />
+      </mesh>
+      {/* IT6 light pool at 1.6× the blob, laid over it (y 0.04, no renderOrder
+          demotion) and still under the seated ring at y=0.06. On the plaza's
+          near-black trace ground the blob alone had nothing to subtract from —
+          the halo is what gives it something to be missing from. */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.04, 0.5]} scale={[18.4, 7.4, 1]} raycast={NO_RAYCAST} material={poolMat}>
         <planeGeometry args={[1, 1]} />
       </mesh>
       {/* monument slab */}

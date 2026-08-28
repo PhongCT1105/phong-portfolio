@@ -9,9 +9,11 @@ import { MacBookModel, TowerModel, GpuCardModel } from '@/components/city/Device
 import ChipModel from '@/components/city/ChipModel';
 import {
   NO_RAYCAST,
+  QUALITY,
   aimRotation,
   ensureRectAreaLights,
   getBlobShadowMaterial,
+  getLightPoolMaterial,
   makeDepotBoardTexture,
   makePacketCoreTexture
 } from '@/components/city/textures';
@@ -26,6 +28,17 @@ const HALL_ROT = Math.atan2(-85 - HALL.x, -45 - HALL.z);
  * The key is pulled slightly green to sit inside this chapter's accent instead of
  * fighting it; the fill stays neutral-cool so the metal has somewhere to go.
  */
+/**
+ * IT6 WARMTH — same finding as the fab shelf (round 2: chip face 26,26,26). The
+ * green-leaning key was the worst offender of the two: #e6f2c6 has a NEGATIVE
+ * red-green spread (230 vs 242), so it was actively cooling the lit side. It is
+ * now the same #ffd9a8 as the fab key at 6.4 (4 × 1.6). The bench's green
+ * identity is unchanged — it comes from the two accent point lights above and
+ * from the machines' own emissives, not from the key.
+ */
+const KEY_COLOR = '#ffd9a8';
+const KEY_INTENSITY = 6.4;
+const FILL_INTENSITY = 1.5;
 const KEY_POS: [number, number, number] = [-17, 20, 30];
 const FILL_POS: [number, number, number] = [31, 13, 28];
 const KEY_ROT = aimRotation(KEY_POS, [7, 5, 12]);
@@ -109,8 +122,11 @@ export default function Scheduler() {
   const hoverLift = useRef<number[]>(DEVICES.map(() => 0));
   const reduced = useMemo(() => prefersReducedMotion(), []);
   const shadowMat = useMemo(() => getBlobShadowMaterial(), []);
+  const poolMat = useMemo(() => getLightPoolMaterial(), []);
   // uploads the RectAreaLight LTC textures once, before the rig renders
   useMemo(() => ensureRectAreaLights(), []);
+  // IT6 adaptive quality: the cool fill goes first when the frame budget blows out
+  const fillRef = useRef<THREE.RectAreaLight>(null);
   const depotMat = useRef<THREE.MeshStandardMaterial>(null);
   const horizonMat = useRef<THREE.MeshStandardMaterial>(null);
   const labels = useMemo(() => DEVICES.map((d) => makeLabelTexture(d.name, d.sub)), []);
@@ -137,6 +153,7 @@ export default function Scheduler() {
     const { station, boot, localT } = useJourney.getState();
     const delta = Math.min(dt, 0.05);
     const bootRamp = Math.max(0, Math.min(1, (boot - 0.35) / 0.25));
+    if (fillRef.current) fillRef.current.intensity = QUALITY.fills ? FILL_INTENSITY : 0;
 
     // death cycle for the GPU card
     const phase = (state.clock.elapsedTime % DEATH_CYCLE) / DEATH_CYCLE;
@@ -226,8 +243,8 @@ export default function Scheduler() {
       <pointLight position={[0, 8, 18]} color="#cfe8c0" intensity={18} distance={44} decay={2} />
       {/* R5 studio rig: warm-green key from camera-left, cool fill from the right.
           Static and shadow-free — both tiers keep them. */}
-      <rectAreaLight args={['#e6f2c6', 4, 34, 10]} position={KEY_POS} rotation={KEY_ROT} />
-      <rectAreaLight args={['#d8e3e7', 1.5, 26, 8]} position={FILL_POS} rotation={FILL_ROT} />
+      <rectAreaLight args={[KEY_COLOR, KEY_INTENSITY, 34, 10]} position={KEY_POS} rotation={KEY_ROT} />
+      <rectAreaLight ref={fillRef} args={['#d8e3e7', FILL_INTENSITY, 26, 8]} position={FILL_POS} rotation={FILL_ROT} />
       {/* plaza slab */}
       <mesh position={[0, 0.5, 3]}>
         <boxGeometry args={[46, 1, 34]} />
@@ -301,6 +318,20 @@ export default function Scheduler() {
             scale={[MACHINE_SHADOWS[i].w, MACHINE_SHADOWS[i].d, 1]}
             raycast={NO_RAYCAST} renderOrder={-1}
             material={shadowMat}
+          >
+            <planeGeometry args={[1, 1]} />
+          </mesh>
+          {/* IT6 light pool, over the shadow and under the machine. 1.55× rather
+              than 1.6×: the pedestal cap is only 11×8, and the pool has to stay on
+              it — a halo hanging off the edge into the void reads as a bug, not as
+              grounding. The MacBook and GPU-card blobs are the wide ones, so their
+              pools are the ones that would have spilled. */}
+          <mesh
+            rotation={[-Math.PI / 2, 0, 0]}
+            position={[0, 1.73, MACHINE_SHADOWS[i].z]}
+            scale={[Math.min(MACHINE_SHADOWS[i].w * 1.55, 10.8), Math.min(MACHINE_SHADOWS[i].d * 1.55, 7.8), 1]}
+            raycast={NO_RAYCAST}
+            material={poolMat}
           >
             <planeGeometry args={[1, 1]} />
           </mesh>
